@@ -1,0 +1,16 @@
+@model Product
+@{
+    ViewData["Title"] = Model.Name;
+}
+<a class="back-link" asp-action="Index">← Назад в каталог</a>
+<section class="details">
+    <div class="details-image"><img src="@Model.ImageUrl" alt="@Model.Name" /></div>
+    <div class="details-info">
+        <p class="eyebrow">SIMPLESTORE / ТОВАР</p>
+        <h1>@Model.Name</h1>
+        <p class="details-price">@Model.Price.ToString("N0") ₽</p>
+        <p class="description">@Model.Description</p>
+        <button class="button button-dark" type="button" data-add-to-cart="@Model.Id">Добавить в корзину</button>
+        <p class="small-note">Количество в корзине обновится автоматически.</p>
+    </div>
+</section>

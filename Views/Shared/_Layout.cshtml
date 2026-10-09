@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — SimpleStore</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="topbar">
+        <a class="logo" asp-controller="Products" asp-action="Index">simple<span>store</span></a>
+        <nav>
+            <a asp-controller="Products" asp-action="Index">Каталог</a>
+            <a class="cart-link" asp-controller="Cart" asp-action="Index">
+                Корзина <span id="cart-count" class="count">0</span>
+            </a>
+        </nav>
+    </header>
+
+    <main class="container">
+        @RenderBody()
+    </main>
+
+    <footer class="footer">SimpleStore · Учебный мини-магазин</footer>
+    <div id="toast" class="toast" role="status"></div>
+
+    <script>
+        async function updateCartCount() {
+            try {
+                const response = await fetch('/Cart/Count');
+                if (!response.ok) return;
+                const data = await response.json();
+                document.getElementById('cart-count').textContent = data.count;
+            } catch (error) {
+                console.error('Не удалось обновить корзину', error);
+            }
+        }
+
+        async function addToCart(productId) {
+            try {
+                const response = await fetch('/Cart/Add?id=' + encodeURIComponent(productId), {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    showToast(data.message || 'Не удалось добавить товар.');
+                    return;
+                }
+                document.getElementById('cart-count').textContent = data.count;
+                showToast(data.message);
+            } catch (error) {
+                showToast('Ошибка соединения. Попробуйте ещё раз.');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('visible');
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => toast.classList.remove('visible'), 2200);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+            document.querySelectorAll('[data-add-to-cart]').forEach(button => {
+                button.addEventListener('click', () => addToCart(button.dataset.addToCart));
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

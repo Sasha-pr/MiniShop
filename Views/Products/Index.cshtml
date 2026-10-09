@@ -1,0 +1,33 @@
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "Каталог";
+}
+<section class="hero">
+    <p class="eyebrow">НЕБОЛЬШОЙ МАГАЗИН</p>
+    <h1>Вещи на каждый день.</h1>
+    <p class="muted">Простые товары. Ничего лишнего.</p>
+</section>
+
+<div class="section-heading">
+    <h2>Каталог</h2>
+    <span class="muted">@Model.Count() товара</span>
+</div>
+
+<div class="product-grid">
+@foreach (var product in Model)
+{
+    <article class="product-card">
+        <a class="product-image" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">
+            <img src="@product.ImageUrl" alt="@product.Name" />
+        </a>
+        <div class="product-info">
+            <div>
+                <h3>@product.Name</h3>
+                <p class="price">@product.Price.ToString("N0") ₽</p>
+            </div>
+            <a class="text-link" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">Подробнее →</a>
+            <button class="button button-dark full" type="button" data-add-to-cart="@product.Id">В корзину</button>
+        </div>
+    </article>
+}
+</div>

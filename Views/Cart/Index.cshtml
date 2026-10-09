@@ -1,0 +1,44 @@
+@model List<CartItem>
+@{
+    ViewData["Title"] = "Корзина";
+}
+<section class="page-heading">
+    <p class="eyebrow">ВАШ ВЫБОР</p>
+    <h1>Корзина</h1>
+</section>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <h2>Пока здесь пусто</h2>
+        <p class="muted">Добавьте товары из каталога — они появятся здесь.</p>
+        <a class="button button-dark" asp-controller="Products" asp-action="Index">Перейти в каталог</a>
+    </div>
+}
+else
+{
+    <div class="cart-list">
+    @foreach (var item in Model)
+    {
+        <article class="cart-item">
+            <img src="@item.ImageUrl" alt="@item.Name" />
+            <div class="cart-item-info">
+                <h3>@item.Name</h3>
+                <p class="muted">@item.Price.ToString("N0") ₽ × @item.Quantity</p>
+            </div>
+            <strong>@item.Total.ToString("N0") ₽</strong>
+            <form asp-action="Remove" method="post">
+                <input type="hidden" name="id" value="@item.ProductId" />
+                <button class="remove-button" type="submit" aria-label="Удалить @item.Name">Удалить</button>
+            </form>
+        </article>
+    }
+    </div>
+    <div class="cart-summary">
+        <span>Итого</span>
+        <strong>@Model.Sum(x => x.Total).ToString("N0") ₽</strong>
+    </div>
+    <form asp-action="Clear" method="post" class="clear-form">
+        <button class="button button-light" type="submit">Очистить корзину</button>
+    </form>
+}

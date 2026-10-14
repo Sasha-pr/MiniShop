@@ -1,16 +1,205 @@
+@using MiniShop.Models
 @model Product
+
 @{
     ViewData["Title"] = Model.Name;
+    var reviews = ViewBag.Reviews as List<ProductReview> ?? new List<ProductReview>();
 }
+
 <a class="back-link" asp-action="Index">← Назад в каталог</a>
+
 <section class="details">
-    <div class="details-image"><img src="@Model.ImageUrl" alt="@Model.Name" /></div>
+    <div class="details-image">
+        <img src="@Model.ImageUrl" alt="@Model.Name" />
+    </div>
+
     <div class="details-info">
         <p class="eyebrow">SIMPLESTORE / ТОВАР</p>
         <h1>@Model.Name</h1>
-        <p class="details-price">@Model.Price.ToString("N0") ₽</p>
+
+        @if (Model.HasLowStock && Model.StockQuantity > 0)
+        {
+            <p class="details-price">
+                <span style="text-decoration: line-through; color: #888;">
+                    @Model.Price.ToString("N0") ₽
+                </span>
+                <strong>@Model.DiscountedPrice.ToString("N0") ₽</strong>
+            </p>
+            <p style="color: #b45309;">
+                Скидка 30% — осталось: @Model.StockQuantity шт.
+            </p>
+        }
+        else
+        {
+            <p class="details-price">@Model.Price.ToString("N0") ₽</p>
+        }
+
+        @if (Model.StockQuantity <= 0)
+        {
+            <p style="color: #b91c1c; font-weight: bold;">
+                Нет в наличии
+            </p>
+        }
+        else if (Model.StockQuantity >= 3)
+        {
+            <p class="muted">
+                В наличии: @Model.StockQuantity шт.
+            </p>
+        }
+
         <p class="description">@Model.Description</p>
-        <button class="button button-dark" type="button" data-add-to-cart="@Model.Id">Добавить в корзину</button>
-        <p class="small-note">Количество в корзине обновится автоматически.</p>
+
+        <div class="product-likes">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <form id="like-form"
+                      asp-controller="Likes"
+                      asp-action="Toggle"
+                      method="post">
+                    <input type="hidden" name="productId" value="@Model.Id" />
+                    <button type="submit" id="like-button"
+                            class="button button-dark">
+                        <span id="like-icon">@(ViewBag.HasLiked ? "♥" : "♡")</span>
+                        <span id="like-label">Нравится</span>
+                        <span id="like-count">@ViewBag.LikeCount</span>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <p>
+                    <a asp-controller="Account" asp-action="Login">Войди</a>,
+                    чтобы поставить лайк.
+                    Лайков: @ViewBag.LikeCount
+                </p>
+            }
+        </div>
+
+        @if (Model.StockQuantity > 0)
+        {
+            <button class="button button-dark"
+                    type="button"
+                    data-add-to-cart="@Model.Id">
+                Добавить в корзину
+            </button>
+            <p class="small-note">Количество в корзине обновится автоматически.</p>
+        }
+        else
+        {
+            <button class="button button-dark" type="button" disabled>
+                Нет в наличии
+            </button>
+        }
     </div>
+</section>
+
+<hr />
+
+<section class="reviews">
+    <h2>Отзывы покупателей</h2>
+
+    @if (TempData["ReviewError"] != null)
+    {
+        <p class="review-error">@TempData["ReviewError"]</p>
+    }
+
+    @if (reviews.Count == 0)
+    {
+        <p>Пока нет отзывов. Будь первым!</p>
+    }
+    else
+    {
+        foreach (var review in reviews)
+        {
+            <article class="review">
+                <h3>@review.UserName</h3>
+                <p class="small-note">
+                    @review.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </p>
+                <p>@review.Text</p>
+
+                @if (!string.IsNullOrWhiteSpace(review.ModeratorReply))
+                {
+                    <div class="moderator-reply">
+                        <strong>Ответ модератора: @review.ModeratorName</strong>
+                        <p>@review.ModeratorReply</p>
+                    </div>
+                }
+
+                @if (User.IsInRole("Moderator") || User.IsInRole("Admin"))
+                {
+                    <form asp-controller="Reviews" asp-action="Reply" method="post">
+                        <input type="hidden" name="reviewId" value="@review.Id" />
+                        <label for="reply-@review.Id">Ответить на отзыв</label>
+                        <textarea id="reply-@review.Id" name="reply"
+                                  maxlength="1000" required></textarea>
+                        <button class="button button-dark" type="submit">
+                            Отправить ответ
+                        </button>
+                    </form>
+                }
+            </article>
+            <hr />
+        }
+    }
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <h3>Оставить отзыв</h3>
+        <form asp-controller="Reviews" asp-action="Add" method="post">
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <label for="review-text">Твой отзыв</label>
+            <textarea id="review-text" name="text"
+                      minlength="3" maxlength="1000" required></textarea>
+            <button class="button button-dark" type="submit">
+                Отправить отзыв
+            </button>
+        </form>
+    }
+    else
+    {
+        <p>
+            <a asp-controller="Account" asp-action="Login">Войди</a>,
+            чтобы оставить отзыв.
+        </p>
+    }
+
+    <script>
+        const likeForm = document.getElementById("like-form");
+
+        if (likeForm) {
+            likeForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                const button = document.getElementById("like-button");
+                const icon = document.getElementById("like-icon");
+                const count = document.getElementById("like-count");
+
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(likeForm.action, {
+                        method: "POST",
+                        body: new FormData(likeForm),
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    });
+
+                    if (!response.ok) {
+                        alert("Не удалось изменить лайк. Попробуй ещё раз.");
+                        return;
+                    }
+
+                    const data = await response.json();
+                    icon.textContent = data.liked ? "♥" : "♡";
+                    count.textContent = data.count;
+                } catch {
+                    alert("Ошибка соединения. Попробуй ещё раз.");
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        }
+    </script>
 </section>

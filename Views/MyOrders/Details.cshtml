@@ -1,0 +1,49 @@
+@using MiniShop.Models
+@model Order
+
+@{
+    ViewData["Title"] = $"Заказ №{Model.Id}";
+}
+
+<a class="back-link" asp-action="Index">← Мои заказы</a>
+
+<section class="hero">
+    <p class="eyebrow">SIMPLESTORE / МОИ ЗАКАЗЫ</p>
+    <h1>Заказ №@Model.Id</h1>
+    <p class="muted">
+        Дата: @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+    </p>
+</section>
+
+<section class="review">
+    <h2>Статус заказа: @Model.Status</h2>
+
+    <p><strong>Получатель:</strong> @Model.CustomerName</p>
+    <p><strong>Телефон:</strong> @Model.Phone</p>
+    <p><strong>Адрес:</strong> @Model.Address</p>
+    <p><strong>Способ оплаты:</strong> @Model.PaymentMethod</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Comment))
+    {
+        <p><strong>Комментарий:</strong> @Model.Comment</p>
+    }
+</section>
+
+<h2>Товары</h2>
+
+@if (Model.Items != null && Model.Items.Any())
+{
+    foreach (var item in Model.Items)
+    {
+        <article class="review">
+            <h3>@item.ProductName</h3>
+            <p>@item.Price.ToString("N0") ₽ × @item.Quantity</p>
+            <p>
+                Сумма:
+                <strong>@((item.Price * item.Quantity).ToString("N0")) ₽</strong>
+            </p>
+        </article>
+    }
+}
+
+<h2>Итого: @Model.Total.ToString("N0") ₽</h2>

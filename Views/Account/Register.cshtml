@@ -1,0 +1,57 @@
+
+@model MiniShop.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<section class="auth-page">
+    <div class="auth-card">
+        <p class="auth-eyebrow">SIMPLESTORE</p>
+        <h1>Создай аккаунт</h1>
+        <p class="auth-description">Зарегистрируйся, чтобы пользоваться возможностями магазина.</p>
+
+        <form asp-action="Register" method="post" autocomplete="off">
+            <div asp-validation-summary="ModelOnly" class="auth-errors"></div>
+
+            <div class="auth-field">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email"
+                       type="email"
+                       autocomplete="off"
+                       placeholder="name@example.com" />
+                <span asp-validation-for="Email"></span>
+            </div>
+
+            <div class="auth-field">
+                <label asp-for="Password">Пароль</label>
+                <input asp-for="Password"
+                       autocomplete="new-password"
+                       placeholder="Минимум 6 символов" />
+                <span asp-validation-for="Password"></span>
+            </div>
+
+            <div class="auth-field">
+                <label asp-for="ConfirmPassword">Повтори пароль</label>
+                <input asp-for="ConfirmPassword"
+                       autocomplete="new-password"
+                       placeholder="Повтори пароль" />
+                <span asp-validation-for="ConfirmPassword"></span>
+            </div>
+
+            <button class="button button-dark auth-submit" type="submit">
+                Создать аккаунт
+            </button>
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+        </form>
+
+        <p class="auth-switch">
+            Уже есть аккаунт?
+            <a asp-action="Login">Войти</a>
+        </p>
+
+        <a class="auth-back" asp-controller="Products" asp-action="Index">
+            ← Вернуться в магазин
+        </a>
+    </div>
+</section>

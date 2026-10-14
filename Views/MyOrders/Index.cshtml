@@ -1,0 +1,51 @@
+@using MiniShop.Models
+@model IEnumerable<Order>
+
+@{
+    ViewData["Title"] = "Мои заказы";
+}
+
+<section class="hero">
+    <p class="eyebrow">SIMPLESTORE / ЛИЧНЫЙ КАБИНЕТ</p>
+    <h1>Мои заказы</h1>
+    <p class="muted">Здесь можно посмотреть свои покупки и их статусы.</p>
+</section>
+
+@if (!Model.Any())
+{
+    <p>У тебя пока нет заказов.</p>
+    <a class="button button-dark"
+       asp-controller="Products"
+       asp-action="Index">
+        Перейти в каталог
+    </a>
+}
+else
+{
+    <div class="orders-list">
+        @foreach (var order in Model)
+        {
+            <article class="review">
+                <h2>Заказ №@order.Id</h2>
+
+                <p>
+                    Дата:
+                    @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </p>
+
+                <p>
+                    Сумма: <strong>@order.Total.ToString("N0") ₽</strong>
+                </p>
+
+                <p>Статус: <strong>@order.Status</strong></p>
+
+                <a class="button button-dark"
+                   asp-controller="MyOrders"
+                   asp-action="Details"
+                   asp-route-id="@order.Id">
+                    Подробнее
+                </a>
+            </article>
+        }
+    </div>
+}

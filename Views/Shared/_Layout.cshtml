@@ -8,12 +8,41 @@
 </head>
 <body>
     <header class="topbar">
-        <a class="logo" asp-controller="Products" asp-action="Index">simple<span>store</span></a>
+        <a class="logo" asp-controller="Products" asp-action="Index">
+            simple<span>store</span>
+        </a>
+
         <nav>
             <a asp-controller="Products" asp-action="Index">Каталог</a>
+
             <a class="cart-link" asp-controller="Cart" asp-action="Index">
                 Корзина <span id="cart-count" class="count">0</span>
             </a>
+
+            @if (User.IsInRole("Moderator") || User.IsInRole("Admin"))
+            {
+                <a asp-controller="Orders" asp-action="Index">Заказы</a>
+            }
+
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin" asp-action="Index">Пользователи</a>
+            }
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="MyOrders" asp-action="Index">Мои заказы</a>
+                <span>@User.Identity.Name</span>
+
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit">Выйти</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Register">Регистрация</a>
+                <a asp-controller="Account" asp-action="Login">Вход</a>
+            }
         </nav>
     </header>
 
@@ -23,12 +52,16 @@
 
     <footer class="footer">SimpleStore · Учебный мини-магазин</footer>
     <div id="toast" class="toast" role="status"></div>
+    <form id="csrf-form" style="display:none">
+        @Html.AntiForgeryToken()
+    </form>
 
     <script>
         async function updateCartCount() {
             try {
                 const response = await fetch('/Cart/Count');
                 if (!response.ok) return;
+
                 const data = await response.json();
                 document.getElementById('cart-count').textContent = data.count;
             } catch (error) {
@@ -38,15 +71,27 @@
 
         async function addToCart(productId) {
             try {
-                const response = await fetch('/Cart/Add?id=' + encodeURIComponent(productId), {
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
+                const response = await fetch(
+                    '/Cart/Add?id=' + encodeURIComponent(productId),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'RequestVerificationToken':
+                                document.querySelector(
+                                    '#csrf-form input[name="__RequestVerificationToken"]'
+                                ).value
+                        }
+                    }
+                );
+
                 const data = await response.json();
+
                 if (!response.ok) {
                     showToast(data.message || 'Не удалось добавить товар.');
                     return;
                 }
+
                 document.getElementById('cart-count').textContent = data.count;
                 showToast(data.message);
             } catch (error) {
@@ -58,17 +103,26 @@
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('visible');
+
             clearTimeout(window.toastTimer);
-            window.toastTimer = setTimeout(() => toast.classList.remove('visible'), 2200);
+
+            window.toastTimer = setTimeout(
+                () => toast.classList.remove('visible'),
+                2200
+            );
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCount();
+
             document.querySelectorAll('[data-add-to-cart]').forEach(button => {
-                button.addEventListener('click', () => addToCart(button.dataset.addToCart));
+                button.addEventListener('click', () => {
+                    addToCart(button.dataset.addToCart);
+                });
             });
         });
     </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

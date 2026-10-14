@@ -2,3 +2,15 @@ bin/
 obj/
 .vs/
 .vscode/
+# Локальная база данных
+minishop.db
+minishop.db-shm
+minishop.db-wal
+
+# Сборка .NET
+bin/
+obj/
+
+# Локальные настройки и секреты
+appsettings.Development.json
+secrets.json

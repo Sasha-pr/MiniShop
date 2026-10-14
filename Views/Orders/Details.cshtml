@@ -1,0 +1,134 @@
+@model MiniShop.Models.Order
+
+@{
+    ViewData["Title"] = $"Заказ №{Model.Id}";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
+    <h1>Заказ №@Model.Id</h1>
+    <p class="muted">Информация о заказе покупателя.</p>
+</section>
+
+@if (TempData["OrderSuccess"] != null)
+{
+    <p class="review-success">@TempData["OrderSuccess"]</p>
+}
+
+@if (TempData["OrderError"] != null)
+{
+    <p class="review-error">@TempData["OrderError"]</p>
+}
+
+<div class="cart-list">
+    <article class="cart-item">
+        <div class="cart-item-info">
+            <h3>Данные покупателя</h3>
+            <p><strong>ФИО:</strong> @Model.CustomerName</p>
+            <p><strong>Email:</strong> @Model.CustomerEmail</p>
+            <p><strong>Телефон:</strong> @Model.Phone</p>
+            <p><strong>Адрес доставки:</strong> @Model.Address</p>
+            <p><strong>Способ оплаты:</strong> @Model.PaymentMethod</p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Comment))
+            {
+                <p><strong>Комментарий:</strong> @Model.Comment</p>
+            }
+
+            <p>
+                <strong>Дата:</strong>
+                @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+            </p>
+
+            <p><strong>Статус:</strong> @Model.Status</p>
+        </div>
+    </article>
+</div>
+
+<section class="page-heading">
+    <h2>Товары в заказе</h2>
+</section>
+
+@if (Model.Items.Count == 0)
+{
+    <p class="muted">В заказе нет товаров.</p>
+}
+else
+{
+    <div class="cart-list">
+        @foreach (var item in Model.Items)
+        {
+            <article class="cart-item">
+                <div class="cart-item-info">
+                    <h3>@item.ProductName</h3>
+                    <p class="muted">
+                        @item.Price.ToString("N0") ₽ × @item.Quantity
+                    </p>
+                </div>
+
+                <strong>
+                    @((item.Price * item.Quantity).ToString("N0")) ₽
+                </strong>
+            </article>
+        }
+    </div>
+}
+
+<div class="cart-summary">
+    <span>Итого</span>
+    <strong>@Model.Total.ToString("N0") ₽</strong>
+</div>
+
+<section class="page-heading">
+    <h2>Изменить статус</h2>
+</section>
+
+<form asp-action="UpdateStatus" method="post" class="auth-form">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <label for="status">Статус заказа</label>
+
+    <select id="status" name="status" required>
+        <option value="Новый" selected="@(Model.Status == "Новый")">
+            Новый
+        </option>
+        <option value="В обработке" selected="@(Model.Status == "В обработке")">
+            В обработке
+        </option>
+        <option value="Отправлен" selected="@(Model.Status == "Отправлен")">
+            Отправлен
+        </option>
+        <option value="Завершён" selected="@(Model.Status == "Завершён")">
+            Завершён
+        </option>
+        <option value="Отменён" selected="@(Model.Status == "Отменён")">
+            Отменён
+        </option>
+    </select>
+
+    <button class="button button-dark" type="submit">
+        Сохранить статус
+    </button>
+</form>
+
+<div class="clear-form">
+    <a class="button button-light"
+       asp-controller="Orders"
+       asp-action="Index">
+        Назад к заказам
+    </a>
+</div>
+
+<form asp-action="Delete"
+      method="post"
+      onsubmit="return confirm('Удалить заказ №@Model.Id?');">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <button class="button button-light" type="submit">
+        Удалить заказ
+    </button>
+</form>

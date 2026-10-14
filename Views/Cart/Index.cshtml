@@ -1,7 +1,19 @@
 @model List<CartItem>
+
 @{
     ViewData["Title"] = "Корзина";
 }
+
+@if (TempData["CheckoutSuccess"] != null)
+{
+    <p class="review-success">@TempData["CheckoutSuccess"]</p>
+}
+
+@if (TempData["CheckoutError"] != null)
+{
+    <p class="review-error">@TempData["CheckoutError"]</p>
+}
+
 <section class="page-heading">
     <p class="eyebrow">ВАШ ВЫБОР</p>
     <h1>Корзина</h1>
@@ -12,33 +24,123 @@
     <div class="empty-state">
         <h2>Пока здесь пусто</h2>
         <p class="muted">Добавьте товары из каталога — они появятся здесь.</p>
-        <a class="button button-dark" asp-controller="Products" asp-action="Index">Перейти в каталог</a>
+        <a class="button button-dark"
+           asp-controller="Products"
+           asp-action="Index">
+            Перейти в каталог
+        </a>
     </div>
 }
 else
 {
     <div class="cart-list">
-    @foreach (var item in Model)
-    {
-        <article class="cart-item">
-            <img src="@item.ImageUrl" alt="@item.Name" />
-            <div class="cart-item-info">
-                <h3>@item.Name</h3>
-                <p class="muted">@item.Price.ToString("N0") ₽ × @item.Quantity</p>
-            </div>
-            <strong>@item.Total.ToString("N0") ₽</strong>
-            <form asp-action="Remove" method="post">
-                <input type="hidden" name="id" value="@item.ProductId" />
-                <button class="remove-button" type="submit" aria-label="Удалить @item.Name">Удалить</button>
-            </form>
-        </article>
-    }
+        @foreach (var item in Model)
+        {
+            <article class="cart-item">
+                <img src="@item.ImageUrl" alt="@item.Name" />
+
+                <div class="cart-item-info">
+                    <h3>@item.Name</h3>
+                    <p class="muted">
+                        @item.Price.ToString("N0") ₽ × @item.Quantity
+                    </p>
+                </div>
+
+                <strong>@item.Total.ToString("N0") ₽</strong>
+
+                <form asp-action="Remove" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.ProductId" />
+                    <button class="remove-button" type="submit">
+                        Удалить
+                    </button>
+                </form>
+            </article>
+        }
     </div>
+
     <div class="cart-summary">
         <span>Итого</span>
         <strong>@Model.Sum(x => x.Total).ToString("N0") ₽</strong>
     </div>
+
     <form asp-action="Clear" method="post" class="clear-form">
-        <button class="button button-light" type="submit">Очистить корзину</button>
+        @Html.AntiForgeryToken()
+        <button class="button button-light" type="submit">
+            Очистить корзину
+        </button>
     </form>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <section class="page-heading">
+            <h2>Оформление заказа</h2>
+            <p class="muted">Заполните данные для доставки.</p>
+        </section>
+
+        <form asp-action="Checkout" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+
+            <label for="CustomerName">ФИО</label>
+            <input id="CustomerName"
+                   name="CustomerName"
+                   type="text"
+                   maxlength="150"
+                   autocomplete="name"
+                   required />
+
+            <label for="Phone">Телефон</label>
+            <input id="Phone"
+                   name="Phone"
+                   type="tel"
+                   maxlength="30"
+                   autocomplete="tel"
+                   required />
+
+            <label for="Address">Адрес доставки</label>
+            <textarea id="Address"
+                      name="Address"
+                      maxlength="300"
+                      autocomplete="street-address"
+                      required></textarea>
+
+            <label for="PaymentMethod">Способ оплаты</label>
+            <select id="PaymentMethod" name="PaymentMethod" required>
+                <option value="">Выберите способ оплаты</option>
+                <option value="При получении">При получении</option>
+                <option value="Картой при получении">Картой при получении</option>
+            </select>
+
+            <label for="Comment">Комментарий к заказу (необязательно)</label>
+            <textarea id="Comment"
+                      name="Comment"
+                      maxlength="1000"
+                      placeholder="Например, удобное время доставки"></textarea>
+
+            <button class="button button-dark" type="submit">
+                Оформить заказ
+            </button>
+        </form>
+    }
+    else
+    {
+        <p class="muted">
+            Чтобы оформить заказ, войдите в аккаунт или зарегистрируйтесь.
+            Товары останутся в корзине.
+        </p>
+
+        <a class="button button-dark"
+           asp-controller="Account"
+           asp-action="Login"
+           asp-route-returnUrl="/Cart">
+            Войти для оформления
+        </a>
+
+        <a class="button button-light"
+           asp-controller="Account"
+           asp-action="Register"
+           asp-route-returnUrl="/Cart">
+            Зарегистрироваться
+        </a>
+    }
 }

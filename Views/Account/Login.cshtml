@@ -1,0 +1,59 @@
+
+@model MiniShop.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<section class="auth-page">
+    <div class="auth-card">
+        <p class="auth-eyebrow">SIMPLESTORE</p>
+        <h1>С возвращением</h1>
+        <p class="auth-description">Войди в свой аккаунт, чтобы продолжить покупки.</p>
+
+        <form asp-action="Login" method="post" autocomplete="off">
+            <div asp-validation-summary="ModelOnly" class="auth-errors"></div>
+
+            <div class="auth-field">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email"
+                       type="email"
+                       autocomplete="off"
+                       placeholder="name@example.com" />
+                <span asp-validation-for="Email"></span>
+            </div>
+
+            <div class="auth-field">
+                <label asp-for="Password">Пароль</label>
+                <input asp-for="Password"
+                       autocomplete="new-password"
+                       placeholder="Введи пароль" />
+                <span asp-validation-for="Password"></span>
+            </div>
+
+            <label class="auth-remember">
+                <input asp-for="RememberMe" />
+                Запомнить меня
+            </label>
+
+            <button class="button button-dark auth-submit" type="submit">
+                Войти
+            </button>
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+        </form>
+        <p>
+            <a asp-controller="Account" asp-action="ForgotPassword">
+                Забыли пароль?
+            </a>
+        </p>
+
+        <p class="auth-switch">
+            Ещё нет аккаунта?
+            <a asp-action="Register">Зарегистрироваться</a>
+        </p>
+
+        <a class="auth-back" asp-controller="Products" asp-action="Index">
+            ← Вернуться в магазин
+        </a>
+    </div>
+</section>

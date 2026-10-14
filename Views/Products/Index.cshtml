@@ -1,7 +1,15 @@
+@using MiniShop.Models
 @model IEnumerable<Product>
+
 @{
     ViewData["Title"] = "Каталог";
+
+    var categories = ViewBag.Categories as List<string>
+                     ?? new List<string>();
+
+    var selectedCategory = ViewBag.SelectedCategory as string;
 }
+
 <section class="hero">
     <p class="eyebrow">НЕБОЛЬШОЙ МАГАЗИН</p>
     <h1>Вещи на каждый день.</h1>
@@ -10,24 +18,152 @@
 
 <div class="section-heading">
     <h2>Каталог</h2>
-    <span class="muted">@Model.Count() товара</span>
+    <span class="muted">
+        @Model.Count() товаров
+    </span>
 </div>
 
-<div class="product-grid">
-@foreach (var product in Model)
+<form asp-controller="Products"
+      asp-action="Index"
+      method="get"
+      style="margin: 20px 0;">
+
+    <label for="category"
+           style="display: block; margin-bottom: 8px;">
+        Категория товаров
+    </label>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <select id="category"
+                name="category"
+                style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; min-width: 220px;">
+
+            <option value=""
+                    selected="@(string.IsNullOrEmpty(selectedCategory))">
+                Все товары
+            </option>
+
+            @foreach (var category in categories)
+            {
+                <option value="@category"
+                        selected="@(selectedCategory == category)">
+                    @category
+                </option>
+            }
+        </select>
+
+        <button class="button button-dark"
+                type="submit">
+            Применить
+        </button>
+
+        @if (!string.IsNullOrEmpty(selectedCategory))
+        {
+            <a class="text-link"
+               asp-controller="Products"
+               asp-action="Index">
+                Сбросить фильтр
+            </a>
+        }
+    </div>
+</form>
+
+@if (!Model.Any())
 {
-    <article class="product-card">
-        <a class="product-image" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">
-            <img src="@product.ImageUrl" alt="@product.Name" />
-        </a>
-        <div class="product-info">
-            <div>
-                <h3>@product.Name</h3>
-                <p class="price">@product.Price.ToString("N0") ₽</p>
-            </div>
-            <a class="text-link" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">Подробнее →</a>
-            <button class="button button-dark full" type="button" data-add-to-cart="@product.Id">В корзину</button>
-        </div>
-    </article>
+    <p class="muted">
+        В этой категории пока нет товаров.
+    </p>
 }
-</div>
+else
+{
+    <div class="product-grid">
+        @foreach (var product in Model)
+        {
+            <article class="product-card">
+                <a class="product-image"
+                   asp-controller="Products"
+                   asp-action="Details"
+                   asp-route-id="@product.Id">
+                    <img src="@product.ImageUrl"
+                         alt="@product.Name" />
+                </a>
+
+                <div class="product-info">
+                    <div>
+                        <h3>@product.Name</h3>
+
+                        @if (!string.IsNullOrWhiteSpace(product.Category))
+                        {
+                            <p class="muted"
+                               style="font-size: 13px;">
+                                @product.Category
+                            </p>
+                        }
+
+                        @if (product.HasLowStock &&
+                             product.StockQuantity > 0)
+                        {
+                            <p class="price">
+                                <span style="text-decoration: line-through; color: #888;">
+                                    @product.Price.ToString("N0") ₽
+                                </span>
+                                <strong>
+                                    @product.DiscountedPrice.ToString("N0") ₽
+                                </strong>
+                            </p>
+
+                            <p style="color: #b45309; font-size: 13px;">
+                                Скидка 30% — осталось:
+                                @product.StockQuantity шт.
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="price">
+                                @product.Price.ToString("N0") ₽
+                            </p>
+                        }
+
+                        @if (product.StockQuantity <= 0)
+                        {
+                            <p style="color: #b91c1c; font-size: 13px;">
+                                Нет в наличии
+                            </p>
+                        }
+                        else if (product.StockQuantity >= 3)
+                        {
+                            <p class="muted"
+                               style="font-size: 13px;">
+                                В наличии: @product.StockQuantity шт.
+                            </p>
+                        }
+                    </div>
+
+                    <a class="text-link"
+                       asp-controller="Products"
+                       asp-action="Details"
+                       asp-route-id="@product.Id">
+                        Подробнее →
+                    </a>
+
+                    @if (product.StockQuantity > 0)
+                    {
+                        <button class="button button-dark full"
+                                type="button"
+                                data-add-to-cart="@product.Id">
+                            В корзину
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="button button-dark full"
+                                type="button"
+                                disabled>
+                            Нет в наличии
+                        </button>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+}

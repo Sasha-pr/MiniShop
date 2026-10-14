@@ -1,0 +1,40 @@
+@using Microsoft.AspNetCore.Identity
+@model List<Microsoft.AspNetCore.Identity.IdentityUser>
+
+@{
+    ViewData["Title"] = "Управление пользователями";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">SIMPLESTORE / АДМИНИСТРАТОР</p>
+    <h1>Пользователи</h1>
+    <p class="muted">Назначение и снятие ролей.</p>
+</section>
+
+<div class="cart-list">
+    @foreach (var user in Model)
+    {
+        <article class="cart-item">
+            <div class="cart-item-info">
+                <h3>@user.Email</h3>
+                <p class="muted">ID: @user.Id</p>
+            </div>
+
+            @foreach (var role in new[] { "Moderator", "Admin" })
+            {
+                <form asp-action="SetRole" method="post">
+                    <input type="hidden" name="userId" value="@user.Id" />
+                    <input type="hidden" name="role" value="@role" />
+
+                    <button class="button button-light" type="submit">
+                        @(await ViewContext.HttpContext.RequestServices
+                            .GetRequiredService<UserManager<Microsoft.AspNetCore.Identity.IdentityUser>>()
+                            .IsInRoleAsync(user, role)
+                            ? "Снять " + role
+                            : "Назначить " + role)
+                    </button>
+                </form>
+            }
+        </article>
+    }
+</div>

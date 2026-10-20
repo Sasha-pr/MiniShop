@@ -1,0 +1,209 @@
+
+@using MiniShop.Models
+@using MiniShop.Data
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@model List<ChatConversationViewModel>
+
+@{
+    ViewData["Title"] = "Обращения покупателей";
+
+    var lastMessageIds = await Db.ChatMessages
+        .GroupBy(m => m.UserId)
+        .Select(g => g.Max(m => m.Id))
+        .ToListAsync();
+
+    var pendingUserIds = await Db.ChatMessages
+        .Where(m =>
+            lastMessageIds.Contains(m.Id) &&
+            !m.IsStaff)
+        .Select(m => m.UserId)
+        .ToListAsync();
+
+    var pendingCount = pendingUserIds.Count;
+}
+
+<style>
+    .conversations-page {
+        max-width: 950px;
+        margin: 30px auto 70px;
+    }
+
+    .conversations-description {
+        color: #777;
+        margin-bottom: 25px;
+    }
+
+    .conversations-summary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 25px;
+        padding: 18px 22px;
+        border-radius: 12px;
+        background: #f5f6f2;
+    }
+
+    .conversations-summary strong {
+        font-size: 24px;
+        color: #647854;
+    }
+
+    .conversation-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        padding: 22px;
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .conversation-card.pending {
+        border-left: 4px solid #8b9a77;
+        background: #fafbf8;
+    }
+
+    .conversation-name {
+        font-weight: 700;
+        font-size: 17px;
+        margin-bottom: 8px;
+        overflow-wrap: anywhere;
+    }
+
+    .conversation-info {
+        color: #777;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .conversation-status {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 10px;
+        color: #777;
+    }
+
+    .conversation-status.pending {
+        color: #647854;
+    }
+
+    .conversation-open {
+        display: inline-block;
+        background: #20211f;
+        color: white;
+        text-decoration: none;
+        padding: 12px 18px;
+        border-radius: 9px;
+    }
+
+    .conversation-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #777;
+    }
+</style>
+
+<div class="conversations-page">
+
+    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+
+    <h1>Обращения покупателей</h1>
+
+    <p class="conversations-description">
+        Просматривайте сообщения покупателей
+        и отвечайте на новые обращения.
+    </p>
+
+    <div class="conversations-summary">
+        <strong id="pending-summary">@pendingCount</strong>
+        <span>переписок ожидают ответа</span>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="conversation-empty">
+            Обращений пока нет.
+        </div>
+    }
+    else
+    {
+        @foreach (var conversation in Model)
+        {
+            var isPending = pendingUserIds.Contains(
+                conversation.UserId);
+
+            <div class="conversation-card @(isPending ? "pending" : "")">
+
+                <div>
+                    <div class="conversation-name">
+                        @conversation.UserName
+                    </div>
+
+                    <div class="conversation-info">
+                        Сообщений: @conversation.MessageCount
+                    </div>
+
+                    <div class="conversation-info">
+                        Последняя активность:
+                        @conversation.LastMessage.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </div>
+
+                    @if (isPending)
+                    {
+                        <span class="conversation-status pending">
+                            ● Ожидает ответа
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="conversation-status">
+                            ✓ Ответ отправлен
+                        </span>
+                    }
+                </div>
+
+                <a class="conversation-open"
+                   asp-controller="Chat"
+                   asp-action="Conversation"
+                   asp-route-userId="@conversation.UserId">
+                    Открыть переписку →
+                </a>
+
+            </div>
+        }
+    }
+
+</div>
+
+<script>
+    // Обновляем список, если количество обращений изменилось
+    let previousPendingCount = @pendingCount;
+
+    async function refreshPendingConversations() {
+        if (document.hidden) return;
+
+        try {
+            const response = await fetch('/Chat/PendingCount');
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+
+            if (data.count !== previousPendingCount) {
+                window.location.reload();
+            }
+        }
+        catch (error) {
+            console.error(
+                'Ошибка обновления обращений',
+                error
+            );
+        }
+    }
+
+    setInterval(refreshPendingConversations, 5000);
+</script>

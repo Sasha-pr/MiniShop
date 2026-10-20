@@ -1,0 +1,262 @@
+
+@using MiniShop.Models
+@model List<ChatMessage>
+
+@{
+    ViewData["Title"] = "Переписка с покупателем";
+
+    string customerId = ViewBag.CustomerId ?? "";
+    string customerName = ViewBag.CustomerName ?? "Покупатель";
+    var lastId = Model.Count > 0 ? Model.Max(m => m.Id) : 0;
+}
+
+<style>
+    .staff-chat-page {
+        max-width: 850px;
+        margin: 30px auto 70px;
+    }
+
+    .staff-chat-back {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #777;
+        text-decoration: none;
+    }
+
+    .staff-chat-window {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 25px;
+        min-height: 300px;
+        max-height: 550px;
+        overflow-y: auto;
+        background: #f5f6f2;
+        border-radius: 16px;
+        border: 1px solid #e5e8df;
+    }
+
+    .staff-chat-message {
+        max-width: 80%;
+        padding: 15px 18px;
+        border-radius: 14px;
+        background: white;
+        align-self: flex-start;
+        overflow-wrap: anywhere;
+    }
+
+    .staff-chat-message.mine {
+        background: #dfe7d7;
+        align-self: flex-end;
+    }
+
+    .staff-chat-sender {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+
+    .staff-chat-text {
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .staff-chat-date {
+        font-size: 11px;
+        color: #888;
+        margin-top: 9px;
+    }
+
+    .staff-chat-form {
+        margin-top: 20px;
+    }
+
+    .staff-chat-form textarea {
+        display: block;
+        width: 100%;
+        min-height: 110px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        box-sizing: border-box;
+        font: inherit;
+        resize: vertical;
+    }
+
+    .staff-chat-form button {
+        margin-top: 12px;
+        padding: 13px 25px;
+        border: 0;
+        border-radius: 9px;
+        background: #20211f;
+        color: white;
+        cursor: pointer;
+    }
+
+    .staff-chat-error {
+        color: #b13c3c;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="staff-chat-page">
+
+    <a class="staff-chat-back"
+       asp-controller="Chat"
+       asp-action="Conversations">
+        ← Все обращения
+    </a>
+
+    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+
+    <h1>Переписка с покупателем</h1>
+
+    <p class="muted">
+        Покупатель: <strong>@customerName</strong>
+    </p>
+
+    @if (TempData["ChatError"] != null)
+    {
+        <p class="staff-chat-error">
+            @TempData["ChatError"]
+        </p>
+    }
+
+    <div class="staff-chat-window" id="staff-chat-window">
+
+        @foreach (var message in Model)
+        {
+            <div class="staff-chat-message @(message.IsStaff ? "mine" : "")">
+
+                <div class="staff-chat-sender">
+                    @(message.IsStaff ? "Сотрудник магазина" : customerName)
+                </div>
+
+                <div class="staff-chat-text">@message.Text</div>
+
+                <div class="staff-chat-date">
+                    @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </div>
+
+            </div>
+        }
+    </div>
+
+    <form class="staff-chat-form"
+          asp-controller="Chat"
+          asp-action="Reply"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               name="userId"
+               value="@customerId" />
+
+        <textarea name="text"
+                  maxlength="2000"
+                  required
+                  placeholder="Напишите ответ покупателю..."></textarea>
+
+        <button type="submit">
+            Отправить ответ →
+        </button>
+    </form>
+
+</div>
+
+<script>
+    const staffChatWindow =
+        document.getElementById('staff-chat-window');
+
+    const customerId = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(customerId)
+    );
+
+    const customerName = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(customerName)
+    );
+
+    let lastStaffMessageId = @lastId;
+    let staffChatLoading = false;
+
+    staffChatWindow.scrollTop = staffChatWindow.scrollHeight;
+
+    function addStaffChatMessage(message) {
+        const bubble = document.createElement('div');
+        bubble.className = 'staff-chat-message';
+
+        if (message.isStaff) {
+            bubble.classList.add('mine');
+        }
+
+        const sender = document.createElement('div');
+        sender.className = 'staff-chat-sender';
+        sender.textContent = message.isStaff
+            ? 'Сотрудник магазина'
+            : customerName;
+
+        const text = document.createElement('div');
+        text.className = 'staff-chat-text';
+        text.textContent = message.text;
+
+        const date = document.createElement('div');
+        date.className = 'staff-chat-date';
+
+        date.textContent = new Date(
+            message.createdAt
+        ).toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        bubble.appendChild(sender);
+        bubble.appendChild(text);
+        bubble.appendChild(date);
+
+        staffChatWindow.appendChild(bubble);
+        staffChatWindow.scrollTop = staffChatWindow.scrollHeight;
+    }
+
+    async function refreshStaffChat() {
+        if (staffChatLoading || document.hidden) return;
+
+        staffChatLoading = true;
+
+        try {
+            const url = '/Chat/CustomerMessages?userId='
+                + encodeURIComponent(customerId)
+                + '&afterId=' + lastStaffMessageId;
+
+            const response = await fetch(url);
+
+            if (!response.ok) return;
+
+            const messages = await response.json();
+
+            for (const message of messages) {
+                addStaffChatMessage(message);
+
+                lastStaffMessageId = Math.max(
+                    lastStaffMessageId,
+                    message.id
+                );
+            }
+        }
+        catch (error) {
+            console.error('Ошибка обновления чата', error);
+        }
+        finally {
+            staffChatLoading = false;
+        }
+    }
+
+    setInterval(refreshStaffChat, 5000);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshStaffChat();
+    });
+</script>

@@ -1,0 +1,225 @@
+
+@model List<MiniShop.Models.Product>
+
+@{
+    ViewData["Title"] = "Управление товарами";
+}
+
+<style>
+    .admin-products-page {
+        max-width: 1050px;
+        margin: 40px auto 80px;
+    }
+
+    .admin-products-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+    }
+
+    .admin-products-button {
+        display: inline-block;
+        background: #20211f;
+        color: white;
+        text-decoration: none;
+        padding: 13px 18px;
+        border-radius: 9px;
+    }
+
+    .admin-products-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .admin-products-table th,
+    .admin-products-table td {
+        padding: 15px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .admin-products-table th {
+        color: #777;
+        font-size: 13px;
+    }
+
+    .admin-products-table td {
+        font-size: 14px;
+    }
+
+    .admin-products-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .admin-products-edit {
+        display: inline-block;
+        background: #f5f6f2;
+        color: #20211f;
+        text-decoration: none;
+        padding: 9px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .admin-products-edit:hover {
+        background: #e8eddf;
+    }
+
+    .admin-products-delete {
+        background: #fff0f0;
+        color: #a33b3b;
+        border: none;
+        padding: 9px 14px;
+        border-radius: 8px;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .admin-products-delete:hover {
+        background: #ffe0e0;
+    }
+
+    .admin-products-delete-form {
+        margin: 0;
+    }
+
+    .admin-products-success {
+        background: #f0f5eb;
+        padding: 15px;
+        border-radius: 9px;
+        margin-bottom: 20px;
+    }
+
+    .admin-products-error {
+        background: #fff0f0;
+        color: #a33b3b;
+        padding: 15px;
+        border-radius: 9px;
+        margin-bottom: 20px;
+    }
+
+    .admin-products-scroll {
+        overflow-x: auto;
+    }
+</style>
+
+<div class="admin-products-page">
+
+    <p class="eyebrow">
+        SIMPLESTORE / АДМИНИСТРАТОР
+    </p>
+
+    <div class="admin-products-header">
+
+        <div>
+            <h1>Управление товарами</h1>
+
+            <p class="muted">
+                Всего товаров: @Model.Count
+            </p>
+        </div>
+
+        <a class="admin-products-button"
+           asp-controller="AdminProducts"
+           asp-action="Create">
+            + Добавить товар
+        </a>
+
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="admin-products-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="admin-products-error">
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <p>Товаров пока нет.</p>
+    }
+    else
+    {
+        <div class="admin-products-scroll">
+
+            <table class="admin-products-table">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Цена</th>
+                        <th>Остаток</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>@product.Id</td>
+
+                            <td>@product.Name</td>
+
+                            <td>@product.Category</td>
+
+                            <td>
+                                @product.Price.ToString("0.00") ₽
+                            </td>
+
+                            <td>@product.StockQuantity</td>
+
+                            <td>
+                                <div class="admin-products-actions">
+
+                                    <a class="admin-products-edit"
+                                       asp-controller="AdminProducts"
+                                       asp-action="Edit"
+                                       asp-route-id="@product.Id">
+                                        Редактировать
+                                    </a>
+
+                                    <form class="admin-products-delete-form"
+                                          asp-controller="AdminProducts"
+                                          asp-action="Delete"
+                                          asp-route-id="@product.Id"
+                                          method="post"
+                                          onsubmit="return confirm('Удалить товар «@product.Name»? Это действие нельзя отменить.');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="admin-products-delete">
+                                            Удалить
+                                        </button>
+
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    }
+
+</div>

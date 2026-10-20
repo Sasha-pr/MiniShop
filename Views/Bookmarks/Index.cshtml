@@ -1,0 +1,75 @@
+
+@using MiniShop.Models
+@model List<Product>
+
+@{
+    ViewData["Title"] = "Мои закладки";
+}
+
+<section class="hero">
+    <p class="eyebrow">SIMPLESTORE / ИЗБРАННОЕ</p>
+    <h1>Мои закладки</h1>
+    <p class="muted">Товары, которые вы сохранили.</p>
+</section>
+
+@if (TempData["BookmarkMessage"] != null)
+{
+    <p class="muted">@TempData["BookmarkMessage"]</p>
+}
+
+@if (!Model.Any())
+{
+    <p class="muted">Вы пока не добавили товары в закладки.</p>
+
+    <a class="button button-dark"
+       asp-controller="Products"
+       asp-action="Index">
+        Перейти в каталог
+    </a>
+}
+else
+{
+    <div class="product-grid">
+        @foreach (var product in Model)
+        {
+            <article class="product-card">
+                <a class="product-image"
+                   asp-controller="Products"
+                   asp-action="Details"
+                   asp-route-id="@product.Id">
+                    <img src="@product.ImageUrl"
+                         alt="@product.Name" />
+                </a>
+
+                <div class="product-info">
+                    <h3>@product.Name</h3>
+
+                    <p class="price">
+                        @product.DiscountedPrice.ToString("N0") ₽
+                    </p>
+
+                    <a class="text-link"
+                       asp-controller="Products"
+                       asp-action="Details"
+                       asp-route-id="@product.Id">
+                        Подробнее →
+                    </a>
+
+                    <form asp-controller="Bookmarks"
+                          asp-action="Toggle"
+                          method="post">
+
+                        <input type="hidden"
+                               name="productId"
+                               value="@product.Id" />
+
+                        <button class="button button-light full"
+                                type="submit">
+                            Удалить из закладок
+                        </button>
+                    </form>
+                </div>
+            </article>
+        }
+    </div>
+}

@@ -1,205 +1,639 @@
+
 @using MiniShop.Models
 @model Product
 
 @{
     ViewData["Title"] = Model.Name;
-    var reviews = ViewBag.Reviews as List<ProductReview> ?? new List<ProductReview>();
+    var reviews = ViewBag.Reviews as List<ProductReview>
+                  ?? new List<ProductReview>();
+    bool loggedIn = User.Identity?.IsAuthenticated == true;
+    bool isStaff = User.IsInRole("Moderator") || User.IsInRole("Admin");
 }
 
-<a class="back-link" asp-action="Index">← Назад в каталог</a>
+<style>
+    .shop-details {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 0 70px;
+    }
 
-<section class="details">
-    <div class="details-image">
-        <img src="@Model.ImageUrl" alt="@Model.Name" />
-    </div>
+    .shop-details * {
+        box-sizing: border-box;
+    }
 
-    <div class="details-info">
-        <p class="eyebrow">SIMPLESTORE / ТОВАР</p>
-        <h1>@Model.Name</h1>
+    .shop-details .product-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 50px;
+        margin: 30px 0 65px;
+        align-items: start;
+    }
 
-        @if (Model.HasLowStock && Model.StockQuantity > 0)
-        {
-            <p class="details-price">
-                <span style="text-decoration: line-through; color: #888;">
-                    @Model.Price.ToString("N0") ₽
-                </span>
-                <strong>@Model.DiscountedPrice.ToString("N0") ₽</strong>
-            </p>
-            <p style="color: #b45309;">
-                Скидка 30% — осталось: @Model.StockQuantity шт.
-            </p>
+    .shop-details .product-photo {
+        background: #f5f6f2;
+        border-radius: 18px;
+        overflow: hidden;
+        padding: 25px;
+    }
+
+    .shop-details .product-photo img {
+        width: 100%;
+        height: 380px;
+        object-fit: contain;
+        display: block;
+    }
+
+    .shop-details .product-title {
+        font-size: 38px;
+        margin: 12px 0 20px;
+    }
+
+    .shop-details .product-price {
+        font-size: 29px;
+        font-weight: 700;
+        margin: 15px 0;
+    }
+
+    .shop-details .old-price {
+        font-size: 19px;
+        color: #888;
+        text-decoration: line-through;
+        margin-right: 12px;
+    }
+
+    .shop-details .stock-message {
+        padding: 12px 16px;
+        border-radius: 9px;
+        margin: 18px 0;
+        background: #edf4e9;
+        color: #476348;
+    }
+
+    .shop-details .stock-message.warning {
+        background: #fff4e5;
+        color: #a35b15;
+    }
+
+    .shop-details .stock-message.empty {
+        background: #fff0f0;
+        color: #a12c2c;
+    }
+
+    .shop-details .product-description {
+        color: #666;
+        line-height: 1.8;
+        margin: 25px 0;
+    }
+
+    .shop-details .product-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 30px;
+    }
+
+    .shop-details .product-actions form {
+        margin: 0;
+    }
+
+    .shop-details .product-actions button {
+        width: 100%;
+        min-height: 49px;
+        padding: 13px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .shop-details .product-actions button:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+    .shop-details .secondary-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .shop-details .product-notice {
+        margin: 0;
+        color: #55724e;
+        font-size: 13px;
+    }
+
+    .shop-details .reviews-heading {
+        margin-bottom: 25px;
+    }
+
+    .shop-details .reviews-heading h2 {
+        font-size: 29px;
+        margin: 0 0 8px;
+    }
+
+    .shop-details .reviews-list {
+        display: grid;
+        gap: 18px;
+        margin-bottom: 35px;
+    }
+
+    .shop-details .review-card {
+        border: 1px solid #e8e8e8;
+        background: #fff;
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .shop-details .review-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .shop-details .review-author {
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    .shop-details .review-date {
+        color: #999;
+        font-size: 12px;
+    }
+
+    .shop-details .review-text {
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .shop-details .staff-reply {
+        background: #f5f6f2;
+        padding: 20px;
+        border-radius: 11px;
+        margin-top: 22px;
+        border-left: 3px solid #8b9a77;
+    }
+
+    .shop-details .staff-reply strong {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .shop-details .staff-reply p {
+        margin: 0;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .shop-details .review-form-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 16px;
+        padding: 28px;
+        margin-top: 28px;
+    }
+
+    .shop-details .review-form-card h3 {
+        margin: 0 0 12px;
+        font-size: 22px;
+    }
+
+    .shop-details .review-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 20px;
+    }
+
+    .shop-details .review-form label {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .shop-details .review-form textarea {
+        width: 100%;
+        min-height: 115px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        font: inherit;
+        resize: vertical;
+    }
+
+    .shop-details .review-form textarea:focus {
+        outline: 2px solid #8b9a77;
+        outline-offset: 1px;
+    }
+
+    .shop-details .review-form button {
+        align-self: flex-start;
+        min-height: 45px;
+        padding: 12px 25px;
+        border-radius: 9px;
+    }
+
+    .shop-details .staff-form {
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+        margin-top: 22px;
+    }
+
+    .shop-details .review-error {
+        background: #fff0f0;
+        color: #a12c2c;
+        border-radius: 9px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+    }
+
+    @@media (max-width: 750px) {
+        .shop-details .product-layout {
+            grid-template-columns: 1fr;
+            gap: 25px;
         }
-        else
-        {
-            <p class="details-price">@Model.Price.ToString("N0") ₽</p>
+
+        .shop-details .product-photo img {
+            height: 280px;
         }
 
-        @if (Model.StockQuantity <= 0)
-        {
-            <p style="color: #b91c1c; font-weight: bold;">
-                Нет в наличии
-            </p>
-        }
-        else if (Model.StockQuantity >= 3)
-        {
-            <p class="muted">
-                В наличии: @Model.StockQuantity шт.
-            </p>
+        .shop-details .product-title {
+            font-size: 30px;
         }
 
-        <p class="description">@Model.Description</p>
+        .shop-details .secondary-actions {
+            grid-template-columns: 1fr;
+        }
 
-        <div class="product-likes">
-            @if (User.Identity?.IsAuthenticated == true)
+        .shop-details .review-card,
+        .shop-details .review-form-card {
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="shop-details">
+
+    <a class="back-link"
+       asp-controller="Products"
+       asp-action="Index">
+        ← Назад в каталог
+    </a>
+
+    <section class="product-layout">
+
+        <div class="product-photo">
+            <img src="@Model.ImageUrl" alt="@Model.Name" />
+        </div>
+
+        <div>
+            <p class="eyebrow">SIMPLESTORE / ТОВАР</p>
+
+            <h1 class="product-title">@Model.Name</h1>
+
+            @if (Model.HasLowStock && Model.StockQuantity > 0)
             {
-                <form id="like-form"
-                      asp-controller="Likes"
-                      asp-action="Toggle"
-                      method="post">
-                    <input type="hidden" name="productId" value="@Model.Id" />
-                    <button type="submit" id="like-button"
-                            class="button button-dark">
-                        <span id="like-icon">@(ViewBag.HasLiked ? "♥" : "♡")</span>
-                        <span id="like-label">Нравится</span>
-                        <span id="like-count">@ViewBag.LikeCount</span>
-                    </button>
-                </form>
+                <p class="product-price">
+                    <span class="old-price">
+                        @Model.Price.ToString("N0") ₽
+                    </span>
+                    @Model.DiscountedPrice.ToString("N0") ₽
+                </p>
+
+                <div class="stock-message warning">
+                    Скидка 30% — осталось @Model.StockQuantity шт.
+                </div>
             }
             else
             {
-                <p>
-                    <a asp-controller="Account" asp-action="Login">Войди</a>,
-                    чтобы поставить лайк.
-                    Лайков: @ViewBag.LikeCount
+                <p class="product-price">
+                    @Model.Price.ToString("N0") ₽
                 </p>
+
+                @if (Model.StockQuantity <= 0)
+                {
+                    <div class="stock-message empty">
+                        Нет в наличии
+                    </div>
+                }
+                else
+                {
+                    <div class="stock-message">
+                        В наличии: @Model.StockQuantity шт.
+                    </div>
+                }
             }
+
+            <p class="product-description">
+                @Model.Description
+            </p>
+
+            <div class="product-actions">
+
+                @if (Model.StockQuantity > 0)
+                {
+                <button class="button button-dark"
+                        type="button"
+                        data-add-to-cart="@Model.Id">
+                    Добавить в корзину
+                </button>
+            }
+            else
+            {
+                @if (loggedIn)
+                {
+                    <form asp-controller="Waitlist"
+                        asp-action="Subscribe"
+                        method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                            name="productId"
+                            value="@Model.Id" />
+
+                        <button class="button button-dark"
+                                type="submit">
+                            🔔 Сообщить о поступлении
+                        </button>
+                    </form>
+
+                    <a class="button button-light"
+                    asp-controller="Waitlist"
+                    asp-action="Index"
+                    style="text-align: center;">
+                        Мой лист ожидания
+                    </a>
+                }
+                else
+                {
+                    <a class="button button-dark"
+                    asp-controller="Account"
+                    asp-action="Login">
+                        Войти, чтобы ожидать товар
+                    </a>
+                }
+            }
+
+                <div class="secondary-actions">
+
+                    @if (loggedIn)
+                    {
+                        <form id="like-form"
+                              asp-controller="Likes"
+                              asp-action="Toggle"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@Model.Id" />
+
+                            <button class="button button-light"
+                                    type="submit"
+                                    id="like-button">
+
+                                <span id="like-icon">
+                                    @(ViewBag.HasLiked == true ? "♥" : "♡")
+                                </span>
+
+                                Нравится
+
+                                <span id="like-count">
+                                    @ViewBag.LikeCount
+                                </span>
+                            </button>
+                        </form>
+
+                        <form asp-controller="Bookmarks"
+                              asp-action="Toggle"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@Model.Id" />
+
+                            <button class="button button-light"
+                                    type="submit">
+                                ♡ В закладки
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="button button-light"
+                           asp-controller="Account"
+                           asp-action="Login">
+                            ♡ Войти для лайков
+                        </a>
+
+                        <a class="button button-light"
+                           asp-controller="Account"
+                           asp-action="Login">
+                            ♡ Войти для закладок
+                        </a>
+                    }
+                </div>
+
+                @if (TempData["BookmarkMessage"] != null)
+                {
+                    <p class="product-notice" role="status">
+                        @TempData["BookmarkMessage"]
+                    </p>
+                }
+
+            </div>
+        </div>
+    </section>
+
+    <section class="reviews">
+
+        <div class="reviews-heading">
+            <p class="eyebrow">ОТЗЫВЫ</p>
+            <h2>Отзывы покупателей</h2>
+            <p class="muted">
+                Отзывы помогают другим покупателям выбрать товар.
+            </p>
         </div>
 
-        @if (Model.StockQuantity > 0)
+        @if (TempData["ReviewError"] != null)
         {
-            <button class="button button-dark"
-                    type="button"
-                    data-add-to-cart="@Model.Id">
-                Добавить в корзину
-            </button>
-            <p class="small-note">Количество в корзине обновится автоматически.</p>
+            <div class="review-error" role="alert">
+                @TempData["ReviewError"]
+            </div>
+        }
+
+        @if (reviews.Count == 0)
+        {
+            <div class="review-card">
+                <p class="muted">
+                    У этого товара пока нет отзывов.
+                </p>
+            </div>
         }
         else
         {
-            <button class="button button-dark" type="button" disabled>
-                Нет в наличии
-            </button>
-        }
-    </div>
-</section>
+            <div class="reviews-list">
 
-<hr />
-
-<section class="reviews">
-    <h2>Отзывы покупателей</h2>
-
-    @if (TempData["ReviewError"] != null)
-    {
-        <p class="review-error">@TempData["ReviewError"]</p>
-    }
-
-    @if (reviews.Count == 0)
-    {
-        <p>Пока нет отзывов. Будь первым!</p>
-    }
-    else
-    {
-        foreach (var review in reviews)
-        {
-            <article class="review">
-                <h3>@review.UserName</h3>
-                <p class="small-note">
-                    @review.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                </p>
-                <p>@review.Text</p>
-
-                @if (!string.IsNullOrWhiteSpace(review.ModeratorReply))
+                @foreach (var review in reviews)
                 {
-                    <div class="moderator-reply">
-                        <strong>Ответ модератора: @review.ModeratorName</strong>
-                        <p>@review.ModeratorReply</p>
-                    </div>
-                }
+                    <article class="review-card">
 
-                @if (User.IsInRole("Moderator") || User.IsInRole("Admin"))
-                {
-                    <form asp-controller="Reviews" asp-action="Reply" method="post">
-                        <input type="hidden" name="reviewId" value="@review.Id" />
-                        <label for="reply-@review.Id">Ответить на отзыв</label>
-                        <textarea id="reply-@review.Id" name="reply"
-                                  maxlength="1000" required></textarea>
-                        <button class="button button-dark" type="submit">
-                            Отправить ответ
-                        </button>
-                    </form>
-                }
-            </article>
-            <hr />
-        }
-    }
+                        <div class="review-header">
+                            <span class="review-author">
+                                @review.UserName
+                            </span>
 
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        <h3>Оставить отзыв</h3>
-        <form asp-controller="Reviews" asp-action="Add" method="post">
-            <input type="hidden" name="productId" value="@Model.Id" />
-            <label for="review-text">Твой отзыв</label>
-            <textarea id="review-text" name="text"
-                      minlength="3" maxlength="1000" required></textarea>
-            <button class="button button-dark" type="submit">
-                Отправить отзыв
-            </button>
-        </form>
-    }
-    else
-    {
-        <p>
-            <a asp-controller="Account" asp-action="Login">Войди</a>,
-            чтобы оставить отзыв.
-        </p>
-    }
+                            <span class="review-date">
+                                @review.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            </span>
+                        </div>
 
-    <script>
-        const likeForm = document.getElementById("like-form");
+                        <div class="review-text">
+                            @review.Text
+                        </div>
 
-        if (likeForm) {
-            likeForm.addEventListener("submit", async function (event) {
-                event.preventDefault();
+                        @if (!string.IsNullOrWhiteSpace(review.ModeratorReply))
+                        {
+                            <div class="staff-reply">
+                                <strong>
+                                    Ответ магазина — @review.ModeratorName
+                                </strong>
 
-                const button = document.getElementById("like-button");
-                const icon = document.getElementById("like-icon");
-                const count = document.getElementById("like-count");
-
-                button.disabled = true;
-
-                try {
-                    const response = await fetch(likeForm.action, {
-                        method: "POST",
-                        body: new FormData(likeForm),
-                        headers: {
-                            "X-Requested-With": "XMLHttpRequest"
+                                <p>@review.ModeratorReply</p>
+                            </div>
                         }
-                    });
 
-                    if (!response.ok) {
-                        alert("Не удалось изменить лайк. Попробуй ещё раз.");
-                        return;
-                    }
+                        @if (isStaff)
+                        {
+                            <div class="staff-form">
 
-                    const data = await response.json();
-                    icon.textContent = data.liked ? "♥" : "♡";
-                    count.textContent = data.count;
-                } catch {
-                    alert("Ошибка соединения. Попробуй ещё раз.");
-                } finally {
-                    button.disabled = false;
+                                <form class="review-form"
+                                      asp-controller="Reviews"
+                                      asp-action="Reply"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="reviewId"
+                                           value="@review.Id" />
+
+                                    <label for="reply-@review.Id">
+                                        Ответить покупателю
+                                    </label>
+
+                                    <textarea id="reply-@review.Id"
+                                              name="reply"
+                                              maxlength="1000"
+                                              placeholder="Напишите ответ от имени магазина..."
+                                              required>@review.ModeratorReply</textarea>
+
+                                    <button class="button button-dark"
+                                            type="submit">
+                                        Сохранить ответ
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </article>
                 }
-            });
+            </div>
         }
-    </script>
-</section>
+
+        @if (loggedIn)
+        {
+            <div class="review-form-card">
+                <h3>Оставить отзыв</h3>
+
+                <p class="muted">
+                    Расскажите о своём впечатлении от товара.
+                </p>
+
+                <form class="review-form"
+                      asp-controller="Reviews"
+                      asp-action="Add"
+                      method="post">
+
+                    <input type="hidden"
+                           name="productId"
+                           value="@Model.Id" />
+
+                    <label for="review-text">
+                        Ваш отзыв
+                    </label>
+
+                    <textarea id="review-text"
+                              name="text"
+                              minlength="3"
+                              maxlength="1000"
+                              placeholder="Что вам понравилось в товаре?"
+                              required></textarea>
+
+                    <button class="button button-dark"
+                            type="submit">
+                        Опубликовать отзыв
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="review-form-card">
+                <h3>Хотите оставить отзыв?</h3>
+
+                <p class="muted">
+                    Для публикации отзыва необходимо войти в аккаунт.
+                </p>
+
+                <a class="button button-dark"
+                   asp-controller="Account"
+                   asp-action="Login">
+                    Войти
+                </a>
+            </div>
+        }
+    </section>
+</div>
+
+<script>
+    const likeForm = document.getElementById("like-form");
+
+    if (likeForm) {
+        likeForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const button = document.getElementById("like-button");
+            const icon = document.getElementById("like-icon");
+            const count = document.getElementById("like-count");
+
+            button.disabled = true;
+
+            try {
+                const response = await fetch(likeForm.action, {
+                    method: "POST",
+                    body: new FormData(likeForm),
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+
+                if (!response.ok) {
+                    alert("Не удалось изменить лайк.");
+                    return;
+                }
+
+                const data = await response.json();
+
+                icon.textContent = data.liked ? "♥" : "♡";
+                count.textContent = data.count;
+            }
+            catch {
+                alert("Ошибка соединения.");
+            }
+            finally {
+                button.disabled = false;
+            }
+        });
+    }
+</script>

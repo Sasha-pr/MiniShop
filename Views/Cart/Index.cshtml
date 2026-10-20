@@ -1,146 +1,483 @@
+
 @model List<CartItem>
 
 @{
     ViewData["Title"] = "Корзина";
+    var total = Model.Sum(x => x.Total);
 }
 
-@if (TempData["CheckoutSuccess"] != null)
-{
-    <p class="review-success">@TempData["CheckoutSuccess"]</p>
-}
+<style>
+    .shop-cart {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 25px 0 70px;
+    }
 
-@if (TempData["CheckoutError"] != null)
-{
-    <p class="review-error">@TempData["CheckoutError"]</p>
-}
+    .shop-cart h1 {
+        font-size: 38px;
+        margin: 10px 0 30px;
+    }
 
-<section class="page-heading">
-    <p class="eyebrow">ВАШ ВЫБОР</p>
-    <h1>Корзина</h1>
-</section>
+    .shop-cart h2 {
+        font-size: 25px;
+        margin: 0 0 10px;
+    }
 
-@if (Model.Count == 0)
-{
-    <div class="empty-state">
-        <h2>Пока здесь пусто</h2>
-        <p class="muted">Добавьте товары из каталога — они появятся здесь.</p>
-        <a class="button button-dark"
-           asp-controller="Products"
-           asp-action="Index">
-            Перейти в каталог
-        </a>
-    </div>
-}
-else
-{
-    <div class="cart-list">
-        @foreach (var item in Model)
-        {
-            <article class="cart-item">
-                <img src="@item.ImageUrl" alt="@item.Name" />
+    .shop-cart .cart-product {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 22px 0;
+        border-bottom: 1px solid #e7e7e7;
+    }
 
-                <div class="cart-item-info">
-                    <h3>@item.Name</h3>
-                    <p class="muted">
-                        @item.Price.ToString("N0") ₽ × @item.Quantity
-                    </p>
-                </div>
+    .shop-cart .cart-product img {
+        width: 95px;
+        height: 95px;
+        object-fit: cover;
+        border-radius: 12px;
+        background: #f5f6f2;
+    }
 
-                <strong>@item.Total.ToString("N0") ₽</strong>
+    .shop-cart .cart-product-info {
+        flex: 1;
+        min-width: 0;
+    }
 
-                <form asp-action="Remove" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@item.ProductId" />
-                    <button class="remove-button" type="submit">
-                        Удалить
-                    </button>
-                </form>
-            </article>
+    .shop-cart .cart-product-info h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+    }
+
+    .shop-cart .cart-product-info p {
+        margin: 0;
+    }
+
+    .shop-cart .cart-product-price {
+        font-size: 18px;
+        white-space: nowrap;
+    }
+
+    .shop-cart .cart-remove {
+        background: transparent;
+        border: 0;
+        color: #a33b3b;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    .shop-cart .cart-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-top: 25px;
+        padding: 24px;
+        background: #f5f6f2;
+        border-radius: 14px;
+        font-size: 20px;
+    }
+
+    .shop-cart .cart-total strong {
+        font-size: 25px;
+    }
+
+    .shop-cart .cart-clear {
+        margin: 18px 0 45px;
+    }
+
+    .shop-cart .checkout-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 18px;
+        padding: 32px;
+        margin-top: 30px;
+    }
+
+    .shop-cart .checkout-description {
+        color: #777;
+        margin-bottom: 30px;
+    }
+
+    .shop-cart .checkout-form {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .shop-cart .checkout-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .shop-cart .checkout-field {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        min-width: 0;
+    }
+
+    .shop-cart .checkout-field label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #252525;
+    }
+
+    .shop-cart .checkout-field input,
+    .shop-cart .checkout-field textarea,
+    .shop-cart .checkout-field select {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 48px;
+        padding: 13px 15px;
+        border: 1px solid #dcdcdc;
+        border-radius: 9px;
+        background: #fff;
+        color: #20211f;
+        font: inherit;
+    }
+
+    .shop-cart .checkout-field textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .shop-cart .checkout-field input:focus,
+    .shop-cart .checkout-field textarea:focus,
+    .shop-cart .checkout-field select:focus {
+        outline: 2px solid #8b9a77;
+        outline-offset: 1px;
+    }
+
+    .shop-cart .checkout-hint {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .shop-cart .checkout-bottom {
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .shop-cart .checkout-submit {
+        padding: 16px 30px;
+        font-size: 15px;
+        border-radius: 9px;
+        cursor: pointer;
+        align-self: flex-start;
+    }
+
+    .shop-cart .checkout-alert {
+        padding: 15px 18px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .shop-cart .checkout-alert.success {
+        background: #edf6ed;
+        color: #32643b;
+    }
+
+    .shop-cart .checkout-alert.error {
+        background: #fff0f0;
+        color: #a12c2c;
+    }
+
+    .shop-cart .checkout-login {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    @@media (max-width: 650px) {
+        .shop-cart .checkout-row {
+            grid-template-columns: 1fr;
         }
-    </div>
 
-    <div class="cart-summary">
-        <span>Итого</span>
-        <strong>@Model.Sum(x => x.Total).ToString("N0") ₽</strong>
-    </div>
+        .shop-cart .checkout-card {
+            padding: 22px 16px;
+        }
 
-    <form asp-action="Clear" method="post" class="clear-form">
-        @Html.AntiForgeryToken()
-        <button class="button button-light" type="submit">
-            Очистить корзину
-        </button>
-    </form>
+        .shop-cart .cart-product {
+            flex-wrap: wrap;
+        }
 
-    @if (User.Identity?.IsAuthenticated == true)
+        .shop-cart .cart-product img {
+            width: 75px;
+            height: 75px;
+        }
+
+        .shop-cart .checkout-submit {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="shop-cart">
+
+    <p class="eyebrow">SIMPLESTORE / ПОКУПКИ</p>
+    <h1>Корзина</h1>
+
+    @if (TempData["CheckoutSuccess"] != null)
     {
-        <section class="page-heading">
-            <h2>Оформление заказа</h2>
-            <p class="muted">Заполните данные для доставки.</p>
-        </section>
+        <div class="checkout-alert success" role="status">
+            @TempData["CheckoutSuccess"]
+        </div>
+    }
 
-        <form asp-action="Checkout" method="post" class="auth-form">
-            @Html.AntiForgeryToken()
+    @if (TempData["CheckoutError"] != null)
+    {
+        <div class="checkout-alert error" role="alert">
+            @TempData["CheckoutError"]
+        </div>
+    }
 
-            <label for="CustomerName">ФИО</label>
-            <input id="CustomerName"
-                   name="CustomerName"
-                   type="text"
-                   maxlength="150"
-                   autocomplete="name"
-                   required />
+    @if (Model.Count == 0)
+    {
+        <div class="checkout-card">
+            <h2>В корзине пока пусто</h2>
 
-            <label for="Phone">Телефон</label>
-            <input id="Phone"
-                   name="Phone"
-                   type="tel"
-                   maxlength="30"
-                   autocomplete="tel"
-                   required />
+            <p class="muted">
+                Выберите понравившиеся товары в каталоге.
+            </p>
 
-            <label for="Address">Адрес доставки</label>
-            <textarea id="Address"
-                      name="Address"
-                      maxlength="300"
-                      autocomplete="street-address"
-                      required></textarea>
-
-            <label for="PaymentMethod">Способ оплаты</label>
-            <select id="PaymentMethod" name="PaymentMethod" required>
-                <option value="">Выберите способ оплаты</option>
-                <option value="При получении">При получении</option>
-                <option value="Картой при получении">Картой при получении</option>
-            </select>
-
-            <label for="Comment">Комментарий к заказу (необязательно)</label>
-            <textarea id="Comment"
-                      name="Comment"
-                      maxlength="1000"
-                      placeholder="Например, удобное время доставки"></textarea>
-
-            <button class="button button-dark" type="submit">
-                Оформить заказ
-            </button>
-        </form>
+            <a class="button button-dark"
+               asp-controller="Products"
+               asp-action="Index">
+                Перейти в каталог
+            </a>
+        </div>
     }
     else
     {
-        <p class="muted">
-            Чтобы оформить заказ, войдите в аккаунт или зарегистрируйтесь.
-            Товары останутся в корзине.
-        </p>
+        <section aria-label="Товары в корзине">
 
-        <a class="button button-dark"
-           asp-controller="Account"
-           asp-action="Login"
-           asp-route-returnUrl="/Cart">
-            Войти для оформления
-        </a>
+            @foreach (var item in Model)
+            {
+                <article class="cart-product">
 
-        <a class="button button-light"
-           asp-controller="Account"
-           asp-action="Register"
-           asp-route-returnUrl="/Cart">
-            Зарегистрироваться
-        </a>
+                    <img src="@item.ImageUrl"
+                         alt="@item.Name" />
+
+                    <div class="cart-product-info">
+                        <h3>@item.Name</h3>
+
+                        <p class="muted">
+                            @item.Price.ToString("N0") ₽
+                            × @item.Quantity шт.
+                        </p>
+                    </div>
+
+                    <strong class="cart-product-price">
+                        @item.Total.ToString("N0") ₽
+                    </strong>
+
+                    <form asp-controller="Cart"
+                          asp-action="Remove"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@item.ProductId" />
+
+                        <button class="cart-remove"
+                                type="submit"
+                                aria-label="Удалить @item.Name из корзины">
+                            Удалить
+                        </button>
+                    </form>
+                </article>
+            }
+        </section>
+
+        <div class="cart-total">
+            <span>Итого к оплате</span>
+
+            <strong>
+                @total.ToString("N0") ₽
+            </strong>
+        </div>
+
+        <form asp-controller="Cart"
+              asp-action="Clear"
+              method="post"
+              class="cart-clear">
+
+            @Html.AntiForgeryToken()
+
+            <button class="button button-light"
+                    type="submit">
+                Очистить корзину
+            </button>
+        </form>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <section class="checkout-card">
+
+                <h2>Оформление заказа</h2>
+
+                <p class="checkout-description">
+                    Заполните контактные данные и адрес доставки.
+                    Поля со звёздочкой обязательны.
+                </p>
+
+                <form asp-controller="Cart"
+                      asp-action="Checkout"
+                      method="post"
+                      class="checkout-form">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="checkout-row">
+
+                        <div class="checkout-field">
+                            <label for="CustomerName">
+                                ФИО *
+                            </label>
+
+                            <input id="CustomerName"
+                                   name="CustomerName"
+                                   type="text"
+                                   placeholder="Иванов Иван Иванович"
+                                   autocomplete="name"
+                                   maxlength="150"
+                                   required />
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="Phone">
+                                Телефон *
+                            </label>
+
+                            <input id="Phone"
+                                   name="Phone"
+                                   type="tel"
+                                   placeholder="+7 999 123-45-67"
+                                   autocomplete="tel"
+                                   maxlength="30"
+                                   required />
+                        </div>
+                    </div>
+
+                    <div class="checkout-field">
+                        <label for="Address">
+                            Адрес доставки *
+                        </label>
+
+                        <textarea id="Address"
+                                  name="Address"
+                                  placeholder="Город, улица, дом, квартира"
+                                  autocomplete="street-address"
+                                  maxlength="300"
+                                  required></textarea>
+
+                        <span class="checkout-hint">
+                            Укажите полный адрес, по которому
+                            нужно доставить заказ.
+                        </span>
+                    </div>
+
+                    <div class="checkout-field">
+                        <label for="PaymentMethod">
+                            Способ оплаты *
+                        </label>
+
+                        <select id="PaymentMethod"
+                                name="PaymentMethod"
+                                required>
+
+                            <option value="">
+                                Выберите способ оплаты
+                            </option>
+
+                            <option value="При получении">
+                                Наличными при получении
+                            </option>
+
+                            <option value="Картой при получении">
+                                Картой при получении
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="checkout-field">
+                        <label for="Comment">
+                            Комментарий к заказу
+                        </label>
+
+                        <textarea id="Comment"
+                                  name="Comment"
+                                  maxlength="1000"
+                                  placeholder="Например, пожелания по доставке"></textarea>
+
+                        <span class="checkout-hint">
+                            Необязательное поле.
+                        </span>
+                    </div>
+
+                    <div class="checkout-bottom">
+
+                        <div class="cart-total"
+                             style="margin-top: 0;">
+                            <span>Сумма заказа</span>
+
+                            <strong>
+                                @total.ToString("N0") ₽
+                            </strong>
+                        </div>
+
+                        <button class="button button-dark checkout-submit"
+                                type="submit">
+                            Подтвердить заказ
+                        </button>
+
+                        <p class="muted"
+                           style="font-size: 13px; margin: 0;">
+                            После подтверждения заказ появится
+                            в разделе «Мои заказы».
+                            Оплата на сайте не производится.
+                        </p>
+                    </div>
+                </form>
+            </section>
+        }
+        else
+        {
+            <section class="checkout-card">
+
+                <h2>Готовы оформить заказ?</h2>
+
+                <p class="muted">
+                    Войдите в аккаунт или зарегистрируйтесь.
+                    Товары останутся в корзине.
+                </p>
+
+                <div class="checkout-login">
+
+                    <a class="button button-dark"
+                       asp-controller="Account"
+                       asp-action="Login"
+                       asp-route-returnUrl="/Cart">
+                        Войти
+                    </a>
+
+                    <a class="button button-light"
+                       asp-controller="Account"
+                       asp-action="Register"
+                       asp-route-returnUrl="/Cart">
+                        Зарегистрироваться
+                    </a>
+                </div>
+            </section>
+        }
     }
-}
+</div>

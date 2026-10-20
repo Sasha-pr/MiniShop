@@ -1,86 +1,654 @@
+
+@using Microsoft.EntityFrameworkCore
+@using MiniShop.Data
+@inject ApplicationDbContext Db
+
+@{
+    var isLoggedIn = User.Identity?.IsAuthenticated == true;
+
+    var isStaff = User.IsInRole("Admin") ||
+                  User.IsInRole("Moderator");
+
+    var isAdmin = User.IsInRole("Admin");
+
+    var userId = User.FindFirst(
+        System.Security.Claims.ClaimTypes.NameIdentifier
+    )?.Value;
+
+    var unreadCount = 0;
+    var pendingChatCount = 0;
+
+    if (isLoggedIn && !string.IsNullOrEmpty(userId))
+    {
+        unreadCount = await Db.UserNotifications
+            .CountAsync(n =>
+                n.UserId == userId &&
+                !n.IsRead);
+    }
+
+    if (isStaff)
+    {
+        var lastChatIds = await Db.ChatMessages
+            .GroupBy(m => m.UserId)
+            .Select(g => g.Max(m => m.Id))
+            .ToListAsync();
+
+        pendingChatCount = await Db.ChatMessages
+            .CountAsync(m =>
+                lastChatIds.Contains(m.Id) &&
+                !m.IsStaff);
+    }
+}
+
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
     <title>@ViewData["Title"] — SimpleStore</title>
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <style>
+        /* Верхняя шапка */
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .topbar .main-nav {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .topbar .main-nav a {
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .menu-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #20211f;
+            color: white;
+            border: none;
+            border-radius: 9px;
+            padding: 11px 17px;
+            font: inherit;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .menu-button:hover {
+            background: #41443c;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        /* Затемнение фона */
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+
+        .sidebar-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Боковое меню */
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 340px;
+            max-width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            background: #fff;
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.25s ease;
+            box-shadow: -8px 0 30px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar-title {
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .sidebar-close {
+            background: transparent;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #20211f;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #888;
+            margin: 20px 10px 12px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            color: #20211f;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .sidebar-link:hover {
+            background: #f5f6f2;
+        }
+
+        .sidebar-link .link-icon {
+            font-size: 19px;
+            width: 25px;
+            text-align: center;
+        }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 18px 0;
+        }
+
+        .sidebar-account {
+            background: #f5f6f2;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            overflow-wrap: anywhere;
+        }
+
+        .sidebar-account-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-account-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .sidebar-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 5px;
+            border-radius: 20px;
+            background: #8b9a77;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: auto;
+        }
+
+        .sidebar-logout {
+            margin: 0;
+        }
+
+        .sidebar-logout button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: none;
+            border-radius: 9px;
+            text-align: left;
+            font: inherit;
+            font-size: 14px;
+            color: #9b3a3a;
+            cursor: pointer;
+        }
+
+        .sidebar-logout button:hover {
+            background: #fff0f0;
+        }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
+
+        @@media (max-width: 800px) {
+            .topbar {
+                padding-top: 16px;
+                padding-bottom: 16px;
+            }
+
+            .topbar .main-nav {
+                gap: 12px;
+            }
+
+            .topbar .main-nav a {
+                font-size: 13px;
+            }
+
+            .menu-button {
+                padding: 10px 12px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+            }
+
+            .menu-button .menu-label {
+                display: none;
+            }
+        }
+    </style>
 </head>
+
 <body>
+
+    <!-- Верхняя навигация -->
+
     <header class="topbar">
-        <a class="logo" asp-controller="Products" asp-action="Index">
+
+        <a class="logo"
+           asp-controller="Products"
+           asp-action="Index">
             simple<span>store</span>
         </a>
 
-        <nav>
-            <a asp-controller="Products" asp-action="Index">Каталог</a>
+        <nav class="main-nav"
+             aria-label="Основная навигация">
 
-            <a class="cart-link" asp-controller="Cart" asp-action="Index">
-                Корзина <span id="cart-count" class="count">0</span>
+            <a asp-controller="Products"
+               asp-action="Index">
+                Каталог
             </a>
 
-            @if (User.IsInRole("Moderator") || User.IsInRole("Admin"))
+            <a class="cart-link"
+               asp-controller="Cart"
+               asp-action="Index">
+                Корзина
+                <span id="cart-count" class="count">0</span>
+            </a>
+
+            <button type="button"
+                    class="menu-button"
+                    id="open-sidebar"
+                    aria-label="Открыть меню"
+                    aria-controls="sidebar"
+                    aria-expanded="false">
+
+                <span class="menu-icon">☰</span>
+                <span class="menu-label">Меню</span>
+
+            </button>
+
+        </nav>
+
+    </header>
+
+    <!-- Затемнение -->
+
+    <div class="sidebar-overlay"
+         id="sidebar-overlay"></div>
+
+    <!-- Боковое меню -->
+
+    <aside class="sidebar"
+           id="sidebar"
+           role="dialog"
+           aria-modal="true"
+           aria-label="Боковое меню"
+           aria-hidden="true"
+           inert>
+
+        <div class="sidebar-header">
+
+            <span class="sidebar-title">
+                Меню
+            </span>
+
+            <button type="button"
+                    class="sidebar-close"
+                    id="close-sidebar"
+                    aria-label="Закрыть меню">
+                ×
+            </button>
+
+        </div>
+
+        <div class="sidebar-content">
+
+            @if (isLoggedIn)
             {
-                <a asp-controller="Orders" asp-action="Index">Заказы</a>
+                <div class="sidebar-account">
+                    <div class="sidebar-account-label">
+                        Вы вошли как
+                    </div>
+
+                    <div class="sidebar-account-name">
+                        @User.Identity?.Name
+                    </div>
+                </div>
+
+                <div class="sidebar-section-title">
+                    Личный кабинет
+                </div>
+
+                <a class="sidebar-link"
+                   asp-controller="Bookmarks"
+                   asp-action="Index">
+                    <span class="link-icon">♡</span>
+                    Закладки
+                </a>
+
+                <a class="sidebar-link"
+                   asp-controller="Waitlist"
+                   asp-action="Index">
+                    <span class="link-icon">◷</span>
+                    Лист ожидания
+                </a>
+
+                <a class="sidebar-link"
+                   asp-controller="Notifications"
+                   asp-action="Index">
+
+                    <span class="link-icon">♧</span>
+                    Уведомления
+
+                    <span id="notification-badge"
+                          class="sidebar-badge"
+                          style="@(unreadCount == 0 ? "display:none" : "")">
+                        @unreadCount
+                    </span>
+                </a>
+
+                <a class="sidebar-link"
+                   asp-controller="MyOrders"
+                   asp-action="Index">
+                    <span class="link-icon">▣</span>
+                    Мои заказы
+                </a>
+
+                <a class="sidebar-link"
+                   asp-controller="Chat"
+                   asp-action="Index">
+                    <span class="link-icon">☏</span>
+                    Чат с магазином
+                </a>
             }
 
-            @if (User.IsInRole("Admin"))
+            @if (isStaff)
             {
-                <a asp-controller="Admin" asp-action="Index">Пользователи</a>
+                <hr class="sidebar-divider" />
+
+                <div class="sidebar-section-title">
+                    Управление магазином
+                </div>
+
+                <a class="sidebar-link"
+                   asp-controller="Orders"
+                   asp-action="Index">
+                    <span class="link-icon">▤</span>
+                    Заказы покупателей
+                </a>
+
+                <a class="sidebar-link"
+                   asp-controller="Stock"
+                   asp-action="Index">
+                    <span class="link-icon">▦</span>
+                    Склад
+                </a>
+
+                <a class="sidebar-link"
+                   asp-controller="Chat"
+                   asp-action="Conversations">
+
+                    <span class="link-icon">☏</span>
+                    Обращения
+
+                    <span id="chat-pending-badge"
+                          class="sidebar-badge"
+                          style="@(pendingChatCount == 0 ? "display:none" : "")">
+                        @pendingChatCount
+                    </span>
+                </a>
             }
 
-            @if (User.Identity?.IsAuthenticated == true)
+            @if (isAdmin)
             {
-                <a asp-controller="MyOrders" asp-action="Index">Мои заказы</a>
-                <span>@User.Identity.Name</span>
+                <a class="sidebar-link"
+                   asp-controller="AdminProducts"
+                   asp-action="Index">
+                    <span class="link-icon">＋</span>
+                    Управление товарами
+                </a>
 
-                <form asp-controller="Account" asp-action="Logout" method="post">
-                    <button type="submit">Выйти</button>
+                <a class="sidebar-link"
+                   asp-controller="Admin"
+                   asp-action="Index">
+                    <span class="link-icon">♙</span>
+                    Пользователи
+                </a>
+            }
+
+            <hr class="sidebar-divider" />
+
+            @if (isLoggedIn)
+            {
+                <form class="sidebar-logout"
+                      asp-controller="Account"
+                      asp-action="Logout"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit">
+                        <span class="link-icon">↪</span>
+                        Выйти из аккаунта
+                    </button>
+
                 </form>
             }
             else
             {
-                <a asp-controller="Account" asp-action="Register">Регистрация</a>
-                <a asp-controller="Account" asp-action="Login">Вход</a>
+                <a class="sidebar-link"
+                   asp-controller="Account"
+                   asp-action="Login">
+                    <span class="link-icon">→</span>
+                    Войти
+                </a>
+
+                <a class="sidebar-link"
+                   asp-controller="Account"
+                   asp-action="Register">
+                    <span class="link-icon">＋</span>
+                    Регистрация
+                </a>
             }
-        </nav>
-    </header>
+
+        </div>
+
+    </aside>
+
+    <!-- Содержимое страницы -->
 
     <main class="container">
         @RenderBody()
     </main>
 
-    <footer class="footer">SimpleStore · Учебный мини-магазин</footer>
-    <div id="toast" class="toast" role="status"></div>
+    <footer class="footer">
+        SimpleStore · Учебный мини-магазин
+    </footer>
+
+    <!-- Уведомление после добавления в корзину -->
+
+    <div id="toast"
+         class="toast"
+         role="status"></div>
+
+    <!-- Токен для AJAX-запросов -->
+
     <form id="csrf-form" style="display:none">
         @Html.AntiForgeryToken()
     </form>
 
     <script>
+        // Боковое меню
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const openSidebarButton = document.getElementById('open-sidebar');
+        const closeSidebarButton = document.getElementById('close-sidebar');
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('open');
+            document.body.classList.add('sidebar-open');
+
+            sidebar.removeAttribute('inert');
+            sidebar.setAttribute('aria-hidden', 'false');
+            openSidebarButton.setAttribute('aria-expanded', 'true');
+
+            closeSidebarButton.focus();
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+            document.body.classList.remove('sidebar-open');
+
+            openSidebarButton.focus();
+            sidebar.setAttribute('inert', '');
+            sidebar.setAttribute('aria-hidden', 'true');
+            openSidebarButton.setAttribute('aria-expanded', 'false');
+        }
+
+        openSidebarButton.addEventListener('click', openSidebar);
+        closeSidebarButton.addEventListener('click', closeSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' &&
+                sidebar.classList.contains('open')) {
+                closeSidebar();
+            }
+
+            if (event.key === 'Tab' &&
+                sidebar.classList.contains('open')) {
+                const focusable = Array.from(
+                    sidebar.querySelectorAll(
+                        'a[href], button:not([disabled])'
+                    )
+                );
+
+                if (focusable.length === 0) return;
+
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+
+                if (event.shiftKey &&
+                    document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                }
+                else if (!event.shiftKey &&
+                         document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+
+        // Корзина
+
         async function updateCartCount() {
             try {
                 const response = await fetch('/Cart/Count');
+
                 if (!response.ok) return;
 
                 const data = await response.json();
-                document.getElementById('cart-count').textContent = data.count;
-            } catch (error) {
-                console.error('Не удалось обновить корзину', error);
+
+                document.getElementById('cart-count').textContent =
+                    data.count;
+            }
+            catch (error) {
+                console.error(
+                    'Не удалось обновить корзину',
+                    error
+                );
             }
         }
 
         async function addToCart(productId) {
             try {
+                const token = document.querySelector(
+                    '#csrf-form input[name="__RequestVerificationToken"]'
+                ).value;
+
                 const response = await fetch(
                     '/Cart/Add?id=' + encodeURIComponent(productId),
                     {
                         method: 'POST',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'RequestVerificationToken':
-                                document.querySelector(
-                                    '#csrf-form input[name="__RequestVerificationToken"]'
-                                ).value
+                            'RequestVerificationToken': token
                         }
                     }
                 );
@@ -88,19 +656,28 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    showToast(data.message || 'Не удалось добавить товар.');
+                    showToast(
+                        data.message ||
+                        'Не удалось добавить товар.'
+                    );
                     return;
                 }
 
-                document.getElementById('cart-count').textContent = data.count;
+                document.getElementById('cart-count').textContent =
+                    data.count;
+
                 showToast(data.message);
-            } catch (error) {
-                showToast('Ошибка соединения. Попробуйте ещё раз.');
+            }
+            catch (error) {
+                showToast(
+                    'Ошибка соединения. Попробуйте ещё раз.'
+                );
             }
         }
 
         function showToast(message) {
             const toast = document.getElementById('toast');
+
             toast.textContent = message;
             toast.classList.add('visible');
 
@@ -115,14 +692,53 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCount();
 
-            document.querySelectorAll('[data-add-to-cart]').forEach(button => {
-                button.addEventListener('click', () => {
-                    addToCart(button.dataset.addToCart);
+            document.querySelectorAll('[data-add-to-cart]')
+                .forEach(button => {
+                    button.addEventListener('click', () => {
+                        addToCart(button.dataset.addToCart);
+                    });
                 });
-            });
         });
+
+        // Счётчик обращений
+
+        async function updatePendingChatCount() {
+            const badge = document.getElementById(
+                'chat-pending-badge'
+            );
+
+            if (!badge) return;
+
+            try {
+                const response = await fetch(
+                    '/Chat/PendingCount'
+                );
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                badge.textContent =
+                    data.count > 99 ? '99+' : data.count;
+
+                badge.style.display =
+                    data.count > 0 ? 'inline-flex' : 'none';
+            }
+            catch (error) {
+                console.error(
+                    'Ошибка обновления счётчика чата',
+                    error
+                );
+            }
+        }
+
+        if (document.getElementById('chat-pending-badge')) {
+            setInterval(updatePendingChatCount, 5000);
+        }
+
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MiniShop.Data;
 using MiniShop.Models;
 using MiniShop.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MiniShop.Controllers;
 
@@ -360,4 +361,23 @@ public class CartController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+    
+    // Количество переписок, ожидающих ответа
+    [Authorize(Roles = "Admin,Moderator")]
+    [HttpGet]
+    public async Task<IActionResult> PendingCount()
+    {
+        var latestMessageIds = await _db.ChatMessages
+            .GroupBy(m => m.UserId)
+            .Select(g => g.Max(m => m.Id))
+            .ToListAsync();
+
+        var count = await _db.ChatMessages
+            .CountAsync(m =>
+                latestMessageIds.Contains(m.Id) &&
+                !m.IsStaff);
+
+        return Json(new { count });
+    }
+
 }

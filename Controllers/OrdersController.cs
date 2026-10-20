@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -39,9 +40,28 @@ public class OrdersController : Controller
         return View(order);
     }
 
+    private async Task RestoreStock(int orderId)
+    {
+        var items = await _db.OrderItems
+            .Where(i => i.OrderId == orderId)
+            .ToListAsync();
+
+        foreach (var item in items)
+        {
+            var product = await _db.Products
+                .FirstOrDefaultAsync(p => p.Id == item.ProductId);
+
+            if (product != null)
+            {
+                product.StockQuantity += item.Quantity;
+            }
+        }
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateStatus(int id, string status)
+    public async Task<IActionResult> UpdateStatus(
+        int id, string status)
     {
         string[] allowedStatuses =
         {
@@ -54,20 +74,41 @@ public class OrdersController : Controller
 
         if (!allowedStatuses.Contains(status))
         {
-            TempData["OrderError"] = "Недопустимый статус заказа.";
+            TempData["OrderError"] =
+                "Недопустимый статус заказа.";
+
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        var order = await _db.Orders.FindAsync(id);
+        await using var transaction =
+            await _db.Database.BeginTransactionAsync();
+
+        var order = await _db.Orders
+            .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
             return NotFound();
 
+        if (order.Status == "Отменён" && status != "Отменён")
+        {
+            TempData["OrderError"] =
+                "Отменённый заказ нельзя возобновить.";
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        if (status == "Отменён" && order.Status != "Отменён")
+        {
+            await RestoreStock(id);
+        }
+
         order.Status = status;
 
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
-        TempData["OrderSuccess"] = "Статус заказа обновлён.";
+        TempData["OrderSuccess"] =
+            "Статус заказа обновлён.";
 
         return RedirectToAction(nameof(Details), new { id });
     }
@@ -76,6 +117,9 @@ public class OrdersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
+        await using var transaction =
+            await _db.Database.BeginTransactionAsync();
+
         var order = await _db.Orders
             .Include(o => o.Items)
             .FirstOrDefaultAsync(o => o.Id == id);
@@ -83,10 +127,19 @@ public class OrdersController : Controller
         if (order == null)
             return NotFound();
 
-        _db.Orders.Remove(order);
-        await _db.SaveChangesAsync();
+        if (order.Status != "Отменён")
+        {
+            await RestoreStock(id);
+        }
 
-        TempData["OrderSuccess"] = $"Заказ №{id} удалён.";
+        _db.OrderItems.RemoveRange(order.Items);
+        _db.Orders.Remove(order);
+
+        await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        TempData["OrderSuccess"] =
+            $"Заказ №{id} удалён. Остатки обработаны.";
 
         return RedirectToAction(nameof(Index));
     }

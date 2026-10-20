@@ -1,0 +1,250 @@
+
+@using MiniShop.Models
+@model List<ChatMessage>
+
+@{
+    ViewData["Title"] = "Чат с магазином";
+    var lastId = Model.Count > 0 ? Model.Max(m => m.Id) : 0;
+}
+
+<style>
+    .chat-page {
+        max-width: 850px;
+        margin: 30px auto 70px;
+    }
+
+    .chat-description {
+        color: #777;
+        margin-bottom: 25px;
+    }
+
+    .chat-window {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        background: #f5f6f2;
+        border: 1px solid #e5e8df;
+        border-radius: 16px;
+        padding: 25px;
+        min-height: 300px;
+        max-height: 550px;
+        overflow-y: auto;
+    }
+
+    .chat-message {
+        max-width: 80%;
+        padding: 15px 18px;
+        border-radius: 14px;
+        background: white;
+        align-self: flex-start;
+        overflow-wrap: anywhere;
+    }
+
+    .chat-message.mine {
+        align-self: flex-end;
+        background: #dfe7d7;
+    }
+
+    .chat-sender {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+
+    .chat-text {
+        white-space: pre-wrap;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+    .chat-date {
+        font-size: 11px;
+        color: #888;
+        margin-top: 9px;
+    }
+
+    .chat-form {
+        margin-top: 20px;
+    }
+
+    .chat-form textarea {
+        display: block;
+        width: 100%;
+        min-height: 110px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        font: inherit;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .chat-form button {
+        margin-top: 12px;
+        padding: 13px 25px;
+        border: none;
+        border-radius: 9px;
+        background: #20211f;
+        color: white;
+        cursor: pointer;
+    }
+
+    .chat-error {
+        color: #b13c3c;
+        margin-bottom: 15px;
+    }
+
+    .chat-empty {
+        color: #777;
+        text-align: center;
+        margin: auto;
+    }
+</style>
+
+<div class="chat-page">
+
+    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+
+    <h1>Чат с магазином</h1>
+
+    <p class="chat-description">
+        Задайте вопрос о товаре, заказе или доставке.
+        Новые сообщения появляются автоматически.
+    </p>
+
+    @if (TempData["ChatError"] != null)
+    {
+        <p class="chat-error">@TempData["ChatError"]</p>
+    }
+
+    <div class="chat-window" id="chat-window">
+
+        @if (Model.Count == 0)
+        {
+            <p class="chat-empty" id="chat-empty">
+                Сообщений пока нет. Напишите нам первым!
+            </p>
+        }
+
+        @foreach (var message in Model)
+        {
+            <div class="chat-message @(message.IsStaff ? "" : "mine")">
+
+                <div class="chat-sender">
+                    @(message.IsStaff ? "Поддержка магазина" : "Вы")
+                </div>
+
+                <div class="chat-text">@message.Text</div>
+
+                <div class="chat-date">
+                    @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+    <form class="chat-form"
+          asp-controller="Chat"
+          asp-action="Send"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <textarea name="text"
+                  maxlength="2000"
+                  required
+                  placeholder="Напишите ваше сообщение..."></textarea>
+
+        <button type="submit">
+            Отправить сообщение →
+        </button>
+    </form>
+
+</div>
+
+<script>
+    const chatWindow = document.getElementById('chat-window');
+    let lastMessageId = @lastId;
+    let chatLoading = false;
+
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+
+    function addChatMessage(message) {
+        const empty = document.getElementById('chat-empty');
+
+        if (empty) {
+            empty.remove();
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-message';
+
+        if (!message.isStaff) {
+            bubble.classList.add('mine');
+        }
+
+        const sender = document.createElement('div');
+        sender.className = 'chat-sender';
+        sender.textContent = message.isStaff
+            ? 'Поддержка магазина'
+            : 'Вы';
+
+        const text = document.createElement('div');
+        text.className = 'chat-text';
+        text.textContent = message.text;
+
+        const date = document.createElement('div');
+        date.className = 'chat-date';
+
+        date.textContent = new Date(
+            message.createdAt
+        ).toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        bubble.appendChild(sender);
+        bubble.appendChild(text);
+        bubble.appendChild(date);
+
+        chatWindow.appendChild(bubble);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    async function refreshChat() {
+        if (chatLoading || document.hidden) return;
+
+        chatLoading = true;
+
+        try {
+            const response = await fetch(
+                '/Chat/MyMessages?afterId=' + lastMessageId
+            );
+
+            if (!response.ok) return;
+
+            const messages = await response.json();
+
+            for (const message of messages) {
+                addChatMessage(message);
+                lastMessageId = Math.max(lastMessageId, message.id);
+            }
+        }
+        catch (error) {
+            console.error('Ошибка обновления чата', error);
+        }
+        finally {
+            chatLoading = false;
+        }
+    }
+
+    setInterval(refreshChat, 5000);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshChat();
+    });
+</script>

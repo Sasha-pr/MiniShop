@@ -1,0 +1,126 @@
+
+@using MiniShop.Models
+@model List<Product>
+
+@{
+    ViewData["Title"] = "Управление складом";
+}
+
+<section style="margin-bottom: 35px;">
+    <p class="eyebrow">SIMPLESTORE / АДМИНИСТРИРОВАНИЕ</p>
+    <h1>Управление складом</h1>
+    <p class="muted">
+        Изменяйте количество товаров, доступных для заказа.
+    </p>
+</section>
+
+@if (TempData["StockSuccess"] != null)
+{
+    <p style="color: #42734c; margin-bottom: 20px;">
+        @TempData["StockSuccess"]
+    </p>
+}
+
+@if (TempData["StockError"] != null)
+{
+    <p style="color: #b91c1c; margin-bottom: 20px;">
+        @TempData["StockError"]
+    </p>
+}
+
+<div style="display: grid; gap: 16px;">
+
+    @foreach (var product in Model)
+    {
+        <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 22px;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            background: #fff;">
+
+            <div style="display: flex; align-items: center; gap: 16px;">
+
+                <img src="@product.ImageUrl"
+                     alt="@product.Name"
+                     style="
+                        width: 75px;
+                        height: 75px;
+                        object-fit: cover;
+                        border-radius: 8px;" />
+
+                <div>
+                    <h3 style="margin: 0 0 6px;">
+                        @product.Name
+                    </h3>
+
+                    <p class="muted" style="margin: 0 0 6px;">
+                        @product.Category
+                    </p>
+
+                    @if (product.StockQuantity == 0)
+                    {
+                        <span style="color: #b91c1c;">
+                            Нет в наличии
+                        </span>
+                    }
+                    else if (product.StockQuantity < 3)
+                    {
+                        <span style="color: #b45309;">
+                            Осталось мало: @product.StockQuantity шт.
+                        </span>
+                    }
+                    else
+                    {
+                        <span style="color: #42734c;">
+                            В наличии: @product.StockQuantity шт.
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <form asp-controller="Stock"
+                  asp-action="Update"
+                  method="post"
+                  style="
+                    display: flex;
+                    align-items: end;
+                    flex-wrap: wrap;
+                    gap: 12px;">
+
+                <input type="hidden"
+                       name="productId"
+                       value="@product.Id" />
+
+                <div>
+                    <label for="quantity-@product.Id"
+                           style="display: block; margin-bottom: 7px;">
+                        Количество
+                    </label>
+
+                    <input id="quantity-@product.Id"
+                           type="number"
+                           name="quantity"
+                           value="@product.StockQuantity"
+                           min="0"
+                           max="100000"
+                           required
+                           style="
+                             width: 110px;
+                             padding: 11px;
+                             border: 1px solid #ddd;
+                             border-radius: 8px;" />
+                </div>
+
+                <button type="submit"
+                        class="button button-dark">
+                    Сохранить
+                </button>
+            </form>
+        </div>
+    }
+</div>

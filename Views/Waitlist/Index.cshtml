@@ -1,0 +1,241 @@
+
+@using MiniShop.Models
+@model List<WaitlistItemViewModel>
+
+@{
+    ViewData["Title"] = "Лист ожидания";
+}
+
+<style>
+    .waitlist-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 25px 0 70px;
+    }
+
+    .waitlist-page h1 {
+        font-size: 38px;
+        margin: 10px 0 15px;
+    }
+
+    .waitlist-description {
+        color: #777;
+        margin-bottom: 35px;
+        line-height: 1.6;
+    }
+
+    .waitlist-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 25px;
+        flex-wrap: wrap;
+        padding: 24px;
+        margin-bottom: 16px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+    }
+
+    .waitlist-product {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex: 1;
+        min-width: 220px;
+    }
+
+    .waitlist-product img {
+        width: 95px;
+        height: 95px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: #f5f6f2;
+    }
+
+    .waitlist-product h3 {
+        margin: 0 0 10px;
+        font-size: 19px;
+    }
+
+    .waitlist-product h3 a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .waitlist-product h3 a:hover {
+        text-decoration: underline;
+    }
+
+    .waitlist-status {
+        font-size: 13px;
+        margin: 0;
+    }
+
+    .waitlist-status.empty {
+        color: #a35b15;
+    }
+
+    .waitlist-status.available {
+        color: #42734c;
+    }
+
+    .waitlist-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .waitlist-actions form {
+        margin: 0;
+    }
+
+    .waitlist-actions .button {
+        padding: 12px 18px;
+        border-radius: 9px;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+    }
+
+    .waitlist-message {
+        padding: 15px 18px;
+        margin-bottom: 25px;
+        background: #edf4e9;
+        color: #476348;
+        border-radius: 10px;
+    }
+
+    .waitlist-empty {
+        text-align: center;
+        padding: 60px 25px;
+        border: 1px solid #e8e8e8;
+        border-radius: 16px;
+    }
+
+    .waitlist-empty h2 {
+        margin-bottom: 15px;
+    }
+
+    @@media (max-width: 600px) {
+        .waitlist-page h1 {
+            font-size: 30px;
+        }
+
+        .waitlist-card {
+            padding: 18px;
+        }
+
+        .waitlist-actions {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="waitlist-page">
+
+    <p class="eyebrow">SIMPLESTORE / МОЙ АККАУНТ</p>
+
+    <h1>Лист ожидания</h1>
+
+    <p class="waitlist-description">
+        Здесь находятся товары, поступления которых
+        вы ожидаете. Когда товар появится на складе,
+        его статус изменится.
+    </p>
+
+    @if (TempData["WaitlistMessage"] != null)
+    {
+        <div class="waitlist-message" role="status">
+            @TempData["WaitlistMessage"]
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="waitlist-empty">
+            <h2>Ваш лист ожидания пуст</h2>
+
+            <p class="muted">
+                Пока вы не ожидаете поступления товаров.
+            </p>
+
+            <a class="button button-dark"
+               asp-controller="Products"
+               asp-action="Index">
+                Перейти в каталог
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var item in Model)
+        {
+            <article class="waitlist-card">
+
+                <div class="waitlist-product">
+
+                    <img src="@item.ImageUrl"
+                         alt="@item.ProductName" />
+
+                    <div>
+                        <h3>
+                            <a asp-controller="Products"
+                               asp-action="Details"
+                               asp-route-id="@item.ProductId">
+                                @item.ProductName
+                            </a>
+                        </h3>
+
+                        <p>
+                            @item.Price.ToString("N0") ₽
+                        </p>
+
+                        @if (item.StockQuantity > 0)
+                        {
+                            <p class="waitlist-status available">
+                                ✓ Товар снова в наличии!
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="waitlist-status empty">
+                                Ожидается поступление
+                            </p>
+                        }
+                    </div>
+                </div>
+
+                <div class="waitlist-actions">
+
+                    @if (item.StockQuantity > 0)
+                    {
+                        <a class="button button-dark"
+                           asp-controller="Products"
+                           asp-action="Details"
+                           asp-route-id="@item.ProductId">
+                            Перейти к товару
+                        </a>
+                    }
+
+                    <form asp-controller="Waitlist"
+                          asp-action="Unsubscribe"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="productId"
+                               value="@item.ProductId" />
+
+                        <button type="submit"
+                                class="button button-light">
+                            Удалить из ожидания
+                        </button>
+                    </form>
+
+                </div>
+            </article>
+        }
+    }
+</div>

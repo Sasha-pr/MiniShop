@@ -4,6 +4,7 @@ obj/
 .vscode/
 # Локальная база данных
 minishop.db
+minishop.user
 minishop.db-shm
 minishop.db-wal
 

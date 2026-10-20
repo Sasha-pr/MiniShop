@@ -1,3 +1,4 @@
+
 @using MiniShop.Models
 @model IEnumerable<Product>
 
@@ -18,10 +19,24 @@
 
 <div class="section-heading">
     <h2>Каталог</h2>
-    <span class="muted">
-        @Model.Count() товаров
-    </span>
+    <span class="muted">@Model.Count() товаров</span>
 </div>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <p>
+        <a class="button button-light"
+           asp-controller="Bookmarks"
+           asp-action="Index">
+            ♡ Мои закладки
+        </a>
+    </p>
+}
+
+@if (TempData["BookmarkMessage"] != null)
+{
+    <p class="muted">@TempData["BookmarkMessage"]</p>
+}
 
 <form asp-controller="Products"
       asp-action="Index"
@@ -94,8 +109,7 @@ else
 
                         @if (!string.IsNullOrWhiteSpace(product.Category))
                         {
-                            <p class="muted"
-                               style="font-size: 13px;">
+                            <p class="muted" style="font-size: 13px;">
                                 @product.Category
                             </p>
                         }
@@ -132,8 +146,7 @@ else
                         }
                         else if (product.StockQuantity >= 3)
                         {
-                            <p class="muted"
-                               style="font-size: 13px;">
+                            <p class="muted" style="font-size: 13px;">
                                 В наличии: @product.StockQuantity шт.
                             </p>
                         }
@@ -161,6 +174,23 @@ else
                                 disabled>
                             Нет в наличии
                         </button>
+                    }
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-controller="Bookmarks"
+                              asp-action="Toggle"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@product.Id" />
+
+                            <button class="button button-light full"
+                                    type="submit">
+                                ♡ Добавить / убрать закладку
+                            </button>
+                        </form>
                     }
                 </div>
             </article>

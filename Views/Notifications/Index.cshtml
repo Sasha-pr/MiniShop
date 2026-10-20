@@ -1,0 +1,271 @@
+
+@using MiniShop.Models
+@model List<UserNotification>
+
+@{
+    ViewData["Title"] = "Мои уведомления";
+
+    var unreadCount = Model.Count(n => !n.IsRead);
+}
+
+<style>
+    .notifications-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 25px 0 70px;
+    }
+
+    .notifications-page * {
+        box-sizing: border-box;
+    }
+
+    .notifications-page h1 {
+        font-size: 38px;
+        margin: 10px 0 15px;
+    }
+
+    .notifications-description {
+        color: #777;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .notifications-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    .notifications-count {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .notification-card {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 15px;
+    }
+
+    .notification-card.unread {
+        border-left: 4px solid #8b9a77;
+        background: #fafbf8;
+    }
+
+    .notification-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+
+    .notification-status {
+        font-size: 12px;
+        font-weight: 600;
+        color: #648052;
+    }
+
+    .notification-date {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .notification-message {
+        font-size: 16px;
+        line-height: 1.7;
+        margin: 0 0 20px;
+        overflow-wrap: anywhere;
+    }
+
+    .notification-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .notification-actions form {
+        margin: 0;
+    }
+
+    .notification-actions .button,
+    .notifications-toolbar .button {
+        padding: 11px 17px;
+        border-radius: 9px;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+    }
+
+    .notification-delete {
+        color: #a33b3b;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        padding: 10px;
+        font: inherit;
+        font-size: 13px;
+    }
+
+    .notifications-empty {
+        text-align: center;
+        padding: 60px 25px;
+        border: 1px solid #e8e8e8;
+        border-radius: 16px;
+    }
+
+    .notifications-empty h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    @@media (max-width: 600px) {
+        .notifications-page h1 {
+            font-size: 30px;
+        }
+
+        .notification-card {
+            padding: 18px;
+        }
+    }
+</style>
+
+<div class="notifications-page">
+
+    <p class="eyebrow">
+        SIMPLESTORE / МОЙ АККАУНТ
+    </p>
+
+    <h1>Мои уведомления</h1>
+
+    <p class="notifications-description">
+        Здесь будут появляться сообщения о поступлении
+        товаров, которые вы добавили в лист ожидания.
+    </p>
+
+    <div class="notifications-toolbar">
+
+        <span class="notifications-count">
+            Непрочитанных: <strong>@unreadCount</strong>
+        </span>
+
+        @if (unreadCount > 0)
+        {
+            <form asp-controller="Notifications"
+                  asp-action="MarkAllAsRead"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="button button-light">
+                    Прочитать все
+                </button>
+            </form>
+        }
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="notifications-empty">
+
+            <h2>Уведомлений пока нет</h2>
+
+            <p class="muted">
+                Когда ожидаемый товар поступит в продажу,
+                здесь появится сообщение.
+            </p>
+
+            <a class="button button-dark"
+               asp-controller="Waitlist"
+               asp-action="Index">
+                Мой лист ожидания
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var notification in Model)
+        {
+            <article class="notification-card @(notification.IsRead ? "" : "unread")">
+
+                <div class="notification-top">
+
+                    @if (notification.IsRead)
+                    {
+                        <span class="notification-status"
+                              style="color: #999;">
+                            Прочитано
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="notification-status">
+                            ● Новое уведомление
+                        </span>
+                    }
+
+                    <span class="notification-date">
+                        @notification.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </span>
+                </div>
+
+                <p class="notification-message">
+                    @notification.Message
+                </p>
+
+                <div class="notification-actions">
+
+                    <a class="button button-dark"
+                       asp-controller="Products"
+                       asp-action="Details"
+                       asp-route-id="@notification.ProductId">
+                        Посмотреть товар
+                    </a>
+
+                    @if (!notification.IsRead)
+                    {
+                        <form asp-controller="Notifications"
+                              asp-action="MarkAsRead"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@notification.Id" />
+
+                            <button type="submit"
+                                    class="button button-light">
+                                Отметить прочитанным
+                            </button>
+                        </form>
+                    }
+
+                    <form asp-controller="Notifications"
+                          asp-action="Delete"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@notification.Id" />
+
+                        <button type="submit"
+                                class="notification-delete">
+                            Удалить
+                        </button>
+                    </form>
+                </div>
+            </article>
+        }
+    }
+</div>

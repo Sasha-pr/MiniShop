@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MiniShop.Models;
@@ -19,4 +20,17 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Product> Products => Set<Product>();
 
+    public DbSet<ProductBookmark> ProductBookmarks => Set<ProductBookmark>();
+    public DbSet<ProductWaitlist> ProductWaitlists => Set<ProductWaitlist>();
+    public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<ProductBookmark>()
+            .HasIndex(b => new { b.UserId, b.ProductId })
+            .IsUnique();
+    }
 }

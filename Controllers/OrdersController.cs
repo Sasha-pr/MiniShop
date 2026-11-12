@@ -1,8 +1,9 @@
-
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniShop.Data;
+using MiniShop.Models;
 
 namespace MiniShop.Controllers;
 
@@ -27,6 +28,7 @@ public class OrdersController : Controller
         return View(orders);
     }
 
+    
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -37,8 +39,16 @@ public class OrdersController : Controller
         if (order == null)
             return NotFound();
 
+        var history = await _db.OrderStatusHistories
+            .Where(h => h.OrderId == id)
+            .OrderByDescending(h => h.ChangedAt)
+            .ToListAsync();
+
+        ViewBag.StatusHistory = history;
+
         return View(order);
     }
+
 
     private async Task RestoreStock(int orderId)
     {
@@ -97,9 +107,34 @@ public class OrdersController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // Сохраняем предыдущий статус
+        string oldStatus = order.Status;
+
+        // Записываем историю, только если статус изменился
+        if (oldStatus != status)
+        {
+            var history = new OrderStatusHistory
+            {
+                OrderId = order.Id,
+                OldStatus = oldStatus,
+                NewStatus = status,
+                ChangedAt = DateTime.UtcNow,
+                ChangedByUserId =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ""
+            };
+
+            _db.OrderStatusHistories.Add(history);
+        }
+
         if (status == "Отменён" && order.Status != "Отменён")
         {
             await RestoreStock(id);
+        }
+
+        // Запоминаем дату первого завершения заказа
+        if (status == "Завершён" && order.CompletedAt == null)
+        {
+            order.CompletedAt = DateTime.UtcNow;
         }
 
         order.Status = status;

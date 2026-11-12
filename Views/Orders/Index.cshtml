@@ -4,43 +4,276 @@
     ViewData["Title"] = "Управление заказами";
 }
 
-<section class="page-heading">
-    <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
-    <h1>Заказы</h1>
-    <p class="muted">Просмотр заказов покупателей.</p>
-</section>
+<style>
+    .orders-admin {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 25px 0 70px;
+    }
 
-@if (Model.Count == 0)
-{
-    <div class="empty-state">
-        <h2>Заказов пока нет</h2>
-        <p class="muted">Когда покупатели оформят заказы, они появятся здесь.</p>
-    </div>
-}
-else
-{
-    <div class="cart-list">
-        @foreach (var order in Model)
-        {
-            <article class="cart-item">
-                <div class="cart-item-info">
-                    <h3>Заказ №@order.Id</h3>
-                    <p>@order.CustomerEmail</p>
-                    <p class="muted">
-                        @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                    </p>
-                    <p>Статус: @order.Status</p>
-                    <p>Товаров: @order.Items.Sum(x => x.Quantity)</p>
-                </div>
+    .orders-heading {
+        margin-bottom: 30px;
+    }
 
-                <strong>@order.Total.ToString("N0") ₽</strong>
+    .orders-heading h1 {
+        font-size: 38px;
+        margin: 12px 0;
+    }
 
-                <a class="text-link"
-                   asp-action="Details"
-                   asp-route-id="@order.Id">
-                    Открыть →
-                </a>
-            </article>
+    .orders-heading p {
+        color: #777;
+        line-height: 1.6;
+    }
+
+    .admin-orders-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    .admin-order-card {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: center;
+        padding: 24px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+    }
+
+    .admin-order-main h2 {
+        font-size: 20px;
+        margin: 0 0 14px;
+    }
+
+    .admin-order-info {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .admin-order-field {
+        background: #f7f8f5;
+        padding: 12px 14px;
+        border-radius: 9px;
+        min-width: 0;
+    }
+
+    .admin-order-label {
+        display: block;
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .admin-order-value {
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-order-side {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 15px;
+    }
+
+    .admin-order-total {
+        font-size: 23px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .admin-order-status {
+        display: inline-block;
+        padding: 8px 13px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #f5f6f2;
+        color: #666;
+    }
+
+    .admin-order-status.new {
+        background: #fbf6e9;
+        color: #a17b35;
+    }
+
+    .admin-order-status.processing {
+        background: #edf3fa;
+        color: #54799f;
+    }
+
+    .admin-order-status.sent {
+        background: #f0effa;
+        color: #71659c;
+    }
+
+    .admin-order-status.completed {
+        background: #f0f5ed;
+        color: #648052;
+    }
+
+    .admin-order-status.cancelled {
+        background: #fff0f0;
+        color: #a33b3b;
+    }
+
+    .admin-order-link {
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .admin-orders-empty {
+        text-align: center;
+        padding: 50px 25px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+    }
+
+    .admin-orders-empty p {
+        color: #777;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 650px) {
+        .orders-heading h1 {
+            font-size: 29px;
         }
-    </div>
-}
+
+        .admin-order-card {
+            grid-template-columns: 1fr;
+            padding: 18px;
+        }
+
+        .admin-order-info {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-order-side {
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="orders-admin">
+
+    <section class="orders-heading">
+        <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
+
+        <h1>Заказы</h1>
+
+        <p>
+            Просмотр заказов покупателей, их состава,
+            стоимости и текущего состояния.
+        </p>
+    </section>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="admin-orders-empty">
+            <h2>Заказов пока нет</h2>
+
+            <p>
+                Когда покупатели оформят заказы,
+                они появятся в этом разделе.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-orders-list">
+
+            @foreach (var order in Model)
+            {
+                var statusClass = order.Status switch
+                {
+                    "Новый" => "new",
+                    "В обработке" => "processing",
+                    "Отправлен" => "sent",
+                    "Завершён" => "completed",
+                    "Отменён" => "cancelled",
+                    _ => ""
+                };
+
+                <article class="admin-order-card">
+
+                    <div class="admin-order-main">
+
+                        <h2>Заказ №@order.Id</h2>
+
+                        <div class="admin-order-info">
+
+                            <div class="admin-order-field">
+                                <span class="admin-order-label">
+                                    Покупатель
+                                </span>
+
+                                <div class="admin-order-value">
+                                    @(string.IsNullOrWhiteSpace(order.CustomerName)
+                                        ? "Не указано"
+                                        : order.CustomerName)
+                                </div>
+                            </div>
+
+                            <div class="admin-order-field">
+                                <span class="admin-order-label">
+                                    Email
+                                </span>
+
+                                <div class="admin-order-value">
+                                    @order.CustomerEmail
+                                </div>
+                            </div>
+
+                            <div class="admin-order-field">
+                                <span class="admin-order-label">
+                                    Дата оформления
+                                </span>
+
+                                <div class="admin-order-value">
+                                    @order.CreatedAt.ToLocalTime()
+                                        .ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            </div>
+
+                            <div class="admin-order-field">
+                                <span class="admin-order-label">
+                                    Количество товаров
+                                </span>
+
+                                <div class="admin-order-value">
+                                    @(order.Items?.Sum(x => x.Quantity) ?? 0)
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="admin-order-side">
+
+                        <span class="admin-order-status @statusClass">
+                            @order.Status
+                        </span>
+
+                        <div class="admin-order-total">
+                            @order.Total.ToString("N0") ₽
+                        </div>
+
+                        <a class="button button-dark admin-order-link"
+                           asp-action="Details"
+                           asp-route-id="@order.Id">
+                            Открыть заказ
+                        </a>
+
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+
+</div>

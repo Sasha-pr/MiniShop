@@ -1,4 +1,3 @@
-
 @using MiniShop.Models
 @model IEnumerable<Product>
 
@@ -9,6 +8,15 @@
                      ?? new List<string>();
 
     var selectedCategory = ViewBag.SelectedCategory as string;
+
+    var averageRatings = ViewBag.AverageRatings as Dictionary<int, double>
+                         ?? new Dictionary<int, double>();
+
+    var reviewCounts = ViewBag.ReviewCounts as Dictionary<int, int>
+                       ?? new Dictionary<int, int>();
+
+    var likeCounts = ViewBag.LikeCounts as Dictionary<int, int>
+                     ?? new Dictionary<int, int>();
 }
 
 <section class="hero">
@@ -67,8 +75,7 @@
             }
         </select>
 
-        <button class="button button-dark"
-                type="submit">
+        <button class="button button-dark" type="submit">
             Применить
         </button>
 
@@ -85,22 +92,31 @@
 
 @if (!Model.Any())
 {
-    <p class="muted">
-        В этой категории пока нет товаров.
-    </p>
+    <p class="muted">В этой категории пока нет товаров.</p>
 }
 else
 {
     <div class="product-grid">
         @foreach (var product in Model)
         {
+            var averageRating = averageRatings.ContainsKey(product.Id)
+                ? averageRatings[product.Id]
+                : 0;
+
+            var reviewCount = reviewCounts.ContainsKey(product.Id)
+                ? reviewCounts[product.Id]
+                : 0;
+
+            var likeCount = likeCounts.ContainsKey(product.Id)
+                ? likeCounts[product.Id]
+                : 0;
+
             <article class="product-card">
                 <a class="product-image"
                    asp-controller="Products"
                    asp-action="Details"
                    asp-route-id="@product.Id">
-                    <img src="@product.ImageUrl"
-                         alt="@product.Name" />
+                    <img src="@product.ImageUrl" alt="@product.Name" />
                 </a>
 
                 <div class="product-info">
@@ -114,8 +130,31 @@ else
                             </p>
                         }
 
-                        @if (product.HasLowStock &&
-                             product.StockQuantity > 0)
+                        <div style="margin: 8px 0 12px; font-size: 14px;">
+                            @if (reviewCount > 0)
+                            {
+                                <span style="color: #b8860b;">★</span>
+                                <strong>@averageRating.ToString("0.0") / 5</strong>
+
+                                <span class="muted">
+                                    · @reviewCount
+                                    @(reviewCount == 1 ? "отзыв" :
+                                      reviewCount >= 2 && reviewCount <= 4 ? "отзыва" : "отзывов")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="muted">Пока нет отзывов</span>
+                            }
+                        </div>
+
+                        <p style="font-size: 14px; margin: 0 0 12px;">
+                            <span style="color: #a33b3b;">♥</span>
+                            <strong>@likeCount</strong>
+                            <span class="muted">лайков</span>
+                        </p>
+
+                        @if (product.HasLowStock && product.StockQuantity > 0)
                         {
                             <p class="price">
                                 <span style="text-decoration: line-through; color: #888;">

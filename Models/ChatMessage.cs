@@ -16,4 +16,7 @@ public class ChatMessage
     public bool IsStaff { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int? SupportRequestId { get; set; }
+
+    public SupportRequest? SupportRequest { get; set; }
 }

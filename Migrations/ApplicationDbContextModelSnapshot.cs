@@ -233,6 +233,9 @@ namespace MiniShop.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("SupportRequestId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -242,6 +245,8 @@ namespace MiniShop.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SupportRequestId");
 
                     b.ToTable("ChatMessages");
                 });
@@ -259,6 +264,9 @@ namespace MiniShop.Migrations
 
                     b.Property<string>("Comment")
                         .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -327,6 +335,37 @@ namespace MiniShop.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("MiniShop.Models.OrderStatusHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ChangedByUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NewStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OldStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderStatusHistories");
+                });
+
             modelBuilder.Entity("MiniShop.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -375,9 +414,6 @@ namespace MiniShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "ProductId")
-                        .IsUnique();
-
                     b.ToTable("ProductBookmarks");
                 });
 
@@ -420,6 +456,9 @@ namespace MiniShop.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Rating")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("RepliedAt")
                         .HasColumnType("TEXT");
 
@@ -437,6 +476,9 @@ namespace MiniShop.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "UserId")
+                        .IsUnique();
 
                     b.ToTable("ProductReviews");
                 });
@@ -462,7 +504,87 @@ namespace MiniShop.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("ProductWaitlists");
+                    b.ToTable("ProductWaitlist");
+                });
+
+            modelBuilder.Entity("MiniShop.Models.ReturnRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AdminComment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RequestNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.ToTable("ReturnRequests");
+                });
+
+            modelBuilder.Entity("MiniShop.Models.SupportRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SupportRequests");
                 });
 
             modelBuilder.Entity("MiniShop.Models.UserCartItem", b =>
@@ -516,11 +638,16 @@ namespace MiniShop.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ReturnRequestId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ReturnRequestId");
 
                     b.ToTable("UserNotifications");
                 });
@@ -576,6 +703,16 @@ namespace MiniShop.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MiniShop.Models.ChatMessage", b =>
+                {
+                    b.HasOne("MiniShop.Models.SupportRequest", "SupportRequest")
+                        .WithMany("Messages")
+                        .HasForeignKey("SupportRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("SupportRequest");
+                });
+
             modelBuilder.Entity("MiniShop.Models.OrderItem", b =>
                 {
                     b.HasOne("MiniShop.Models.Order", "Order")
@@ -587,9 +724,54 @@ namespace MiniShop.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("MiniShop.Models.OrderStatusHistory", b =>
+                {
+                    b.HasOne("MiniShop.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("MiniShop.Models.ReturnRequest", b =>
+                {
+                    b.HasOne("MiniShop.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MiniShop.Models.OrderItem", "OrderItem")
+                        .WithMany()
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("OrderItem");
+                });
+
+            modelBuilder.Entity("MiniShop.Models.UserNotification", b =>
+                {
+                    b.HasOne("MiniShop.Models.ReturnRequest", "ReturnRequest")
+                        .WithMany()
+                        .HasForeignKey("ReturnRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ReturnRequest");
+                });
+
             modelBuilder.Entity("MiniShop.Models.Order", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("MiniShop.Models.SupportRequest", b =>
+                {
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }

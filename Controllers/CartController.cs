@@ -367,15 +367,15 @@ public class CartController : Controller
     [HttpGet]
     public async Task<IActionResult> PendingCount()
     {
-        var latestMessageIds = await _db.ChatMessages
-            .GroupBy(m => m.UserId)
-            .Select(g => g.Max(m => m.Id))
+        var lastRequestMessages = await _db.ChatMessages
+            .Where(m => m.SupportRequestId != null)
+            .GroupBy(m => m.SupportRequestId)
+            .Select(g => g.OrderByDescending(m => m.Id)
+                .Select(m => new { m.IsStaff })
+                .First())
             .ToListAsync();
 
-        var count = await _db.ChatMessages
-            .CountAsync(m =>
-                latestMessageIds.Contains(m.Id) &&
-                !m.IsStaff);
+        var count = lastRequestMessages.Count(m => !m.IsStaff);
 
         return Json(new { count });
     }

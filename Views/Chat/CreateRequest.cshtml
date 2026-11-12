@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Новое обращение";
+}
+
+<div class="hero">
+    <p class="eyebrow">СЛУЖБА ПОДДЕРЖКИ</p>
+    <h1>Новое обращение</h1>
+    <p class="muted">
+        Опиши свой вопрос. Сотрудник поддержки сможет ответить тебе в переписке.
+    </p>
+</div>
+
+<div class="review">
+    @if (TempData["RequestError"] != null)
+    {
+        <p style="color: #a33b3b;">
+            @TempData["RequestError"]
+        </p>
+    }
+
+    <form asp-controller="Chat"
+          asp-action="CreateRequest"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label for="question">Текст вопроса</label>
+
+            <textarea id="question"
+                      name="question"
+                      rows="7"
+                      maxlength="2000"
+                      required
+                      placeholder="Напиши, с каким вопросом нужна помощь..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="button button-dark">
+                Отправить обращение
+            </button>
+
+            <a asp-controller="Chat"
+               asp-action="MyRequests"
+               class="button button-light">
+                Назад
+            </a>
+        </div>
+    </form>
+</div>

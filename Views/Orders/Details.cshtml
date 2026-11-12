@@ -2,133 +2,504 @@
 
 @{
     ViewData["Title"] = $"Заказ №{Model.Id}";
+
+    var statusClass = Model.Status switch
+    {
+        "Новый" => "new",
+        "В обработке" => "processing",
+        "Отправлен" => "sent",
+        "Завершён" => "completed",
+        "Отменён" => "cancelled",
+        _ => ""
+    };
+
+    var items = Model.Items ?? new List<MiniShop.Models.OrderItem>();
+    var statusHistory = ViewBag.StatusHistory
+    as List<MiniShop.Models.OrderStatusHistory>
+    ?? new List<MiniShop.Models.OrderStatusHistory>();
 }
 
-<section class="page-heading">
-    <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
-    <h1>Заказ №@Model.Id</h1>
-    <p class="muted">Информация о заказе покупателя.</p>
-</section>
+<style>
+    .order-details-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 25px 0 70px;
+    }
 
-@if (TempData["OrderSuccess"] != null)
-{
-    <p class="review-success">@TempData["OrderSuccess"]</p>
-}
+    .order-details-heading {
+        margin-bottom: 30px;
+    }
 
-@if (TempData["OrderError"] != null)
-{
-    <p class="review-error">@TempData["OrderError"]</p>
-}
+    .order-details-heading h1 {
+        font-size: 38px;
+        margin: 12px 0;
+    }
 
-<div class="cart-list">
-    <article class="cart-item">
-        <div class="cart-item-info">
-            <h3>Данные покупателя</h3>
-            <p><strong>ФИО:</strong> @Model.CustomerName</p>
-            <p><strong>Email:</strong> @Model.CustomerEmail</p>
-            <p><strong>Телефон:</strong> @Model.Phone</p>
-            <p><strong>Адрес доставки:</strong> @Model.Address</p>
-            <p><strong>Способ оплаты:</strong> @Model.PaymentMethod</p>
+    .order-details-heading p {
+        color: #777;
+        line-height: 1.6;
+    }
 
-            @if (!string.IsNullOrWhiteSpace(Model.Comment))
+    .order-details-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 22px;
+    }
+
+    .order-details-card h2 {
+        font-size: 20px;
+        margin: 0 0 20px;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
+    }
+
+    .order-details-field {
+        background: #f7f8f5;
+        padding: 14px;
+        border-radius: 10px;
+        min-width: 0;
+    }
+
+    .order-details-label {
+        display: block;
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 7px;
+    }
+
+    .order-details-value {
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .order-details-status {
+        display: inline-block;
+        padding: 8px 13px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #f5f6f2;
+    }
+
+    .order-details-status.new {
+        background: #fbf6e9;
+        color: #a17b35;
+    }
+
+    .order-details-status.processing {
+        background: #edf3fa;
+        color: #54799f;
+    }
+
+    .order-details-status.sent {
+        background: #f0effa;
+        color: #71659c;
+    }
+
+    .order-details-status.completed {
+        background: #f0f5ed;
+        color: #648052;
+    }
+
+    .order-details-status.cancelled {
+        background: #fff0f0;
+        color: #a33b3b;
+    }
+
+    .order-product {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        padding: 17px 0;
+        border-bottom: 1px solid #eeeeeb;
+    }
+
+    .order-product:last-child {
+        border-bottom: none;
+    }
+
+    .order-product h3 {
+        font-size: 16px;
+        margin: 0 0 7px;
+    }
+
+    .order-product p {
+        color: #888;
+        font-size: 13px;
+        margin: 0;
+    }
+
+    .order-product-price {
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .order-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        padding: 20px 25px;
+        background: #f4f6f1;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        font-size: 16px;
+    }
+
+    .order-total strong {
+        font-size: 23px;
+    }
+
+    .order-status-form {
+        display: grid;
+        gap: 15px;
+    }
+
+    .order-status-form select {
+        width: 100%;
+        padding: 13px;
+        border: 1px solid #deded9;
+        border-radius: 10px;
+        font: inherit;
+        background: #fff;
+    }
+
+    .order-status-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .order-danger-zone {
+        border: 1px solid #f0dddd;
+        background: #fffafa;
+        border-radius: 15px;
+        padding: 22px;
+        margin-top: 30px;
+    }
+
+    .order-danger-zone h2 {
+        font-size: 17px;
+        margin: 0 0 10px;
+    }
+
+    .order-danger-zone p {
+        color: #888;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .order-danger-zone button {
+        color: #a33b3b;
+        border-color: #e8cccc;
+    }
+
+    .order-message {
+        padding: 15px 18px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        background: #f0f5ed;
+        color: #648052;
+    }
+
+    .order-message.error {
+        background: #fff0f0;
+        color: #a33b3b;
+    }
+
+    .order-back {
+        margin-bottom: 20px;
+    }
+
+    .order-back a {
+        text-decoration: none;
+    }
+
+    @@media (max-width: 600px) {
+        .order-details-heading h1 {
+            font-size: 29px;
+        }
+
+        .order-details-card {
+            padding: 18px;
+        }
+
+        .order-details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .order-product {
+            align-items: flex-start;
+        }
+
+        .order-total {
+            padding: 17px;
+        }
+
+        .order-total strong {
+            font-size: 19px;
+        }
+    }
+</style>
+
+<div class="order-details-page">
+
+    <div class="order-back">
+        <a class="back-link"
+           asp-controller="Orders"
+           asp-action="Index">
+            ← Все заказы
+        </a>
+    </div>
+
+    <section class="order-details-heading">
+        <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
+
+        <h1>Заказ №@Model.Id</h1>
+
+        <p>Подробная информация о заказе покупателя.</p>
+
+        <span class="order-details-status @statusClass">
+            @Model.Status
+        </span>
+    </section>
+
+    @if (TempData["OrderSuccess"] != null)
+    {
+        <div class="order-message">
+            @TempData["OrderSuccess"]
+        </div>
+    }
+
+    @if (TempData["OrderError"] != null)
+    {
+        <div class="order-message error">
+            @TempData["OrderError"]
+        </div>
+    }
+
+    <section class="order-details-card">
+
+        <h2>Данные покупателя</h2>
+
+        <div class="order-details-grid">
+
+            <div class="order-details-field">
+                <span class="order-details-label">ФИО</span>
+                <div class="order-details-value">
+                    @(Model.CustomerName ?? "Не указано")
+                </div>
+            </div>
+
+            <div class="order-details-field">
+                <span class="order-details-label">Email</span>
+                <div class="order-details-value">
+                    @(Model.CustomerEmail ?? "Не указан")
+                </div>
+            </div>
+
+            <div class="order-details-field">
+                <span class="order-details-label">Телефон</span>
+                <div class="order-details-value">
+                    @(Model.Phone ?? "Не указан")
+                </div>
+            </div>
+
+            <div class="order-details-field">
+                <span class="order-details-label">Способ оплаты</span>
+                <div class="order-details-value">
+                    @(Model.PaymentMethod ?? "Не указан")
+                </div>
+            </div>
+
+            <div class="order-details-field">
+                <span class="order-details-label">Адрес доставки</span>
+                <div class="order-details-value">
+                    @(Model.Address ?? "Не указан")
+                </div>
+            </div>
+
+            <div class="order-details-field">
+                <span class="order-details-label">Дата оформления</span>
+                <div class="order-details-value">
+                    @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </div>
+            </div>
+
+            @if (Model.CompletedAt.HasValue)
             {
-                <p><strong>Комментарий:</strong> @Model.Comment</p>
+                <div class="order-details-field">
+                    <span class="order-details-label">Дата завершения</span>
+                    <div class="order-details-value">
+                        @Model.CompletedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </div>
+                </div>
             }
 
-            <p>
-                <strong>Дата:</strong>
-                @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-            </p>
-
-            <p><strong>Статус:</strong> @Model.Status</p>
         </div>
-    </article>
-</div>
 
-<section class="page-heading">
-    <h2>Товары в заказе</h2>
-</section>
-
-@if (Model.Items.Count == 0)
-{
-    <p class="muted">В заказе нет товаров.</p>
-}
-else
-{
-    <div class="cart-list">
-        @foreach (var item in Model.Items)
+        @if (!string.IsNullOrWhiteSpace(Model.Comment))
         {
-            <article class="cart-item">
-                <div class="cart-item-info">
-                    <h3>@item.ProductName</h3>
-                    <p class="muted">
-                        @item.Price.ToString("N0") ₽ × @item.Quantity
-                    </p>
-                </div>
-
-                <strong>
-                    @((item.Price * item.Quantity).ToString("N0")) ₽
-                </strong>
-            </article>
+            <div class="manage-reply">
+                <strong>Комментарий покупателя</strong>
+                <p>@Model.Comment</p>
+            </div>
         }
+
+    </section>
+
+    <section class="order-details-card">
+
+        <h2>Товары в заказе</h2>
+
+        @if (items.Count == 0)
+        {
+            <p class="muted">В заказе нет товаров.</p>
+        }
+        else
+        {
+            @foreach (var item in items)
+            {
+                <div class="order-product">
+
+                    <div>
+                        <h3>@item.ProductName</h3>
+
+                        <p>
+                            @item.Price.ToString("N0") ₽ × @item.Quantity
+                        </p>
+                    </div>
+
+                    <div class="order-product-price">
+                        @((item.Price * item.Quantity).ToString("N0")) ₽
+                    </div>
+
+                </div>
+            }
+        }
+
+    </section>
+
+    <div class="order-total">
+        <span>Итого к оплате</span>
+        <strong>@Model.Total.ToString("N0") ₽</strong>
     </div>
-}
 
-<div class="cart-summary">
-    <span>Итого</span>
-    <strong>@Model.Total.ToString("N0") ₽</strong>
+    <section class="order-details-card">
+
+        <h2>Изменить статус заказа</h2>
+
+        <form asp-action="UpdateStatus"
+              method="post"
+              class="order-status-form">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <label for="status">Выбери новый статус</label>
+
+            <select id="status" name="status" required>
+                <option value="Новый" selected="@(Model.Status == "Новый")">
+                    Новый
+                </option>
+
+                <option value="В обработке" selected="@(Model.Status == "В обработке")">
+                    В обработке
+                </option>
+
+                <option value="Отправлен" selected="@(Model.Status == "Отправлен")">
+                    Отправлен
+                </option>
+
+                <option value="Завершён" selected="@(Model.Status == "Завершён")">
+                    Завершён
+                </option>
+
+                <option value="Отменён" selected="@(Model.Status == "Отменён")">
+                    Отменён
+                </option>
+            </select>
+
+            <div class="order-status-actions">
+                <button class="button button-dark" type="submit">
+                    Сохранить статус
+                </button>
+
+                <a class="button button-light"
+                   asp-controller="Orders"
+                   asp-action="Index">
+                    Назад к заказам
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <section class="order-details-card">
+        <h2>История статусов</h2>
+
+        @if (statusHistory.Count == 0)
+        {
+            <p class="muted">
+                Изменений статуса пока нет.
+            </p>
+        }
+        else
+        {
+            @foreach (var record in statusHistory)
+            {
+                <div class="order-product">
+                    <div>
+                        <h3>
+                            @record.OldStatus → @record.NewStatus
+                        </h3>
+
+                        <p>
+                            @record.ChangedAt.ToLocalTime()
+                                .ToString("dd.MM.yyyy HH:mm")
+                        </p>
+                    </div>
+                </div>
+            }
+        }
+    </section>
+
+
+    <section class="order-danger-zone">
+
+        <h2>Удаление заказа</h2>
+
+        <p>
+            Удаление заказа — необратимое действие.
+            Перед удалением убедись, что заказ действительно нужно удалить.
+        </p>
+
+        <form asp-action="Delete"
+              method="post"
+              onsubmit="return confirm('Удалить заказ №@Model.Id?');">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <button class="button button-light" type="submit">
+                Удалить заказ
+            </button>
+
+        </form>
+
+    </section>
+
 </div>
-
-<section class="page-heading">
-    <h2>Изменить статус</h2>
-</section>
-
-<form asp-action="UpdateStatus" method="post" class="auth-form">
-    @Html.AntiForgeryToken()
-
-    <input type="hidden" name="id" value="@Model.Id" />
-
-    <label for="status">Статус заказа</label>
-
-    <select id="status" name="status" required>
-        <option value="Новый" selected="@(Model.Status == "Новый")">
-            Новый
-        </option>
-        <option value="В обработке" selected="@(Model.Status == "В обработке")">
-            В обработке
-        </option>
-        <option value="Отправлен" selected="@(Model.Status == "Отправлен")">
-            Отправлен
-        </option>
-        <option value="Завершён" selected="@(Model.Status == "Завершён")">
-            Завершён
-        </option>
-        <option value="Отменён" selected="@(Model.Status == "Отменён")">
-            Отменён
-        </option>
-    </select>
-
-    <button class="button button-dark" type="submit">
-        Сохранить статус
-    </button>
-</form>
-
-<div class="clear-form">
-    <a class="button button-light"
-       asp-controller="Orders"
-       asp-action="Index">
-        Назад к заказам
-    </a>
-</div>
-
-<form asp-action="Delete"
-      method="post"
-      onsubmit="return confirm('Удалить заказ №@Model.Id?');">
-    @Html.AntiForgeryToken()
-
-    <input type="hidden" name="id" value="@Model.Id" />
-
-    <button class="button button-light" type="submit">
-        Удалить заказ
-    </button>
-</form>

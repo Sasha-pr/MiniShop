@@ -1,0 +1,64 @@
+@model List<MiniShop.Models.SupportRequest>
+
+@{
+    ViewData["Title"] = "Мои обращения";
+}
+
+<div class="hero">
+    <p class="eyebrow">ПОДДЕРЖКА</p>
+    <h1>Мои обращения</h1>
+    <p class="muted">Здесь можно посмотреть свои вопросы и ответы сотрудников.</p>
+
+    <div class="form-actions">
+        <a asp-controller="Chat"
+           asp-action="CreateRequest"
+           class="button button-dark">
+            Создать обращение
+        </a>
+
+        <a asp-controller="Products"
+           asp-action="Index"
+           class="button button-light">
+            Вернуться в магазин
+        </a>
+    </div>
+</div>
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="review">
+        <h3>У вас пока нет обращений</h3>
+        <p class="muted">
+            Если у вас возник вопрос, создайте новое обращение.
+        </p>
+    </div>
+}
+else
+{
+    <div class="reviews-list">
+        @foreach (var request in Model)
+        {
+            <div class="review">
+                <div class="form-actions">
+                    <h3>Обращение №@request.Id</h3>
+                    <span class="muted">@request.Status</span>
+                </div>
+
+                <p class="muted">
+                    Создано:
+                    @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </p>
+
+                <p>@request.Question</p>
+
+                <a asp-controller="Chat"
+                   asp-action="RequestDetails"
+                   asp-route-id="@request.Id"
+                   class="button button-dark">
+                    Открыть переписку
+                </a>
+            </div>
+        }
+    </div>
+}
+

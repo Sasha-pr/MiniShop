@@ -1,8 +1,10 @@
 
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace MiniShop.Models;
 
+[Index(nameof(ProductId), nameof(UserId), IsUnique = true)]
 public class ProductReview
 {
     public int Id { get; set; }
@@ -13,8 +15,13 @@ public class ProductReview
 
     public string UserName { get; set; } = "";
 
+    [Range(1, 5, ErrorMessage = "Оценка должна быть от 1 до 5 звёзд")]
+    public int Rating { get; set; } = 5;
+
     [Required(ErrorMessage = "Напиши текст отзыва")]
-    [StringLength(1000, MinimumLength = 3,
+    [StringLength(
+        1000,
+        MinimumLength = 3,
         ErrorMessage = "Отзыв должен содержать от 3 до 1000 символов")]
     public string Text { get; set; } = "";
 

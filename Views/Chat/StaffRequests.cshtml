@@ -1,0 +1,57 @@
+@model List<MiniShop.Models.SupportRequest>
+
+@{
+    ViewData["Title"] = "Обращения покупателей";
+}
+
+<div class="hero">
+    <p class="eyebrow">ПАНЕЛЬ СОТРУДНИКА</p>
+    <h1>Обращения покупателей</h1>
+    <p class="muted">
+        Здесь отображаются вопросы покупателей и история их обращений.
+    </p>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="review">
+        <h3>Обращений пока нет</h3>
+        <p class="muted">Новые обращения появятся здесь.</p>
+    </div>
+}
+else
+{
+    <div class="reviews-list">
+        @foreach (var request in Model)
+        {
+            <div class="review">
+                <div class="form-actions">
+                    <h3>Обращение №@request.Id</h3>
+                    <strong>@request.Status</strong>
+                </div>
+
+                <p class="muted">
+                    Дата:
+                    @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </p>
+
+                <p>
+                    **Покупатель:** @request.UserName
+                </p>
+
+                <p>
+                    **Вопрос:**
+                </p>
+
+                <p>@request.Question</p>
+
+                <a asp-controller="Chat"
+                   asp-action="StaffRequest"
+                   asp-route-id="@request.Id"
+                   class="button button-dark">
+                    Открыть переписку
+                </a>
+            </div>
+        }
+    </div>
+}

@@ -1,4 +1,3 @@
-
 @using Microsoft.EntityFrameworkCore
 @using MiniShop.Data
 @inject ApplicationDbContext Db
@@ -17,6 +16,7 @@
 
     var unreadCount = 0;
     var pendingChatCount = 0;
+    var pendingReturnCount = 0;
 
     if (isLoggedIn && !string.IsNullOrEmpty(userId))
     {
@@ -28,15 +28,18 @@
 
     if (isStaff)
     {
-        var lastChatIds = await Db.ChatMessages
-            .GroupBy(m => m.UserId)
-            .Select(g => g.Max(m => m.Id))
+        var lastRequestMessages = await Db.ChatMessages
+            .Where(m => m.SupportRequestId != null)
+            .GroupBy(m => m.SupportRequestId)
+            .Select(g => g.OrderByDescending(m => m.Id)
+                .Select(m => new { m.IsStaff })
+                .First())
             .ToListAsync();
 
-        pendingChatCount = await Db.ChatMessages
-            .CountAsync(m =>
-                lastChatIds.Contains(m.Id) &&
-                !m.IsStaff);
+        pendingChatCount = lastRequestMessages.Count(m => !m.IsStaff);
+
+        pendingReturnCount = await Db.ReturnRequests
+            .CountAsync(r => r.Status == "Новая");
     }
 }
 
@@ -426,10 +429,17 @@
                 </a>
 
                 <a class="sidebar-link"
-                   asp-controller="Chat"
+                   asp-controller="ReturnRequests"
                    asp-action="Index">
+                    <span class="link-icon">↩</span>
+                    Мои заявки на возврат
+                </a>
+
+                <a class="sidebar-link"
+                    asp-controller="Chat"
+                    asp-action="MyRequests">
                     <span class="link-icon">☏</span>
-                    Чат с магазином
+                    Мои обращения
                 </a>
             }
 
@@ -456,16 +466,30 @@
                 </a>
 
                 <a class="sidebar-link"
-                   asp-controller="Chat"
-                   asp-action="Conversations">
+                    asp-controller="Chat"
+                    asp-action="StaffRequests">
 
-                    <span class="link-icon">☏</span>
-                    Обращения
+                        <span class="link-icon">☏</span>
+                        Обращения покупателей
 
-                    <span id="chat-pending-badge"
+                        <span id="chat-pending-badge"
+                            class="sidebar-badge"
+                            style="@(pendingChatCount == 0 ? "display:none" : "")">
+                            @pendingChatCount
+                        </span>
+                    </a>
+
+                <a class="sidebar-link"
+                   asp-controller="ReturnRequests"
+                   asp-action="Manage">
+
+                    <span class="link-icon">↩</span>
+                    Заявки на возврат
+
+                    <span id="return-pending-badge"
                           class="sidebar-badge"
-                          style="@(pendingChatCount == 0 ? "display:none" : "")">
-                        @pendingChatCount
+                          style="@(pendingReturnCount == 0 ? "display:none" : "")">
+                        @pendingReturnCount
                     </span>
                 </a>
             }
@@ -702,6 +726,8 @@
 
         // Счётчик обращений
 
+                // Счётчик обращений
+
         async function updatePendingChatCount() {
             const badge = document.getElementById(
                 'chat-pending-badge'
@@ -710,9 +736,7 @@
             if (!badge) return;
 
             try {
-                const response = await fetch(
-                    '/Chat/PendingCount'
-                );
+                const response = await fetch('/Chat/PendingCount');
 
                 if (!response.ok) return;
 
@@ -730,6 +754,48 @@
                     error
                 );
             }
+        }
+
+        // Счётчик заявок на возврат
+
+        async function updatePendingReturnCount() {
+            const badge = document.getElementById(
+                'return-pending-badge'
+            );
+
+            if (!badge) return;
+
+            try {
+                const response = await fetch(
+                    '/ReturnRequests/PendingCount'
+                );
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                badge.textContent =
+                    data.count > 99 ? '99+' : data.count;
+
+                badge.style.display =
+                    data.count > 0 ? 'inline-flex' : 'none';
+            }
+            catch (error) {
+                console.error(
+                    'Ошибка обновления счётчика заявок',
+                    error
+                );
+            }
+        }
+
+        if (document.getElementById('chat-pending-badge')) {
+            updatePendingChatCount();
+            setInterval(updatePendingChatCount, 5000);
+        }
+
+        if (document.getElementById('return-pending-badge')) {
+            updatePendingReturnCount();
+            setInterval(updatePendingReturnCount, 5000);
         }
 
         if (document.getElementById('chat-pending-badge')) {

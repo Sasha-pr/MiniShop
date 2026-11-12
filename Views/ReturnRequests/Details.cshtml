@@ -1,0 +1,258 @@
+@model MiniShop.Models.ReturnRequest
+
+@{
+    ViewData["Title"] = "Заявка на возврат";
+
+    var statusColor = Model.Status switch
+    {
+        "Одобрена" => "#648052",
+        "Отклонена" => "#a33b3b",
+        _ => "#b28b45"
+    };
+}
+
+<style>
+    .return-details {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 35px 0 70px;
+    }
+
+    .return-details * {
+        box-sizing: border-box;
+    }
+
+    .return-heading {
+        margin-bottom: 30px;
+    }
+
+    .return-heading h1 {
+        font-size: 38px;
+        margin: 12px 0;
+    }
+
+    .return-heading p {
+        color: #777;
+        line-height: 1.6;
+    }
+
+    .return-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+
+    .return-number {
+        color: #777;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .return-number strong {
+        color: #20211f;
+        font-size: 17px;
+    }
+
+    .return-status {
+        display: inline-block;
+        padding: 9px 15px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 12px;
+    }
+
+    .return-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+        margin-top: 28px;
+    }
+
+    .return-info-item {
+        padding: 18px;
+        background: #f7f8f5;
+        border-radius: 12px;
+    }
+
+    .return-label {
+        display: block;
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    .return-value {
+        font-size: 15px;
+        color: #20211f;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .return-section-title {
+        font-size: 18px;
+        margin: 0 0 15px;
+    }
+
+    .return-reason {
+        background: #f7f8f5;
+        padding: 20px;
+        border-radius: 12px;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+
+    .return-comment {
+        background: #f4f6f1;
+        border-left: 4px solid #8b9a77;
+        padding: 20px;
+        border-radius: 10px;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+
+    .return-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 25px;
+    }
+
+    .return-actions a {
+        text-decoration: none;
+    }
+
+    @@media (max-width: 600px) {
+        .return-details {
+            padding: 20px 0 45px;
+        }
+
+        .return-heading h1 {
+            font-size: 29px;
+        }
+
+        .return-card {
+            padding: 20px;
+        }
+
+        .return-info {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+    }
+</style>
+
+<div class="return-details">
+
+    <div class="return-heading">
+        <p class="eyebrow">SIMPLESTORE / МОЙ АККАУНТ</p>
+
+        <h1>Заявка на возврат</h1>
+
+        <p>
+            Здесь находится подробная информация
+            о рассмотрении вашего обращения.
+        </p>
+    </div>
+
+    <div class="return-card">
+
+        <div class="return-number">
+            НОМЕР ЗАЯВКИ
+        </div>
+
+        <strong>@Model.RequestNumber</strong>
+
+        <div>
+            <span class="return-status"
+                  style="color: @statusColor; background: #f5f6f2;">
+                @Model.Status
+            </span>
+        </div>
+
+        <div class="return-info">
+
+            <div class="return-info-item">
+                <span class="return-label">Дата создания</span>
+
+                <div class="return-value">
+                    @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </div>
+            </div>
+
+            <div class="return-info-item">
+                <span class="return-label">Товар</span>
+
+                <div class="return-value">
+                    @(Model.OrderItem?.ProductName ?? "Информация недоступна")
+                </div>
+            </div>
+
+            @if (Model.ReviewedAt.HasValue)
+            {
+                <div class="return-info-item">
+                    <span class="return-label">Дата рассмотрения</span>
+
+                    <div class="return-value">
+                        @Model.ReviewedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </div>
+                </div>
+            }
+
+            <div class="return-info-item">
+                <span class="return-label">Номер заказа</span>
+
+                <div class="return-value">
+                    № @Model.OrderId
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="return-card">
+
+        <h2 class="return-section-title">
+            Причина возврата
+        </h2>
+
+        <div class="return-reason">
+            @Model.Reason
+        </div>
+
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.AdminComment))
+    {
+        <div class="return-card">
+
+            <h2 class="return-section-title">
+                Ответ сотрудника
+            </h2>
+
+            <div class="return-comment">
+                @Model.AdminComment
+            </div>
+
+        </div>
+    }
+
+    <div class="return-actions">
+
+        <a asp-controller="ReturnRequests"
+           asp-action="Index"
+           class="button button-dark">
+            Все мои заявки
+        </a>
+
+        <a asp-controller="MyOrders"
+           asp-action="Index"
+           class="button button-light">
+            Мои заказы
+        </a>
+
+    </div>
+
+</div>

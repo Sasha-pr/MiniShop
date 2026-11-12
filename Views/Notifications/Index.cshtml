@@ -1,4 +1,3 @@
-
 @using MiniShop.Models
 @model List<UserNotification>
 
@@ -102,6 +101,7 @@
         cursor: pointer;
         font: inherit;
         font-size: 13px;
+        text-decoration: none;
     }
 
     .notification-delete {
@@ -114,6 +114,11 @@
         font-size: 13px;
     }
 
+    .notification-delete:hover {
+        background: #fff0f0;
+        border-radius: 8px;
+    }
+
     .notifications-empty {
         text-align: center;
         padding: 60px 25px;
@@ -124,6 +129,12 @@
     .notifications-empty h2 {
         font-size: 24px;
         margin-bottom: 15px;
+    }
+
+    .notifications-empty p {
+        color: #777;
+        line-height: 1.6;
+        margin-bottom: 25px;
     }
 
     @@media (max-width: 600px) {
@@ -146,8 +157,9 @@
     <h1>Мои уведомления</h1>
 
     <p class="notifications-description">
-        Здесь будут появляться сообщения о поступлении
-        товаров, которые вы добавили в лист ожидания.
+        Здесь собраны сообщения о поступлении товаров,
+        изменении статуса заявок на возврат
+        и других событиях в магазине.
     </p>
 
     <div class="notifications-toolbar">
@@ -178,15 +190,15 @@
 
             <h2>Уведомлений пока нет</h2>
 
-            <p class="muted">
-                Когда ожидаемый товар поступит в продажу,
-                здесь появится сообщение.
+            <p>
+                Когда появятся новости о товарах
+                или ваших заявках, они будут отображаться здесь.
             </p>
 
             <a class="button button-dark"
-               asp-controller="Waitlist"
+               asp-controller="Products"
                asp-action="Index">
-                Мой лист ожидания
+                Перейти в каталог
             </a>
         </div>
     }
@@ -194,6 +206,13 @@
     {
         @foreach (var notification in Model)
         {
+            var isReturnNotification =
+                notification.ReturnRequestId.HasValue ||
+                notification.Message.Contains(
+                    "заявка",
+                    StringComparison.OrdinalIgnoreCase
+                );
+
             <article class="notification-card @(notification.IsRead ? "" : "unread")">
 
                 <div class="notification-top">
@@ -213,7 +232,8 @@
                     }
 
                     <span class="notification-date">
-                        @notification.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        @notification.CreatedAt.ToLocalTime()
+                            .ToString("dd.MM.yyyy HH:mm")
                     </span>
                 </div>
 
@@ -223,12 +243,32 @@
 
                 <div class="notification-actions">
 
-                    <a class="button button-dark"
-                       asp-controller="Products"
-                       asp-action="Details"
-                       asp-route-id="@notification.ProductId">
-                        Посмотреть товар
-                    </a>
+                    @if (notification.ReturnRequestId.HasValue)
+                    {
+                        <a class="button button-dark"
+                           asp-controller="ReturnRequests"
+                           asp-action="Details"
+                           asp-route-id="@notification.ReturnRequestId.Value">
+                            Открыть заявку
+                        </a>
+                    }
+                    else if (isReturnNotification)
+                    {
+                        <a class="button button-dark"
+                           asp-controller="ReturnRequests"
+                           asp-action="Index">
+                            Мои заявки на возврат
+                        </a>
+                    }
+                    else if (notification.ProductId > 0)
+                    {
+                        <a class="button button-dark"
+                           asp-controller="Products"
+                           asp-action="Details"
+                           asp-route-id="@notification.ProductId">
+                            Посмотреть товар
+                        </a>
+                    }
 
                     @if (!notification.IsRead)
                     {
@@ -264,8 +304,10 @@
                             Удалить
                         </button>
                     </form>
+
                 </div>
             </article>
         }
     }
+
 </div>

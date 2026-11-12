@@ -1,0 +1,302 @@
+@using MiniShop.Models
+@model IEnumerable<ReturnRequest>
+
+@{
+    ViewData["Title"] = "Мои заявки на возврат";
+}
+
+<style>
+    .returns-page {
+        max-width: 950px;
+        margin: 0 auto;
+        padding: 25px 0 70px;
+    }
+
+    .returns-page * {
+        box-sizing: border-box;
+    }
+
+    .returns-heading {
+        margin-bottom: 30px;
+    }
+
+    .returns-heading h1 {
+        font-size: 38px;
+        margin: 12px 0;
+    }
+
+    .returns-heading p {
+        color: #777;
+        line-height: 1.6;
+    }
+
+    .returns-alert {
+        padding: 16px 20px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+        line-height: 1.5;
+        background: #f4f6f1;
+        border: 1px solid #e1e7dc;
+    }
+
+    .returns-alert.error {
+        background: #fff5f5;
+        border-color: #f0dddd;
+        color: #a33b3b;
+    }
+
+    .returns-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    .return-item {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .return-item-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .return-item-number {
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .return-item-status {
+        display: inline-block;
+        padding: 8px 13px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #f5f6f2;
+    }
+
+    .return-item-status.approved {
+        color: #648052;
+        background: #f0f5ed;
+    }
+
+    .return-item-status.rejected {
+        color: #a33b3b;
+        background: #fff0f0;
+    }
+
+    .return-item-status.pending {
+        color: #a17b35;
+        background: #fbf6e9;
+    }
+
+    .return-item-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .return-item-field {
+        padding: 15px;
+        background: #f7f8f5;
+        border-radius: 10px;
+        min-width: 0;
+    }
+
+    .return-item-label {
+        display: block;
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 7px;
+    }
+
+    .return-item-value {
+        color: #20211f;
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .return-item-actions {
+        margin-top: 20px;
+    }
+
+    .return-item-actions a {
+        text-decoration: none;
+    }
+
+    .returns-empty {
+        text-align: center;
+        padding: 55px 25px;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+        background: #fff;
+    }
+
+    .returns-empty h2 {
+        font-size: 23px;
+        margin-bottom: 12px;
+    }
+
+    .returns-empty p {
+        color: #777;
+        line-height: 1.6;
+        margin-bottom: 22px;
+    }
+
+    @@media (max-width: 600px) {
+        .returns-heading h1 {
+            font-size: 29px;
+        }
+
+        .return-item {
+            padding: 18px;
+        }
+
+        .return-item-info {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="returns-page">
+
+    <div class="returns-heading">
+        <p class="eyebrow">SIMPLESTORE / ЛИЧНЫЙ КАБИНЕТ</p>
+
+        <h1>Мои заявки на возврат</h1>
+
+        <p>
+            Здесь отображаются все отправленные тобой заявки,
+            их текущие статусы и ответы сотрудников магазина.
+        </p>
+    </div>
+
+    @if (TempData["ReturnSuccess"] != null)
+    {
+        <div class="returns-alert">
+            @TempData["ReturnSuccess"]
+        </div>
+    }
+
+    @if (TempData["ReturnError"] != null)
+    {
+        <div class="returns-alert error">
+            @TempData["ReturnError"]
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="returns-empty">
+            <h2>Заявок пока нет</h2>
+
+            <p>
+                Когда ты отправишь заявку на возврат,
+                она появится в этом разделе.
+            </p>
+
+            <a class="button button-dark"
+               asp-controller="MyOrders"
+               asp-action="Index">
+                Перейти к заказам
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="returns-list">
+
+            @foreach (var request in Model)
+            {
+                var statusClass = request.Status switch
+                {
+                    "Одобрена" => "approved",
+                    "Отклонена" => "rejected",
+                    _ => "pending"
+                };
+
+                <article class="return-item">
+
+                    <div class="return-item-top">
+
+                        <div class="return-item-number">
+                            @request.RequestNumber
+                        </div>
+
+                        <span class="return-item-status @statusClass">
+                            @request.Status
+                        </span>
+
+                    </div>
+
+                    <div class="return-item-info">
+
+                        <div class="return-item-field">
+                            <span class="return-item-label">
+                                Дата создания
+                            </span>
+
+                            <div class="return-item-value">
+                                @request.CreatedAt.ToLocalTime()
+                                    .ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <div class="return-item-field">
+                            <span class="return-item-label">
+                                Номер заказа
+                            </span>
+
+                            <div class="return-item-value">
+                                №@request.OrderId
+                            </div>
+                        </div>
+
+                        <div class="return-item-field">
+                            <span class="return-item-label">
+                                Товар
+                            </span>
+
+                            <div class="return-item-value">
+                                @(request.OrderItem?.ProductName ?? "Информация недоступна")
+                            </div>
+                        </div>
+
+                        @if (request.ReviewedAt.HasValue)
+                        {
+                            <div class="return-item-field">
+                                <span class="return-item-label">
+                                    Дата рассмотрения
+                                </span>
+
+                                <div class="return-item-value">
+                                    @request.ReviewedAt.Value.ToLocalTime()
+                                        .ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+
+                    <div class="return-item-actions">
+                        <a class="button button-dark"
+                           asp-controller="ReturnRequests"
+                           asp-action="Details"
+                           asp-route-id="@request.Id">
+                            Подробнее о заявке
+                        </a>
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+
+</div>

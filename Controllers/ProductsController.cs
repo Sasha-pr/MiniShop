@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ public class ProductsController : Controller
         _userManager = userManager;
     }
 
+    
     public async Task<IActionResult> Index(string? category)
     {
         var query = _db.Products.AsQueryable();
@@ -39,11 +41,43 @@ public class ProductsController : Controller
             .OrderBy(p => p.Id)
             .ToListAsync();
 
+        var ratings = await _db.ProductReviews
+            .GroupBy(r => r.ProductId)
+            .Select(g => new
+            {
+                ProductId = g.Key,
+                AverageRating = g.Average(r => (double)r.Rating),
+                ReviewCount = g.Count()
+            })
+            .ToListAsync();
+
+        var likes = await _db.ProductLikes
+            .GroupBy(l => l.ProductId)
+            .Select(g => new
+            {
+                ProductId = g.Key,
+                LikeCount = g.Count()
+            })
+            .ToListAsync();
+
+        ViewBag.AverageRatings = ratings.ToDictionary(
+            r => r.ProductId,
+            r => r.AverageRating);
+
+        ViewBag.ReviewCounts = ratings.ToDictionary(
+            r => r.ProductId,
+            r => r.ReviewCount);
+
+        ViewBag.LikeCounts = likes.ToDictionary(
+            l => l.ProductId,
+            l => l.LikeCount);
+
         ViewBag.Categories = categories;
         ViewBag.SelectedCategory = category;
 
         return View(products);
     }
+
 
     public async Task<IActionResult> Details(int id)
     {
@@ -73,6 +107,17 @@ public class ProductsController : Controller
                     x => x.ProductId == id && x.UserId == user.Id);
             }
         }
+
+        var ratings = await _db.ProductReviews
+            .Where(r => r.ProductId == id)
+            .Select(r => (double)r.Rating)
+            .ToListAsync();
+
+        ViewBag.AverageRating = ratings.Count == 0
+            ? 0
+            : ratings.Average();
+
+        ViewBag.ReviewCount = ratings.Count;
 
         return View(product);
     }

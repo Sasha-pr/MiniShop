@@ -1,8 +1,14 @@
+
 @using MiniShop.Models
 @model Order
 
 @{
     ViewData["Title"] = $"Заказ №{Model.Id}";
+
+    bool canRequestReturn =
+        Model.Status == "Завершён" &&
+        Model.CompletedAt != null &&
+        DateTime.UtcNow <= Model.CompletedAt.Value.AddDays(14);
 }
 
 <a class="back-link" asp-action="Index">← Мои заказы</a>
@@ -14,6 +20,20 @@
         Дата: @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
     </p>
 </section>
+
+@if (TempData["ReturnError"] != null)
+{
+    <article class="review">
+        <p>@TempData["ReturnError"]</p>
+    </article>
+}
+
+@if (TempData["ReturnSuccess"] != null)
+{
+    <article class="review">
+        <p>@TempData["ReturnSuccess"]</p>
+    </article>
+}
 
 <section class="review">
     <h2>Статус заказа: @Model.Status</h2>
@@ -27,6 +47,14 @@
     {
         <p><strong>Комментарий:</strong> @Model.Comment</p>
     }
+
+    @if (Model.CompletedAt != null)
+    {
+        <p>
+            <strong>Дата завершения:</strong>
+            @Model.CompletedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+        </p>
+    }
 </section>
 
 <h2>Товары</h2>
@@ -37,13 +65,64 @@
     {
         <article class="review">
             <h3>@item.ProductName</h3>
+
             <p>@item.Price.ToString("N0") ₽ × @item.Quantity</p>
+
             <p>
                 Сумма:
                 <strong>@((item.Price * item.Quantity).ToString("N0")) ₽</strong>
             </p>
+
+            @if (canRequestReturn)
+            {
+                    <form action="/ReturnRequests/Create" method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="orderItemId"
+                           value="@item.Id" />
+
+                    <div class="form-group">
+                        <label for="reason-@item.Id">
+                            Причина возврата
+                        </label>
+
+                        <textarea id="reason-@item.Id"
+                                  name="reason"
+                                  rows="3"
+                                  maxlength="1000"
+                                  minlength="5"
+                                  required
+                                  placeholder="Опишите причину возврата"></textarea>
+                    </div>
+
+                    <button type="submit" class="button button-dark">
+                        Оформить возврат
+                    </button>
+                </form>
+            }
         </article>
     }
 }
 
 <h2>Итого: @Model.Total.ToString("N0") ₽</h2>
+
+@if (Model.Status == "Завершён" && !canRequestReturn)
+{
+    <p class="muted">
+        Срок подачи заявки на возврат по правилам этого проекта истёк.
+    </p>
+}
+else if (Model.Status != "Завершён")
+{
+    <p class="muted">
+        Подать заявку можно после завершения заказа.
+    </p>
+}
+
+<a class="button"
+   asp-controller="ReturnRequests"
+   asp-action="Index">
+    Мои заявки на возврат
+</a>

@@ -1,3 +1,4 @@
+
 using System.ComponentModel.DataAnnotations;
 
 namespace MiniShop.Models;
@@ -30,6 +31,9 @@ public class Order
     public string? Comment { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Дата завершения заказа
+    public DateTime? CompletedAt { get; set; }
 
     public string Status { get; set; } = "Новый";
 

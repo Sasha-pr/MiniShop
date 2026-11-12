@@ -4,10 +4,18 @@
 
 @{
     ViewData["Title"] = Model.Name;
+
     var reviews = ViewBag.Reviews as List<ProductReview>
                   ?? new List<ProductReview>();
+
     bool loggedIn = User.Identity?.IsAuthenticated == true;
     bool isStaff = User.IsInRole("Moderator") || User.IsInRole("Admin");
+
+    double averageRating = reviews.Count > 0
+        ? reviews.Average(r => r.Rating)
+        : 0;
+
+    int totalReviews = reviews.Count;
 }
 
 <style>
@@ -45,7 +53,7 @@
 
     .shop-details .product-title {
         font-size: 38px;
-        margin: 12px 0 20px;
+        margin: 12px 0 16px;
     }
 
     .shop-details .product-price {
@@ -122,8 +130,39 @@
         font-size: 13px;
     }
 
+    /* Рейтинг товара */
+    .shop-details .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 15px 0;
+    }
+
+    .shop-details .stars {
+        color: #d59b28;
+        letter-spacing: 2px;
+        font-size: 21px;
+        white-space: nowrap;
+    }
+
+    .shop-details .rating-number {
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .shop-details .rating-caption {
+        color: #777;
+        font-size: 13px;
+    }
+
+    /* Блок отзывов */
+    .shop-details .reviews {
+        margin-top: 45px;
+    }
+
     .shop-details .reviews-heading {
-        margin-bottom: 25px;
+        margin-bottom: 22px;
     }
 
     .shop-details .reviews-heading h2 {
@@ -131,10 +170,52 @@
         margin: 0 0 8px;
     }
 
+    .shop-details .reviews-toggle {
+        border: 1px solid #e8e8e8;
+        background: #fff;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .shop-details .reviews-toggle summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 22px 25px;
+        font-weight: 700;
+    }
+
+    .shop-details .reviews-toggle summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .shop-details .reviews-toggle summary::after {
+        content: "+";
+        font-size: 25px;
+        color: #8b9a77;
+        flex-shrink: 0;
+    }
+
+    .shop-details .reviews-toggle[open] summary::after {
+        content: "−";
+    }
+
+    .shop-details .reviews-toggle summary:hover {
+        background: #f8f9f6;
+    }
+
+    .shop-details .reviews-content {
+        padding: 0 25px 25px;
+        border-top: 1px solid #eee;
+    }
+
     .shop-details .reviews-list {
         display: grid;
         gap: 18px;
-        margin-bottom: 35px;
+        margin-top: 22px;
     }
 
     .shop-details .review-card {
@@ -150,7 +231,7 @@
         justify-content: space-between;
         gap: 15px;
         flex-wrap: wrap;
-        margin-bottom: 18px;
+        margin-bottom: 12px;
     }
 
     .shop-details .review-author {
@@ -161,6 +242,13 @@
     .shop-details .review-date {
         color: #999;
         font-size: 12px;
+    }
+
+    .shop-details .review-stars {
+        color: #d59b28;
+        font-size: 19px;
+        letter-spacing: 2px;
+        margin-bottom: 12px;
     }
 
     .shop-details .review-text {
@@ -193,8 +281,8 @@
         background: #fff;
         border: 1px solid #e8e8e8;
         border-radius: 16px;
-        padding: 28px;
-        margin-top: 28px;
+        padding: 25px;
+        margin-top: 25px;
     }
 
     .shop-details .review-form-card h3 {
@@ -236,19 +324,64 @@
         border-radius: 9px;
     }
 
-    .shop-details .staff-form {
-        border-top: 1px solid #eee;
-        padding-top: 20px;
-        margin-top: 22px;
+    /* Выбор оценки */
+    .shop-details .review-rating-picker {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 9px;
+        margin: 4px 0 8px;
     }
 
-    .shop-details .review-error {
-        background: #fff0f0;
-        color: #a12c2c;
-        border-radius: 9px;
-        padding: 14px 18px;
-        margin-bottom: 20px;
+    .shop-details .review-rating-title {
+        color: #20211f;
+        font-size: 14px;
+        font-weight: 600;
     }
+
+    .shop-details .review-rating-stars {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 5px;
+    }
+
+    .shop-details .review-rating-stars input {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+    }
+
+    .shop-details .review-rating-stars label {
+        color: #d7d9d1;
+        font-size: 35px;
+        line-height: 1;
+        cursor: pointer;
+        transition: color .15s ease, transform .15s ease;
+    }
+
+    .shop-details .review-rating-stars label:hover {
+        transform: scale(1.1);
+    }
+
+    .shop-details .review-rating-stars label:hover,
+    .shop-details .review-rating-stars label:hover ~ label,
+    .shop-details .review-rating-stars input:checked ~ label {
+        color: #d59b28;
+    }
+
+    .shop-details .review-rating-stars input:focus-visible + label {
+        outline: 2px solid #8b9a77;
+        outline-offset: 3px;
+        border-radius: 3px;
+    }
+
+    .shop-details .review-rating-hint {
+        color: #777;
+        font-size: 12px;
+    }
+
 
     @@media (max-width: 750px) {
         .shop-details .product-layout {
@@ -272,6 +405,14 @@
         .shop-details .review-form-card {
             padding: 20px;
         }
+
+        .shop-details .reviews-toggle summary {
+            padding: 18px;
+        }
+
+        .shop-details .reviews-content {
+            padding: 0 15px 20px;
+        }
     }
 </style>
 
@@ -293,6 +434,38 @@
             <p class="eyebrow">SIMPLESTORE / ТОВАР</p>
 
             <h1 class="product-title">@Model.Name</h1>
+
+            <div class="product-rating">
+                @if (totalReviews > 0)
+                {
+                    <span class="stars" aria-label="Средняя оценка">
+                        @{
+                            int fullStars = (int)Math.Round(
+                                averageRating,
+                                MidpointRounding.AwayFromZero);
+                        }
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            @(i <= fullStars ? "★" : "☆")
+                        }
+                    </span>
+
+                    <span class="rating-number">
+                        @averageRating.ToString("0.0")
+                    </span>
+
+                    <span class="rating-caption">
+                        (@totalReviews отзывов)
+                    </span>
+                }
+                else
+                {
+                    <span class="stars">☆☆☆☆☆</span>
+                    <span class="rating-caption">
+                        Пока нет оценок
+                    </span>
+                }
+            </div>
 
             @if (Model.HasLowStock && Model.StockQuantity > 0)
             {
@@ -335,48 +508,48 @@
 
                 @if (Model.StockQuantity > 0)
                 {
-                <button class="button button-dark"
-                        type="button"
-                        data-add-to-cart="@Model.Id">
-                    Добавить в корзину
-                </button>
-            }
-            else
-            {
-                @if (loggedIn)
-                {
-                    <form asp-controller="Waitlist"
-                        asp-action="Subscribe"
-                        method="post">
-
-                        @Html.AntiForgeryToken()
-
-                        <input type="hidden"
-                            name="productId"
-                            value="@Model.Id" />
-
-                        <button class="button button-dark"
-                                type="submit">
-                            🔔 Сообщить о поступлении
-                        </button>
-                    </form>
-
-                    <a class="button button-light"
-                    asp-controller="Waitlist"
-                    asp-action="Index"
-                    style="text-align: center;">
-                        Мой лист ожидания
-                    </a>
+                    <button class="button button-dark"
+                            type="button"
+                            data-add-to-cart="@Model.Id">
+                        Добавить в корзину
+                    </button>
                 }
                 else
                 {
-                    <a class="button button-dark"
-                    asp-controller="Account"
-                    asp-action="Login">
-                        Войти, чтобы ожидать товар
-                    </a>
+                    @if (loggedIn)
+                    {
+                        <form asp-controller="Waitlist"
+                              asp-action="Subscribe"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@Model.Id" />
+
+                            <button class="button button-dark"
+                                    type="submit">
+                                🔔 Сообщить о поступлении
+                            </button>
+                        </form>
+
+                        <a class="button button-light"
+                           asp-controller="Waitlist"
+                           asp-action="Index"
+                           style="text-align: center;">
+                            Мой лист ожидания
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="button button-dark"
+                           asp-controller="Account"
+                           asp-action="Login">
+                            Войти, чтобы ожидать товар
+                        </a>
+                    }
                 }
-            }
 
                 <div class="secondary-actions">
 
@@ -386,6 +559,8 @@
                               asp-controller="Likes"
                               asp-action="Toggle"
                               method="post">
+
+                            @Html.AntiForgeryToken()
 
                             <input type="hidden"
                                    name="productId"
@@ -410,6 +585,8 @@
                         <form asp-controller="Bookmarks"
                               asp-action="Toggle"
                               method="post">
+
+                            @Html.AntiForgeryToken()
 
                             <input type="hidden"
                                    name="productId"
@@ -454,7 +631,7 @@
             <p class="eyebrow">ОТЗЫВЫ</p>
             <h2>Отзывы покупателей</h2>
             <p class="muted">
-                Отзывы помогают другим покупателям выбрать товар.
+                Читай впечатления покупателей и делись своим опытом.
             </p>
         </div>
 
@@ -465,136 +642,206 @@
             </div>
         }
 
-        @if (reviews.Count == 0)
+        @if (TempData["ReviewSuccess"] != null)
         {
-            <div class="review-card">
-                <p class="muted">
-                    У этого товара пока нет отзывов.
-                </p>
+            <div class="review-success" role="status">
+                @TempData["ReviewSuccess"]
             </div>
         }
-        else
-        {
-            <div class="reviews-list">
 
-                @foreach (var review in reviews)
+        <details class="reviews-toggle">
+            <summary>
+                <span>
+                    Посмотреть отзывы (@totalReviews)
+                    @if (totalReviews > 0)
+                    {
+                        <span class="rating-caption">
+                            · Средняя оценка @averageRating.ToString("0.0") из 5
+                        </span>
+                    }
+                </span>
+            </summary>
+
+            <div class="reviews-content">
+
+                @if (reviews.Count == 0)
                 {
-                    <article class="review-card">
-
-                        <div class="review-header">
-                            <span class="review-author">
-                                @review.UserName
-                            </span>
-
-                            <span class="review-date">
-                                @review.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                            </span>
-                        </div>
-
-                        <div class="review-text">
-                            @review.Text
-                        </div>
-
-                        @if (!string.IsNullOrWhiteSpace(review.ModeratorReply))
-                        {
-                            <div class="staff-reply">
-                                <strong>
-                                    Ответ магазина — @review.ModeratorName
-                                </strong>
-
-                                <p>@review.ModeratorReply</p>
-                            </div>
-                        }
-
-                        @if (isStaff)
-                        {
-                            <div class="staff-form">
-
-                                <form class="review-form"
-                                      asp-controller="Reviews"
-                                      asp-action="Reply"
-                                      method="post">
-
-                                    <input type="hidden"
-                                           name="reviewId"
-                                           value="@review.Id" />
-
-                                    <label for="reply-@review.Id">
-                                        Ответить покупателю
-                                    </label>
-
-                                    <textarea id="reply-@review.Id"
-                                              name="reply"
-                                              maxlength="1000"
-                                              placeholder="Напишите ответ от имени магазина..."
-                                              required>@review.ModeratorReply</textarea>
-
-                                    <button class="button button-dark"
-                                            type="submit">
-                                        Сохранить ответ
-                                    </button>
-                                </form>
-                            </div>
-                        }
-                    </article>
+                    <p class="muted" style="margin-top: 22px;">
+                        У этого товара пока нет отзывов.
+                        Стань первым покупателем, который поделится впечатлением!
+                    </p>
                 }
+                else
+                {
+                    <div class="reviews-list">
+
+                        @foreach (var review in reviews)
+                        {
+                            <article class="review-card">
+
+                                <div class="review-header">
+                                    <span class="review-author">
+                                        @review.UserName
+                                    </span>
+
+                                    <span class="review-date">
+                                        @review.CreatedAt.ToLocalTime()
+                                            .ToString("dd.MM.yyyy HH:mm")
+                                    </span>
+                                </div>
+
+                                <div class="review-stars"
+                                     aria-label="Оценка: @review.Rating из 5">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        @(i <= review.Rating ? "★" : "☆")
+                                    }
+                                    <span class="rating-caption">
+                                        @review.Rating из 5
+                                    </span>
+                                </div>
+
+                                <div class="review-text">
+                                    @review.Text
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(review.ModeratorReply))
+                                {
+                                    <div class="staff-reply">
+                                        <strong>
+                                            Ответ магазина — @review.ModeratorName
+                                        </strong>
+
+                                        <p>@review.ModeratorReply</p>
+                                    </div>
+                                }
+
+                                @if (isStaff)
+                                {
+                                    <div class="staff-form">
+
+                                        <form class="review-form"
+                                              asp-controller="Reviews"
+                                              asp-action="Reply"
+                                              method="post">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="reviewId"
+                                                   value="@review.Id" />
+
+                                            <label for="reply-@review.Id">
+                                                Ответить покупателю
+                                            </label>
+
+                                            <textarea id="reply-@review.Id"
+                                                      name="reply"
+                                                      maxlength="1000"
+                                                      placeholder="Напишите ответ от имени магазина..."
+                                                      required>@review.ModeratorReply</textarea>
+
+                                            <button class="button button-dark"
+                                                    type="submit">
+                                                Сохранить ответ
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                            </article>
+                        }
+                    </div>
+                }
+
+                @if (loggedIn)
+                {
+                    <div class="review-form-card">
+                        <h3>Оставить отзыв</h3>
+
+                        <p class="muted">
+                            Оставить отзыв и оценку можно после получения товара.
+                            На один товар разрешён один отзыв от пользователя.
+                        </p>
+
+                        <form class="review-form"
+                              asp-controller="Reviews"
+                              asp-action="Add"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@Model.Id" />
+
+
+                            
+                            <div class="review-rating-picker">
+                                <span class="review-rating-title">Ваша оценка</span>
+
+                                <div class="review-rating-stars" role="radiogroup" aria-label="Оценка товара">
+                                    @for (int rating = 5; rating >= 1; rating--)
+                                    {
+                                        <input
+                                            type="radio"
+                                            id="rating-@rating"
+                                            name="Rating"
+                                            value="@rating"
+                                            checked="@(rating == 5)"
+                                            required />
+
+                                        <label for="rating-@rating"
+                                            title="@($"{rating} из 5")"
+                                            aria-label="@($"{rating} из 5 звёзд")">
+                                            ★
+                                        </label>
+                                    }
+                                </div>
+
+                                <span class="review-rating-hint">Выбери от 1 до 5 звёзд</span>
+                            </div>
+
+
+                            <label for="review-text">
+                                Ваш отзыв
+                            </label>
+
+                            <textarea id="review-text"
+                                      name="text"
+                                      minlength="3"
+                                      maxlength="1000"
+                                      placeholder="Что вам понравилось в товаре?"
+                                      required></textarea>
+
+                            <button class="button button-dark"
+                                    type="submit">
+                                Опубликовать отзыв
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="review-form-card">
+                        <h3>Хотите оставить отзыв?</h3>
+
+                        <p class="muted">
+                            Войдите в аккаунт, чтобы оставить отзыв после получения товара.
+                        </p>
+
+                        <a class="button button-dark"
+                           asp-controller="Account"
+                           asp-action="Login">
+                            Войти
+                        </a>
+                    </div>
+                }
+
             </div>
-        }
-
-        @if (loggedIn)
-        {
-            <div class="review-form-card">
-                <h3>Оставить отзыв</h3>
-
-                <p class="muted">
-                    Расскажите о своём впечатлении от товара.
-                </p>
-
-                <form class="review-form"
-                      asp-controller="Reviews"
-                      asp-action="Add"
-                      method="post">
-
-                    <input type="hidden"
-                           name="productId"
-                           value="@Model.Id" />
-
-                    <label for="review-text">
-                        Ваш отзыв
-                    </label>
-
-                    <textarea id="review-text"
-                              name="text"
-                              minlength="3"
-                              maxlength="1000"
-                              placeholder="Что вам понравилось в товаре?"
-                              required></textarea>
-
-                    <button class="button button-dark"
-                            type="submit">
-                        Опубликовать отзыв
-                    </button>
-                </form>
-            </div>
-        }
-        else
-        {
-            <div class="review-form-card">
-                <h3>Хотите оставить отзыв?</h3>
-
-                <p class="muted">
-                    Для публикации отзыва необходимо войти в аккаунт.
-                </p>
-
-                <a class="button button-dark"
-                   asp-controller="Account"
-                   asp-action="Login">
-                    Войти
-                </a>
-            </div>
-        }
+        </details>
     </section>
 </div>
+
 
 <script>
     const likeForm = document.getElementById("like-form");
@@ -606,6 +853,10 @@
             const button = document.getElementById("like-button");
             const icon = document.getElementById("like-icon");
             const count = document.getElementById("like-count");
+
+            if (!button || !icon || !count) {
+                return;
+            }
 
             button.disabled = true;
 
@@ -619,17 +870,22 @@
                 });
 
                 if (!response.ok) {
-                    alert("Не удалось изменить лайк.");
+                    alert("Не удалось изменить лайк. Попробуйте ещё раз.");
                     return;
                 }
 
                 const data = await response.json();
 
+                if (data.success !== true) {
+                    alert("Не удалось изменить лайк.");
+                    return;
+                }
+
                 icon.textContent = data.liked ? "♥" : "♡";
                 count.textContent = data.count;
             }
-            catch {
-                alert("Ошибка соединения.");
+            catch (error) {
+                alert("Ошибка соединения. Проверьте интернет и попробуйте ещё раз.");
             }
             finally {
                 button.disabled = false;
@@ -637,3 +893,4 @@
         });
     }
 </script>
+

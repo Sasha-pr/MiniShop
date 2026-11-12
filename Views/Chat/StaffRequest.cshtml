@@ -1,0 +1,187 @@
+@model List<MiniShop.Models.ChatMessage>
+
+@{
+    ViewData["Title"] = "Переписка с покупателем";
+    var supportRequest = ViewBag.SupportRequest as MiniShop.Models.SupportRequest;
+}
+
+@if (supportRequest == null)
+{
+    <div class="review">
+        <p>Обращение не найдено.</p>
+        <a asp-action="StaffRequests" class="button button-light">Назад</a>
+    </div>
+}
+else
+{
+    <div class="hero">
+        <p class="eyebrow">ПАНЕЛЬ СОТРУДНИКА</p>
+        <h1>Обращение №@supportRequest.Id</h1>
+
+        <p>
+            Покупатель:
+            <strong>@supportRequest.UserName</strong>
+        </p>
+
+        <p class="muted">
+            Создано:
+            @supportRequest.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+        </p>
+
+        <p>Статус: <strong>@supportRequest.Status</strong></p>
+    </div>
+
+    <div class="review">
+        <h3>Первоначальный вопрос</h3>
+        <p>@supportRequest.Question</p>
+    </div>
+
+    <div class="review">
+        <h3>Переписка</h3>
+
+        <div id="messages"
+             style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+
+            @foreach (var message in Model)
+            {
+                <div data-message-id="@message.Id"
+                     style="align-self: @(message.IsStaff ? "flex-end" : "flex-start"); max-width: 80%; padding: 12px 16px; border-radius: 12px; background: @(message.IsStaff ? "#e8eddf" : "#f5f6f2");">
+
+                    <strong>
+                        @(message.IsStaff ? "Вы (сотрудник)" : "Покупатель")
+                    </strong>
+
+                    <p style="margin: 8px 0;">@message.Text</p>
+
+                    <small class="muted">
+                        @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </small>
+                </div>
+            }
+        </div>
+
+        @if (TempData["ChatError"] != null)
+        {
+            <p style="color: #a33b3b;">@TempData["ChatError"]</p>
+        }
+
+        <form asp-controller="Chat"
+              asp-action="ReplyRequest"
+              method="post"
+              style="margin-top: 24px;">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="requestId"
+                   value="@supportRequest.Id" />
+
+            <div class="form-group">
+                <label for="text">Ваш ответ</label>
+
+                <textarea id="text"
+                          name="text"
+                          rows="4"
+                          maxlength="2000"
+                          required
+                          placeholder="Напишите ответ покупателю..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="button button-dark">
+                    Отправить ответ
+                </button>
+
+                <a asp-action="StaffRequests"
+                   class="button button-light">
+                    К обращениям
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let lastMessageId = @((Model.Count > 0) ? Model.Max(m => m.Id) : 0);
+        const requestId = @supportRequest.Id;
+        const messagesContainer = document.getElementById("messages");
+
+        let isLoading = false;
+
+        async function loadNewMessages() {
+            if (isLoading) return;
+
+            isLoading = true;
+
+            try {
+                const response = await fetch(
+                    `/Chat/StaffRequestMessages?requestId=${requestId}&afterId=${lastMessageId}`
+                );
+
+                if (!response.ok) {
+                    console.error("Ошибка загрузки сообщений:", response.status);
+                    return;
+                }
+
+                const messages = await response.json();
+
+                messages.forEach(message => {
+                    if (message.id <= lastMessageId) return;
+
+                    const bubble = document.createElement("div");
+
+                    bubble.style.alignSelf = message.isStaff
+                        ? "flex-end"
+                        : "flex-start";
+
+                    bubble.style.maxWidth = "80%";
+                    bubble.style.padding = "12px 16px";
+                    bubble.style.borderRadius = "12px";
+
+                    bubble.style.background = message.isStaff
+                        ? "#e8eddf"
+                        : "#f5f6f2";
+
+                    const sender = document.createElement("strong");
+
+                    sender.textContent = message.isStaff
+                        ? "Вы (сотрудник)"
+                        : "Покупатель";
+
+                    const text = document.createElement("p");
+
+                    text.style.margin = "8px 0";
+                    text.textContent = message.text;
+
+                    const date = document.createElement("small");
+
+                    date.className = "muted";
+                    date.textContent = new Date(message.createdAt)
+                        .toLocaleString();
+
+                    bubble.append(sender, text, date);
+
+                    bubble.dataset.messageId = message.id;
+
+                    messagesContainer.appendChild(bubble);
+
+                    lastMessageId = message.id;
+                });
+
+                if (messages.length > 0) {
+                    messagesContainer.scrollTop =
+                        messagesContainer.scrollHeight;
+                }
+            }
+            catch (error) {
+                console.error("Не удалось загрузить сообщения:", error);
+            }
+            finally {
+                isLoading = false;
+            }
+        }
+
+        loadNewMessages();
+        setInterval(loadNewMessages, 3000);
+    </script>
+}
+

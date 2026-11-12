@@ -1,0 +1,399 @@
+@using MiniShop.Models
+@model IEnumerable<ReturnRequest>
+
+@{
+    ViewData["Title"] = "Управление возвратами";
+}
+
+<style>
+    .manage-returns {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 25px 0 70px;
+    }
+
+    .manage-heading {
+        margin-bottom: 30px;
+    }
+
+    .manage-heading h1 {
+        font-size: 38px;
+        margin: 12px 0;
+    }
+
+    .manage-heading p {
+        color: #777;
+        line-height: 1.6;
+    }
+
+    .manage-alert {
+        padding: 16px 20px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+        background: #f4f6f1;
+        border: 1px solid #e1e7dc;
+    }
+
+    .manage-alert.error {
+        background: #fff5f5;
+        border-color: #f0dddd;
+        color: #a33b3b;
+    }
+
+    .manage-list {
+        display: grid;
+        gap: 20px;
+    }
+
+    .manage-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .manage-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+    }
+
+    .manage-card-header h2 {
+        font-size: 20px;
+        margin: 0;
+    }
+
+    .manage-status {
+        display: inline-block;
+        padding: 8px 13px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #fbf6e9;
+        color: #a17b35;
+    }
+
+    .manage-status.approved {
+        background: #f0f5ed;
+        color: #648052;
+    }
+
+    .manage-status.rejected {
+        background: #fff0f0;
+        color: #a33b3b;
+    }
+
+    .manage-info {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .manage-field {
+        background: #f7f8f5;
+        border-radius: 10px;
+        padding: 14px;
+        min-width: 0;
+    }
+
+    .manage-label {
+        display: block;
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 7px;
+    }
+
+    .manage-value {
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .manage-reason {
+        background: #f7f8f5;
+        border-radius: 10px;
+        padding: 17px;
+        margin-bottom: 20px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .manage-reason strong {
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .manage-review-form {
+        border-top: 1px solid #e8e8e8;
+        padding-top: 20px;
+        margin-top: 20px;
+    }
+
+    .manage-review-form h3 {
+        font-size: 17px;
+        margin: 0 0 15px;
+    }
+
+    .manage-review-form textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 13px;
+        border: 1px solid #deded9;
+        border-radius: 10px;
+        font: inherit;
+        resize: vertical;
+    }
+
+    .manage-review-form textarea:focus {
+        outline: none;
+        border-color: #8b9a77;
+    }
+
+    .manage-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .manage-reply {
+        padding: 15px;
+        background: #f4f6f1;
+        border-radius: 10px;
+        margin-top: 18px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .manage-date {
+        color: #888;
+        font-size: 13px;
+        margin-top: 12px;
+    }
+
+    .manage-details {
+        margin-top: 18px;
+    }
+
+    .manage-details a {
+        text-decoration: none;
+    }
+
+    .manage-empty {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+        padding: 45px 25px;
+        text-align: center;
+    }
+
+    .manage-empty p {
+        color: #777;
+    }
+
+    @@media (max-width: 600px) {
+        .manage-heading h1 {
+            font-size: 29px;
+        }
+
+        .manage-card {
+            padding: 18px;
+        }
+
+        .manage-info {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="manage-returns">
+
+    <div class="manage-heading">
+        <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
+
+        <h1>Заявки на возврат</h1>
+
+        <p>
+            Просмотр обращений покупателей и обработка заявок на возврат товаров.
+        </p>
+    </div>
+
+    @if (TempData["ReturnSuccess"] != null)
+    {
+        <div class="manage-alert">
+            @TempData["ReturnSuccess"]
+        </div>
+    }
+
+    @if (TempData["ReturnError"] != null)
+    {
+        <div class="manage-alert error">
+            @TempData["ReturnError"]
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="manage-empty">
+            <h2>Заявок пока нет</h2>
+            <p>Новые обращения покупателей появятся здесь.</p>
+        </div>
+    }
+    else
+    {
+        <div class="manage-list">
+
+            @foreach (var request in Model)
+            {
+                var statusClass = request.Status switch
+                {
+                    "Одобрена" => "approved",
+                    "Отклонена" => "rejected",
+                    _ => ""
+                };
+
+                <article class="manage-card">
+
+                    <div class="manage-card-header">
+                        <h2>@request.RequestNumber</h2>
+
+                        <span class="manage-status @statusClass">
+                            @request.Status
+                        </span>
+                    </div>
+
+                    <div class="manage-info">
+
+                        <div class="manage-field">
+                            <span class="manage-label">Дата создания</span>
+                            <div class="manage-value">
+                                @request.CreatedAt.ToLocalTime()
+                                    .ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <div class="manage-field">
+                            <span class="manage-label">Покупатель</span>
+                            <div class="manage-value">
+                                @(request.Order?.CustomerName ?? "Не указано")
+                            </div>
+                        </div>
+
+                        <div class="manage-field">
+                            <span class="manage-label">Email покупателя</span>
+                            <div class="manage-value">
+                                @(request.Order?.CustomerEmail ?? "Не указан")
+                            </div>
+                        </div>
+
+                        <div class="manage-field">
+                            <span class="manage-label">Номер заказа</span>
+                            <div class="manage-value">
+                                №@request.OrderId
+                            </div>
+                        </div>
+
+                        <div class="manage-field">
+                            <span class="manage-label">Товар</span>
+                            <div class="manage-value">
+                                @(request.OrderItem?.ProductName ?? "Информация недоступна")
+                            </div>
+                        </div>
+
+                        <div class="manage-field">
+                            <span class="manage-label">Количество</span>
+                            <div class="manage-value">
+                                @(request.OrderItem?.Quantity.ToString() ?? "—")
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="manage-reason">
+                        <strong>Причина возврата</strong>
+                        @request.Reason
+                    </div>
+
+                    @if (request.Status == "Новая")
+                    {
+                        <form class="manage-review-form"
+                              asp-controller="ReturnRequests"
+                              asp-action="Review"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@request.Id" />
+
+                            <h3>Рассмотрение заявки</h3>
+
+                            <div class="form-group">
+                                <label for="comment-@request.Id">
+                                    Комментарий покупателю
+                                </label>
+
+                                <textarea id="comment-@request.Id"
+                                          name="adminComment"
+                                          rows="3"
+                                          maxlength="1000"
+                                          placeholder="Напишите ответ покупателю"></textarea>
+                            </div>
+
+                            <div class="manage-actions">
+
+                                <button class="button button-dark"
+                                        type="submit"
+                                        name="status"
+                                        value="Одобрена">
+                                    Одобрить
+                                </button>
+
+                                <button class="button"
+                                        type="submit"
+                                        name="status"
+                                        value="Отклонена">
+                                    Отклонить
+                                </button>
+
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrWhiteSpace(request.AdminComment))
+                        {
+                            <div class="manage-reply">
+                                <strong>Комментарий магазина</strong>
+                                <p>@request.AdminComment</p>
+                            </div>
+                        }
+
+                        <p class="manage-date">
+                            Дата обработки:
+                            @(request.ReviewedAt?.ToLocalTime()
+                                .ToString("dd.MM.yyyy HH:mm") ?? "Не указана")
+                        </p>
+                    }
+
+                    <div class="manage-details">
+                        <a class="button button-light"
+                           asp-controller="ReturnRequests"
+                           asp-action="Details"
+                           asp-route-id="@request.Id">
+                            Открыть подробности
+                        </a>
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+
+</div>

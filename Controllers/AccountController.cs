@@ -275,6 +275,19 @@ public class AccountController : Controller
         await _db.SaveChangesAsync();
         HttpContext.Session.Remove(CartKey);
     }
+    [HttpGet]
+public async Task<IActionResult> Profile()
+{
+    if (!User.Identity?.IsAuthenticated == true)
+        return RedirectToAction(nameof(Login));
+
+    var user = await _userManager.GetUserAsync(User);
+
+    if (user == null)
+        return RedirectToAction(nameof(Login));
+
+    return View(user);
+}
 
     [HttpPost]
     [ValidateAntiForgeryToken]

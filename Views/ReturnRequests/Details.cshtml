@@ -1,21 +1,22 @@
+
 @model MiniShop.Models.ReturnRequest
 
 @{
     ViewData["Title"] = "Заявка на возврат";
 
-    var statusColor = Model.Status switch
+    var statusClass = Model.Status switch
     {
-        "Одобрена" => "#648052",
-        "Отклонена" => "#a33b3b",
-        _ => "#b28b45"
+        "Одобрена" => "approved",
+        "Отклонена" => "rejected",
+        _ => "pending"
     };
 }
 
 <style>
     .return-details {
-        max-width: 850px;
+        max-width: 900px;
         margin: 0 auto;
-        padding: 35px 0 70px;
+        padding: 35px 0 80px;
     }
 
     .return-details * {
@@ -27,90 +28,147 @@
     }
 
     .return-heading h1 {
-        font-size: 38px;
+        font-size: clamp(29px, 4vw, 40px);
+        letter-spacing: -1.3px;
         margin: 12px 0;
+        color: #20211f;
     }
 
-    .return-heading p {
+    .return-heading p.description {
         color: #777;
-        line-height: 1.6;
+        line-height: 1.7;
+        max-width: 650px;
+        margin: 0;
     }
 
     .return-card {
         background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 16px;
-        padding: 30px;
-        margin-bottom: 20px;
+        border: 1px solid #e9eae6;
+        border-radius: 18px;
+        padding: 28px;
+        margin-bottom: 18px;
     }
 
-    .return-number {
-        color: #777;
-        font-size: 13px;
+    .return-card-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 18px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid #eeeeeb;
+    }
+
+    .return-number-label {
+        color: #888;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
         margin-bottom: 8px;
     }
 
-    .return-number strong {
+    .return-number {
         color: #20211f;
-        font-size: 17px;
+        font-size: 21px;
+        font-weight: 750;
+        overflow-wrap: anywhere;
     }
 
     .return-status {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
         padding: 9px 15px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        margin-top: 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .return-status::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .return-status.approved {
+        color: #587849;
+        background: #eff5eb;
+    }
+
+    .return-status.rejected {
+        color: #a33b3b;
+        background: #fff0ef;
+    }
+
+    .return-status.pending {
+        color: #a17b35;
+        background: #fbf5e8;
     }
 
     .return-info {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 22px;
-        margin-top: 28px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
+        margin-top: 22px;
     }
 
     .return-info-item {
-        padding: 18px;
+        padding: 17px;
         background: #f7f8f5;
+        border: 1px solid #f0f1ed;
         border-radius: 12px;
+        min-width: 0;
     }
 
     .return-label {
         display: block;
         color: #888;
         font-size: 12px;
+        font-weight: 600;
         margin-bottom: 8px;
     }
 
     .return-value {
-        font-size: 15px;
+        font-size: 14px;
+        font-weight: 600;
         color: #20211f;
-        line-height: 1.5;
+        line-height: 1.6;
         overflow-wrap: anywhere;
     }
 
     .return-section-title {
-        font-size: 18px;
-        margin: 0 0 15px;
+        font-size: 19px;
+        font-weight: 700;
+        margin: 0 0 17px;
+        color: #20211f;
     }
 
     .return-reason {
         background: #f7f8f5;
+        border: 1px solid #f0f1ed;
         padding: 20px;
         border-radius: 12px;
-        line-height: 1.7;
+        line-height: 1.8;
+        color: #444;
+        font-size: 14px;
         overflow-wrap: anywhere;
+        white-space: pre-wrap;
     }
 
     .return-comment {
-        background: #f4f6f1;
+        background: #f1f5ed;
+        border: 1px solid #e2e9dc;
         border-left: 4px solid #8b9a77;
         padding: 20px;
-        border-radius: 10px;
-        line-height: 1.7;
+        border-radius: 12px;
+        line-height: 1.8;
+        color: #46513f;
+        font-size: 14px;
         overflow-wrap: anywhere;
+        white-space: pre-wrap;
     }
 
     .return-actions {
@@ -126,20 +184,29 @@
 
     @@media (max-width: 600px) {
         .return-details {
-            padding: 20px 0 45px;
-        }
-
-        .return-heading h1 {
-            font-size: 29px;
+            padding: 20px 0 50px;
         }
 
         .return-card {
-            padding: 20px;
+            padding: 19px;
         }
 
         .return-info {
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 11px;
+        }
+
+        .return-card-heading {
+            flex-direction: column;
+        }
+
+        .return-actions {
+            flex-direction: column;
+        }
+
+        .return-actions a {
+            width: 100%;
+            text-align: center;
         }
     }
 </style>
@@ -147,11 +214,11 @@
 <div class="return-details">
 
     <div class="return-heading">
-        <p class="eyebrow">SIMPLESTORE / МОЙ АККАУНТ</p>
+        <p class="eyebrow">SIMPLESTORE / ЛИЧНЫЙ КАБИНЕТ</p>
 
         <h1>Заявка на возврат</h1>
 
-        <p>
+        <p class="description">
             Здесь находится подробная информация
             о рассмотрении вашего обращения.
         </p>
@@ -159,17 +226,22 @@
 
     <div class="return-card">
 
-        <div class="return-number">
-            НОМЕР ЗАЯВКИ
-        </div>
+        <div class="return-card-heading">
 
-        <strong>@Model.RequestNumber</strong>
+            <div>
+                <div class="return-number-label">
+                    НОМЕР ЗАЯВКИ
+                </div>
 
-        <div>
-            <span class="return-status"
-                  style="color: @statusColor; background: #f5f6f2;">
+                <div class="return-number">
+                    @Model.RequestNumber
+                </div>
+            </div>
+
+            <span class="return-status @statusClass">
                 @Model.Status
             </span>
+
         </div>
 
         <div class="return-info">
@@ -190,24 +262,23 @@
                 </div>
             </div>
 
-            @if (Model.ReviewedAt.HasValue)
-            {
-                <div class="return-info-item">
-                    <span class="return-label">Дата рассмотрения</span>
-
-                    <div class="return-value">
-                        @Model.ReviewedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                    </div>
-                </div>
-            }
-
             <div class="return-info-item">
                 <span class="return-label">Номер заказа</span>
 
                 <div class="return-value">
-                    № @Model.OrderId
+                    №@Model.OrderId
                 </div>
             </div>
+
+            @if (Model.ReviewedAt.HasValue)
+            {
+                <div class="return-reviewed-date">
+                    <span class="return-reviewed-label">Дата рассмотрения</span>
+                    <strong>
+                        @Model.ReviewedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </strong>
+                </div>
+            }
 
         </div>
     </div>

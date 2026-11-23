@@ -251,10 +251,14 @@ public class CartController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        // Дополнительная проверка адреса перед оформлением заказа.
+        order.Address = order.Address?.Trim() ?? "";
+
         if (!ModelState.IsValid)
         {
             TempData["CheckoutError"] =
-                "Проверьте заполнение данных заказа.";
+                "Проверьте заполнение данных заказа. Укажите полный адрес: город, улицу и номер дома.";
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -361,7 +365,7 @@ public class CartController : Controller
 
         return RedirectToAction(nameof(Index));
     }
-    
+
     // Количество переписок, ожидающих ответа
     [Authorize(Roles = "Admin,Moderator")]
     [HttpGet]
@@ -379,5 +383,4 @@ public class CartController : Controller
 
         return Json(new { count });
     }
-
 }

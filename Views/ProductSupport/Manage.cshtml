@@ -1,0 +1,152 @@
+
+@using MiniShop.Models
+@model List<ProductSupportRequest>
+
+@{
+    ViewData["Title"] = "Обращения покупателей";
+}
+
+<style>
+    .support-page {
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 30px 0 75px;
+    }
+
+    .support-page h1 {
+        font-size: 36px;
+        letter-spacing: -1px;
+        margin: 12px 0;
+    }
+
+    .support-table-wrap {
+        margin-top: 28px;
+        overflow-x: auto;
+        background: #fff;
+        border: 1px solid #e5eae5;
+        border-radius: 16px;
+    }
+
+    .support-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 750px;
+    }
+
+    .support-table th,
+    .support-table td {
+        padding: 16px;
+        text-align: left;
+        border-bottom: 1px solid #edf0eb;
+        font-size: 13px;
+        vertical-align: top;
+    }
+
+    .support-table th {
+        background: #f5f6f2;
+        color: #78827b;
+        font-weight: 650;
+    }
+
+    .support-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .support-table a {
+        color: #526b4c;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .support-table a:hover {
+        text-decoration: underline;
+    }
+
+    .support-status {
+        display: inline-block;
+        padding: 7px 10px;
+        border-radius: 20px;
+        background: #edf3eb;
+        color: #526b4c;
+        font-size: 11px;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    .support-muted {
+        color: #78827b;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .support-empty {
+        padding: 35px;
+        margin-top: 28px;
+        background: #fff;
+        border: 1px solid #e5eae5;
+        border-radius: 16px;
+        color: #78827b;
+        text-align: center;
+    }
+</style>
+
+<div class="support-page">
+    <p class="eyebrow">SIMPLESTORE / АДМИНИСТРИРОВАНИЕ</p>
+    <h1>Обращения покупателей</h1>
+
+    <p class="support-muted">
+        Здесь находятся обращения по товарам из завершённых заказов.
+    </p>
+
+    @if (Model.Any())
+    {
+        <div class="support-table-wrap">
+            <table class="support-table">
+                <thead>
+                    <tr>
+                        <th>Номер</th>
+                        <th>Покупатель</th>
+                        <th>Товар</th>
+                        <th>Тема</th>
+                        <th>Дата</th>
+                        <th>Статус</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var request in Model)
+                    {
+                        <tr>
+                            <td>@request.RequestNumber</td>
+                            <td>@request.UserName</td>
+                            <td>@request.OrderItem?.ProductName</td>
+                            <td>@request.Subject</td>
+                            <td>
+                                @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            </td>
+                            <td>
+                                <span class="support-status">
+                                    @request.Status
+                                </span>
+                            </td>
+                            <td>
+                                <a asp-action="RequestDetails"
+                                   asp-route-id="@request.Id">
+                                    Открыть
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="support-empty">
+            <h3>Обращений пока нет</h3>
+            <p>Когда покупатели отправят вопросы, они появятся здесь.</p>
+        </div>
+    }
+</div>

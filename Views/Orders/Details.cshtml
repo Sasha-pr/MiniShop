@@ -15,111 +15,172 @@
 
     var items = Model.Items ?? new List<MiniShop.Models.OrderItem>();
     var statusHistory = ViewBag.StatusHistory
-    as List<MiniShop.Models.OrderStatusHistory>
-    ?? new List<MiniShop.Models.OrderStatusHistory>();
+        as List<MiniShop.Models.OrderStatusHistory>
+        ?? new List<MiniShop.Models.OrderStatusHistory>();
 }
 
 <style>
+    .order-details-page,
+    .order-details-page * {
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
     .order-details-page {
         max-width: 1000px;
         margin: 0 auto;
-        padding: 25px 0 70px;
+        padding: 38px 16px 70px;
+        color: #26332D;
+    }
+
+    .order-back {
+        margin-bottom: 24px;
+    }
+
+    .order-back a {
+        color: #526B5B;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .order-back a:hover {
+        color: #263C35;
     }
 
     .order-details-heading {
-        margin-bottom: 30px;
+        margin-bottom: 26px;
+    }
+
+    .order-details-heading .eyebrow {
+        margin: 0 0 12px;
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
     }
 
     .order-details-heading h1 {
-        font-size: 38px;
-        margin: 12px 0;
+        margin: 0 0 10px;
+        color: #263C35;
+        font-size: clamp(30px, 4vw, 38px);
+        letter-spacing: -1px;
     }
 
     .order-details-heading p {
-        color: #777;
+        margin: 0 0 16px;
+        color: #78827B;
         line-height: 1.6;
     }
 
     .order-details-card {
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 15px;
+        margin-bottom: 18px;
         padding: 25px;
-        margin-bottom: 22px;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(38, 60, 53, .035);
     }
 
     .order-details-card h2 {
-        font-size: 20px;
         margin: 0 0 20px;
+        color: #263C35;
+        font-size: 19px;
     }
 
     .order-details-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 13px;
+        gap: 12px;
     }
 
     .order-details-field {
-        background: #f7f8f5;
-        padding: 14px;
-        border-radius: 10px;
         min-width: 0;
+        padding: 14px;
+        border: 1px solid #EDF0EC;
+        border-radius: 10px;
+        background: #F7F8F5;
     }
 
     .order-details-label {
         display: block;
-        color: #888;
-        font-size: 12px;
         margin-bottom: 7px;
+        color: #929B94;
+        font-size: 11px;
+        font-weight: 600;
     }
 
     .order-details-value {
-        font-size: 14px;
-        line-height: 1.5;
+        color: #35453B;
+        font-size: 13px;
+        line-height: 1.6;
         overflow-wrap: anywhere;
     }
 
     .order-details-status {
-        display: inline-block;
-        padding: 8px 13px;
-        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 8px;
+        background: #F0F2EF;
+        color: #68746B;
         font-size: 12px;
-        font-weight: 600;
-        background: #f5f6f2;
+        font-weight: 700;
     }
 
     .order-details-status.new {
-        background: #fbf6e9;
-        color: #a17b35;
+        background: #F7F0DF;
+        color: #8A6B2E;
     }
 
     .order-details-status.processing {
-        background: #edf3fa;
-        color: #54799f;
+        background: #EAF0F5;
+        color: #4F6F8C;
     }
 
     .order-details-status.sent {
-        background: #f0effa;
-        color: #71659c;
+        background: #EFEDF7;
+        color: #6D6192;
     }
 
     .order-details-status.completed {
-        background: #f0f5ed;
-        color: #648052;
+        background: #E8F0E9;
+        color: #42634D;
     }
 
     .order-details-status.cancelled {
-        background: #fff0f0;
-        color: #a33b3b;
+        background: #FFF0EE;
+        color: #A33B3B;
+    }
+
+    .order-customer-comment {
+        margin-top: 15px;
+        padding: 15px;
+        border: 1px solid #E5EAE5;
+        border-radius: 10px;
+        background: #F7F8F5;
+    }
+
+    .order-customer-comment strong {
+        color: #35453B;
+        font-size: 13px;
+    }
+
+    .order-customer-comment p {
+        margin: 8px 0 0;
+        color: #68746B;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
     }
 
     .order-product {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 15px;
+        gap: 16px;
         padding: 17px 0;
-        border-bottom: 1px solid #eeeeeb;
+        border-bottom: 1px solid #EDF0EC;
     }
 
     .order-product:last-child {
@@ -127,19 +188,28 @@
     }
 
     .order-product h3 {
-        font-size: 16px;
         margin: 0 0 7px;
+        color: #35453B;
+        font-size: 15px;
     }
 
     .order-product p {
-        color: #888;
-        font-size: 13px;
         margin: 0;
+        color: #929B94;
+        font-size: 13px;
     }
 
     .order-product-price {
+        color: #263C35;
+        font-size: 14px;
         font-weight: 700;
         white-space: nowrap;
+    }
+
+    .order-empty-text {
+        margin: 0;
+        color: #78827B;
+        font-size: 13px;
     }
 
     .order-total {
@@ -147,86 +217,127 @@
         justify-content: space-between;
         align-items: center;
         gap: 15px;
-        padding: 20px 25px;
-        background: #f4f6f1;
-        border-radius: 12px;
-        margin-bottom: 25px;
-        font-size: 16px;
+        margin-bottom: 20px;
+        padding: 21px 24px;
+        border: 1px solid #DCE8DF;
+        border-radius: 13px;
+        background: #EAF1EB;
+        color: #35453B;
+        font-size: 15px;
     }
 
     .order-total strong {
-        font-size: 23px;
+        color: #263C35;
+        font-size: 24px;
+        white-space: nowrap;
     }
 
     .order-status-form {
         display: grid;
-        gap: 15px;
+        gap: 14px;
+    }
+
+    .order-status-form label {
+        color: #526157;
+        font-size: 13px;
+        font-weight: 600;
     }
 
     .order-status-form select {
         width: 100%;
-        padding: 13px;
-        border: 1px solid #deded9;
-        border-radius: 10px;
+        min-height: 46px;
+        padding: 11px 13px;
+        border: 1px solid #DDE4DD;
+        border-radius: 9px;
+        background: #FFFFFF;
+        color: #35453B;
         font: inherit;
-        background: #fff;
+        font-size: 14px;
+    }
+
+    .order-status-form select:focus {
+        outline: none;
+        border-color: #8FA997;
+        box-shadow: 0 0 0 3px rgba(143, 169, 151, .15);
     }
 
     .order-status-actions {
         display: flex;
-        gap: 12px;
         flex-wrap: wrap;
         align-items: center;
+        gap: 11px;
+    }
+
+    .order-status-actions .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 10px 16px;
+        border-radius: 9px;
+        font-size: 13px;
+        text-decoration: none;
+        cursor: pointer;
     }
 
     .order-danger-zone {
-        border: 1px solid #f0dddd;
-        background: #fffafa;
-        border-radius: 15px;
+        margin-top: 28px;
         padding: 22px;
-        margin-top: 30px;
+        border: 1px solid #F0DEDC;
+        border-radius: 15px;
+        background: #FFFAF9;
     }
 
     .order-danger-zone h2 {
+        margin: 0 0 9px;
+        color: #873F3A;
         font-size: 17px;
-        margin: 0 0 10px;
     }
 
     .order-danger-zone p {
-        color: #888;
+        margin: 0 0 17px;
+        color: #927A77;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .order-danger-zone button {
+        min-height: 40px;
+        padding: 9px 15px;
+        border: 1px solid #E8CCCC;
+        border-radius: 9px;
+        background: #FFFFFF;
+        color: #A33B3B;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .order-danger-zone button:hover {
+        background: #FFF0EE;
+    }
+
+    .order-message {
+        margin-bottom: 14px;
+        padding: 14px 17px;
+        border: 1px solid #DCE8DF;
+        border-radius: 10px;
+        background: #EAF1EB;
+        color: #42634D;
         font-size: 13px;
         line-height: 1.5;
     }
 
-    .order-danger-zone button {
-        color: #a33b3b;
-        border-color: #e8cccc;
-    }
-
-    .order-message {
-        padding: 15px 18px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        background: #f0f5ed;
-        color: #648052;
-    }
-
     .order-message.error {
-        background: #fff0f0;
-        color: #a33b3b;
-    }
-
-    .order-back {
-        margin-bottom: 20px;
-    }
-
-    .order-back a {
-        text-decoration: none;
+        border-color: #F0DEDC;
+        background: #FFF0EE;
+        color: #A33B3B;
     }
 
     @@media (max-width: 600px) {
-        .order-details-heading h1 {
-            font-size: 29px;
+        .order-details-page {
+            padding: 24px 12px 50px;
         }
 
         .order-details-card {
@@ -246,7 +357,16 @@
         }
 
         .order-total strong {
-            font-size: 19px;
+            font-size: 20px;
+        }
+
+        .order-status-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .order-status-actions .button {
+            width: 100%;
         }
     }
 </style>
@@ -254,15 +374,17 @@
 <div class="order-details-page">
 
     <div class="order-back">
-        <a class="back-link"
-           asp-controller="Orders"
+        <a asp-controller="Orders"
            asp-action="Index">
             ← Все заказы
         </a>
     </div>
 
     <section class="order-details-heading">
-        <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
+
+        <p class="eyebrow">
+            SIMPLESTORE / УПРАВЛЕНИЕ
+        </p>
 
         <h1>Заказ №@Model.Id</h1>
 
@@ -271,6 +393,7 @@
         <span class="order-details-status @statusClass">
             @Model.Status
         </span>
+
     </section>
 
     @if (TempData["OrderSuccess"] != null)
@@ -331,7 +454,7 @@
             <div class="order-details-field">
                 <span class="order-details-label">Дата оформления</span>
                 <div class="order-details-value">
-                    @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    @(Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
                 </div>
             </div>
 
@@ -340,7 +463,7 @@
                 <div class="order-details-field">
                     <span class="order-details-label">Дата завершения</span>
                     <div class="order-details-value">
-                        @Model.CompletedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        @(Model.CompletedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
                     </div>
                 </div>
             }
@@ -349,7 +472,7 @@
 
         @if (!string.IsNullOrWhiteSpace(Model.Comment))
         {
-            <div class="manage-reply">
+            <div class="order-customer-comment">
                 <strong>Комментарий покупателя</strong>
                 <p>@Model.Comment</p>
             </div>
@@ -363,7 +486,9 @@
 
         @if (items.Count == 0)
         {
-            <p class="muted">В заказе нет товаров.</p>
+            <p class="order-empty-text">
+                В заказе нет товаров.
+            </p>
         }
         else
         {
@@ -409,6 +534,7 @@
             <label for="status">Выбери новый статус</label>
 
             <select id="status" name="status" required>
+
                 <option value="Новый" selected="@(Model.Status == "Новый")">
                     Новый
                 </option>
@@ -428,9 +554,11 @@
                 <option value="Отменён" selected="@(Model.Status == "Отменён")">
                     Отменён
                 </option>
+
             </select>
 
             <div class="order-status-actions">
+
                 <button class="button button-dark" type="submit">
                     Сохранить статус
                 </button>
@@ -440,19 +568,20 @@
                    asp-action="Index">
                     Назад к заказам
                 </a>
+
             </div>
 
         </form>
 
     </section>
 
-
     <section class="order-details-card">
+
         <h2>История статусов</h2>
 
         @if (statusHistory.Count == 0)
         {
-            <p class="muted">
+            <p class="order-empty-text">
                 Изменений статуса пока нет.
             </p>
         }
@@ -461,21 +590,22 @@
             @foreach (var record in statusHistory)
             {
                 <div class="order-product">
+
                     <div>
                         <h3>
                             @record.OldStatus → @record.NewStatus
                         </h3>
 
                         <p>
-                            @record.ChangedAt.ToLocalTime()
-                                .ToString("dd.MM.yyyy HH:mm")
+                            @(record.ChangedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
                         </p>
                     </div>
+
                 </div>
             }
         }
-    </section>
 
+    </section>
 
     <section class="order-danger-zone">
 
@@ -494,7 +624,7 @@
 
             <input type="hidden" name="id" value="@Model.Id" />
 
-            <button class="button button-light" type="submit">
+            <button type="submit">
                 Удалить заказ
             </button>
 

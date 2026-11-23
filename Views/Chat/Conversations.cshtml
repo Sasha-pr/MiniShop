@@ -1,4 +1,3 @@
-
 @using MiniShop.Models
 @using MiniShop.Data
 @using Microsoft.EntityFrameworkCore
@@ -24,29 +23,69 @@
 }
 
 <style>
+    .conversations-page,
+    .conversations-page * {
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
     .conversations-page {
         max-width: 950px;
-        margin: 30px auto 70px;
+        margin: 0 auto;
+        padding: 38px 16px 70px;
+        color: #26332D;
+    }
+
+    .conversations-eyebrow {
+        margin: 0 0 12px;
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+    }
+
+    .conversations-page h1 {
+        margin: 0 0 13px;
+        color: #263C35;
+        font-size: clamp(30px, 4vw, 38px);
+        letter-spacing: -1px;
     }
 
     .conversations-description {
-        color: #777;
-        margin-bottom: 25px;
+        margin: 0 0 27px;
+        color: #78827B;
+        line-height: 1.7;
     }
 
     .conversations-summary {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 25px;
-        padding: 18px 22px;
-        border-radius: 12px;
-        background: #f5f6f2;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding: 20px 23px;
+        border: 1px solid #DCE8DF;
+        border-radius: 14px;
+        background: #F5F8F4;
     }
 
     .conversations-summary strong {
-        font-size: 24px;
-        color: #647854;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 45px;
+        padding: 0 10px;
+        border-radius: 12px;
+        background: #DCE8DF;
+        color: #263C35;
+        font-size: 22px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .conversations-summary span {
+        color: #52665A;
+        font-size: 14px;
+        line-height: 1.5;
     }
 
     .conversation-card {
@@ -54,62 +93,122 @@
         justify-content: space-between;
         align-items: center;
         gap: 20px;
-        padding: 22px;
-        border: 1px solid #e5e5e5;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        flex-wrap: wrap;
+        margin-bottom: 13px;
+        padding: 22px 24px;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(38, 60, 53, .035);
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .conversation-card:hover {
+        border-color: #CFDED3;
+        box-shadow: 0 8px 22px rgba(38, 60, 53, .06);
     }
 
     .conversation-card.pending {
-        border-left: 4px solid #8b9a77;
-        background: #fafbf8;
+        border-left: 4px solid #789384;
+        background: #FBFCFA;
+    }
+
+    .conversation-main {
+        min-width: 0;
     }
 
     .conversation-name {
-        font-weight: 700;
+        margin-bottom: 10px;
+        color: #263C35;
         font-size: 17px;
-        margin-bottom: 8px;
+        font-weight: 700;
         overflow-wrap: anywhere;
     }
 
     .conversation-info {
-        color: #777;
+        margin-top: 6px;
+        color: #78827B;
         font-size: 13px;
-        margin-top: 5px;
+        line-height: 1.5;
     }
 
     .conversation-status {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 13px;
+        padding: 6px 10px;
+        border-radius: 7px;
+        background: #F0F2EF;
+        color: #78827B;
         font-size: 12px;
         font-weight: 600;
-        margin-top: 10px;
-        color: #777;
     }
 
     .conversation-status.pending {
-        color: #647854;
+        background: #E8F0E9;
+        color: #42634D;
     }
 
     .conversation-open {
-        display: inline-block;
-        background: #20211f;
-        color: white;
-        text-decoration: none;
-        padding: 12px 18px;
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 11px 17px;
+        border: 1px solid #263C35;
         border-radius: 9px;
+        background: #263C35;
+        color: #FFFFFF;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background .2s, border-color .2s;
+    }
+
+    .conversation-open:hover {
+        border-color: #3D5A4D;
+        background: #3D5A4D;
+        color: #FFFFFF;
     }
 
     .conversation-empty {
+        padding: 55px 25px;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: #FFFFFF;
+        color: #78827B;
         text-align: center;
-        padding: 60px 20px;
-        color: #777;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 650px) {
+        .conversations-page {
+            padding: 24px 12px 50px;
+        }
+
+        .conversation-card {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 17px;
+            padding: 19px;
+        }
+
+        .conversation-open {
+            width: 100%;
+        }
+
+        .conversations-summary {
+            padding: 16px;
+        }
     }
 </style>
 
 <div class="conversations-page">
 
-    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+    <p class="conversations-eyebrow">
+        SIMPLESTORE / ПОДДЕРЖКА
+    </p>
 
     <h1>Обращения покупателей</h1>
 
@@ -138,7 +237,8 @@
 
             <div class="conversation-card @(isPending ? "pending" : "")">
 
-                <div>
+                <div class="conversation-main">
+
                     <div class="conversation-name">
                         @conversation.UserName
                     </div>
@@ -149,7 +249,8 @@
 
                     <div class="conversation-info">
                         Последняя активность:
-                        @conversation.LastMessage.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        @conversation.LastMessage.ToLocalTime()
+                            .ToString("dd.MM.yyyy HH:mm")
                     </div>
 
                     @if (isPending)
@@ -164,6 +265,7 @@
                             ✓ Ответ отправлен
                         </span>
                     }
+
                 </div>
 
                 <a class="conversation-open"
@@ -180,7 +282,6 @@
 </div>
 
 <script>
-    // Обновляем список, если количество обращений изменилось
     let previousPendingCount = @pendingCount;
 
     async function refreshPendingConversations() {

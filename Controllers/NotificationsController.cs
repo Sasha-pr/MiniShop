@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +37,48 @@ public class NotificationsController : Controller
         return View(notifications);
     }
 
+    // Возвращает количество непрочитанных уведомлений
+    [HttpGet]
+    public async Task<IActionResult> UnreadCount()
+    {
+        var userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+            return Unauthorized();
+
+        var count = await _db.UserNotifications
+            .CountAsync(n => n.UserId == userId && !n.IsRead);
+
+        return Json(new { count });
+    }
+
+    // Возвращает уведомления для автоматического обновления страницы
+    [HttpGet]
+    public async Task<IActionResult> Latest()
+    {
+        var userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+            return Unauthorized();
+
+        var notifications = await _db.UserNotifications
+            .Where(n => n.UserId == userId)
+            .OrderByDescending(n => n.CreatedAt)
+            .Take(50)
+            .Select(n => new
+            {
+                n.Id,
+                n.Message,
+                n.IsRead,
+                n.ProductId,
+                n.ReturnRequestId,
+                n.CreatedAt
+            })
+            .ToListAsync();
+
+        return Json(notifications);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkAsRead(int id)
@@ -72,9 +113,7 @@ public class NotificationsController : Controller
             return Challenge();
 
         var notifications = await _db.UserNotifications
-            .Where(n =>
-                n.UserId == userId &&
-                !n.IsRead)
+            .Where(n => n.UserId == userId && !n.IsRead)
             .ToListAsync();
 
         foreach (var notification in notifications)

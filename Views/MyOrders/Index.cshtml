@@ -1,3 +1,4 @@
+
 @using MiniShop.Models
 @model IEnumerable<Order>
 
@@ -5,52 +6,315 @@
     ViewData["Title"] = "Мои заказы";
 }
 
-<section class="hero">
-    <p class="eyebrow">SIMPLESTORE / ЛИЧНЫЙ КАБИНЕТ</p>
-    <h1>Мои заказы</h1>
-    <p class="muted">Здесь можно посмотреть свои покупки и их статусы.</p>
-</section>
+<style>
+    .orders-page {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 30px 0 75px;
+    }
 
-@if (!Model.Any())
-{
-    <p>У тебя пока нет заказов.</p>
-    <a class="button button-dark"
-       asp-controller="Products"
-       asp-action="Index">
-        Перейти в каталог
-    </a>
-}
-else
-{
-    <div class="orders-list">
-        @foreach (var order in Model)
-        {
-            <article class="review">
-                <h2>Заказ №@order.Id</h2>
+    .orders-heading {
+        margin-bottom: 30px;
+    }
 
-                <p>
-                    Дата:
-                    @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                </p>
+    .orders-heading h1 {
+        font-size: clamp(30px, 4vw, 40px);
+        letter-spacing: -1px;
+        margin: 10px 0;
+    }
 
-                <p>
-                    Сумма: <strong>@order.Total.ToString("N0") ₽</strong>
-                </p>
+    .orders-description {
+        color: #85877f;
+        line-height: 1.6;
+        margin: 0;
+    }
 
-                <p>Статус: <strong>@order.Status</strong></p>
+    .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
 
-                <a class="button button-dark"
-                   asp-controller="MyOrders"
-                   asp-action="Details"
-                   asp-route-id="@order.Id">
-                    Подробнее
-                </a>
-            </article>
+    .order-card {
+        background: #fff;
+        border: 1px solid #e8eae3;
+        border-radius: 17px;
+        padding: 23px 25px;
+        box-shadow: 0 7px 24px rgba(32, 33, 31, .035);
+        transition: border-color .2s, transform .2s;
+    }
+
+    .order-card:hover {
+        border-color: #cbd4c1;
+        transform: translateY(-2px);
+    }
+
+    .order-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding-bottom: 17px;
+        border-bottom: 1px solid #eceee8;
+    }
+
+    .order-number {
+        font-size: 19px;
+        font-weight: 700;
+        color: #20211f;
+        margin: 0;
+    }
+
+    .order-date {
+        color: #85877f;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .order-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        border-radius: 30px;
+        background: #f0f2ec;
+        color: #596b4b;
+        font-size: 12px;
+        font-weight: 650;
+    }
+
+    .order-status::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .order-status.status-new {
+        background: #f0f2ec;
+        color: #68785b;
+    }
+
+    .order-status.status-process {
+        background: #fff5e5;
+        color: #9a6c2d;
+    }
+
+    .order-status.status-sent {
+        background: #edf3fb;
+        color: #4e719d;
+    }
+
+    .order-status.status-completed {
+        background: #edf6ed;
+        color: #397448;
+    }
+
+    .order-status.status-cancelled {
+        background: #fff0ef;
+        color: #a6534b;
+    }
+
+    .order-card-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        padding-top: 18px;
+    }
+
+    .order-total-label {
+        color: #85877f;
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+
+    .order-total {
+        color: #20211f;
+        font-size: 22px;
+        font-weight: 750;
+        letter-spacing: -.4px;
+    }
+
+    .order-details-button {
+        white-space: nowrap;
+    }
+
+    .orders-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+    }
+
+    .orders-empty {
+        background: #fff;
+        border: 1px solid #e8eae3;
+        border-radius: 18px;
+        padding: 50px 25px;
+        text-align: center;
+        box-shadow: 0 7px 24px rgba(32, 33, 31, .035);
+    }
+
+    .orders-empty-icon {
+        width: 65px;
+        height: 65px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 18px;
+        border-radius: 20px;
+        background: #f0f2ec;
+        font-size: 27px;
+    }
+
+    .orders-empty h2 {
+        font-size: 22px;
+        margin: 0 0 9px;
+    }
+
+    .orders-empty p {
+        color: #85877f;
+        margin: 0 0 22px;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 600px) {
+        .orders-page {
+            padding: 20px 0 55px;
         }
+
+        .order-card {
+            padding: 19px 16px;
+        }
+
+        .order-card-bottom {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .order-details-button {
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .orders-actions {
+            flex-direction: column;
+        }
+
+        .orders-actions a {
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+    }
+</style>
+
+<div class="orders-page">
+
+    <div class="orders-heading">
+        <p class="eyebrow">SIMPLESTORE / ЛИЧНЫЙ КАБИНЕТ</p>
+        <h1>Мои заказы</h1>
+        <p class="orders-description">
+            Здесь хранится история ваших покупок и информация об их статусах.
+        </p>
     </div>
-}
-<a class="button"
-   asp-controller="ReturnRequests"
-   asp-action="Index">
-    Мои заявки на возврат
-</a>
+
+    @if (!Model.Any())
+    {
+        <div class="orders-empty">
+            <div class="orders-empty-icon">📦</div>
+
+            <h2>У вас пока нет заказов</h2>
+
+            <p>
+                Когда вы оформите первую покупку,
+                она появится в этом разделе.
+            </p>
+
+            <a class="button button-dark"
+               asp-controller="Products"
+               asp-action="Index">
+                Перейти в каталог
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="orders-list">
+
+            @foreach (var order in Model)
+            {
+                var statusClass = order.Status switch
+                {
+                    "Новый" => "status-new",
+                    "В обработке" => "status-process",
+                    "Отправлен" => "status-sent",
+                    "Завершён" => "status-completed",
+                    "Отменён" => "status-cancelled",
+                    _ => "status-new"
+                };
+
+                <article class="order-card">
+
+                    <div class="order-card-top">
+                        <div>
+                            <h2 class="order-number">
+                                Заказ №@order.Id
+                            </h2>
+
+                            <div class="order-date">
+                                @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <span class="order-status @statusClass">
+                            @order.Status
+                        </span>
+                    </div>
+
+                    <div class="order-card-bottom">
+
+                        <div>
+                            <div class="order-total-label">
+                                Сумма заказа
+                            </div>
+
+                            <div class="order-total">
+                                @order.Total.ToString("N0") ₽
+                            </div>
+                        </div>
+
+                        <a class="button button-dark order-details-button"
+                           asp-controller="MyOrders"
+                           asp-action="Details"
+                           asp-route-id="@order.Id">
+                            Подробнее о заказе →
+                        </a>
+
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+
+    <div class="orders-actions">
+        <a class="button button-light"
+           asp-controller="ReturnRequests"
+           asp-action="Index">
+            Мои заявки на возврат
+        </a>
+
+        <a class="button button-light"
+           asp-controller="Products"
+           asp-action="Index">
+            Вернуться в каталог
+        </a>
+    </div>
+
+</div>

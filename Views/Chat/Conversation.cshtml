@@ -1,4 +1,3 @@
-
 @using MiniShop.Models
 @model List<ChatMessage>
 
@@ -11,92 +10,216 @@
 }
 
 <style>
+    .staff-chat-page,
+    .staff-chat-page * {
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
     .staff-chat-page {
         max-width: 850px;
-        margin: 30px auto 70px;
+        margin: 0 auto;
+        padding: 35px 16px 70px;
+        color: #26332D;
     }
 
     .staff-chat-back {
-        display: inline-block;
-        margin-bottom: 20px;
-        color: #777;
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 24px;
+        color: #52735E;
+        font-size: 13px;
+        font-weight: 600;
         text-decoration: none;
+    }
+
+    .staff-chat-back:hover {
+        color: #263C35;
+        text-decoration: underline;
+    }
+
+    .staff-chat-eyebrow {
+        margin: 0 0 12px;
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+    }
+
+    .staff-chat-page h1 {
+        margin: 0 0 12px;
+        color: #263C35;
+        font-size: clamp(28px, 4vw, 36px);
+        letter-spacing: -.7px;
+    }
+
+    .staff-chat-customer {
+        margin: 0 0 23px;
+        color: #78827B;
+        font-size: 14px;
+    }
+
+    .staff-chat-customer strong {
+        color: #263C35;
+    }
+
+    .staff-chat-error {
+        margin-bottom: 16px;
+        padding: 13px 16px;
+        border: 1px solid #EBD5D2;
+        border-radius: 10px;
+        background: #FFF6F4;
+        color: #A33B3B;
+        font-size: 14px;
+        line-height: 1.5;
     }
 
     .staff-chat-window {
         display: flex;
         flex-direction: column;
         gap: 15px;
-        padding: 25px;
-        min-height: 300px;
-        max-height: 550px;
+        min-height: 320px;
+        max-height: 560px;
         overflow-y: auto;
-        background: #f5f6f2;
+        padding: 22px;
+        border: 1px solid #E5EAE5;
         border-radius: 16px;
-        border: 1px solid #e5e8df;
+        background: #F5F6F2;
+        scroll-behavior: smooth;
     }
 
     .staff-chat-message {
-        max-width: 80%;
-        padding: 15px 18px;
-        border-radius: 14px;
-        background: white;
+        display: flex;
+        flex-direction: column;
         align-self: flex-start;
+        width: fit-content;
+        max-width: 80%;
+        min-width: 120px;
+        padding: 13px 16px;
+        border: 1px solid #E5EAE5;
+        border-radius: 14px 14px 14px 4px;
+        background: #FFFFFF;
         overflow-wrap: anywhere;
     }
 
     .staff-chat-message.mine {
-        background: #dfe7d7;
         align-self: flex-end;
+        border-color: #DCE8DF;
+        border-radius: 14px 14px 4px 14px;
+        background: #E8F0E9;
     }
 
     .staff-chat-sender {
+        margin-bottom: 7px;
+        color: #52735E;
         font-size: 12px;
         font-weight: 700;
-        margin-bottom: 7px;
     }
 
     .staff-chat-text {
+        color: #26332D;
         white-space: pre-wrap;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.65;
+        overflow-wrap: anywhere;
     }
 
     .staff-chat-date {
-        font-size: 11px;
-        color: #888;
         margin-top: 9px;
+        color: #929B94;
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
     }
 
     .staff-chat-form {
         margin-top: 20px;
+        padding: 20px;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px;
+        background: #FFFFFF;
+    }
+
+    .staff-chat-form label {
+        display: block;
+        margin-bottom: 10px;
+        color: #263C35;
+        font-size: 14px;
+        font-weight: 700;
     }
 
     .staff-chat-form textarea {
         display: block;
         width: 100%;
         min-height: 110px;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        box-sizing: border-box;
+        padding: 14px 15px;
+        border: 1px solid #DDE4DD;
+        border-radius: 10px;
+        background: #FBFCFA;
+        color: #26332D;
         font: inherit;
+        font-size: 14px;
+        line-height: 1.6;
         resize: vertical;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .staff-chat-form textarea:focus {
+        border-color: #789384;
+        box-shadow: 0 0 0 3px rgba(120, 147, 132, .13);
+    }
+
+    .staff-chat-form textarea::placeholder {
+        color: #929B94;
     }
 
     .staff-chat-form button {
-        margin-top: 12px;
-        padding: 13px 25px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 43px;
+        margin-top: 13px;
+        padding: 11px 20px;
         border: 0;
         border-radius: 9px;
-        background: #20211f;
-        color: white;
+        background: #263C35;
+        color: #FFFFFF;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
+        transition: background .2s;
     }
 
-    .staff-chat-error {
-        color: #b13c3c;
-        margin-bottom: 15px;
+    .staff-chat-form button:hover {
+        background: #3D5A4D;
+    }
+
+    @@media (max-width: 600px) {
+        .staff-chat-page {
+            padding: 24px 12px 50px;
+        }
+
+        .staff-chat-window {
+            min-height: 280px;
+            max-height: 500px;
+            padding: 14px;
+        }
+
+        .staff-chat-message {
+            max-width: 90%;
+            min-width: 100px;
+            padding: 12px;
+        }
+
+        .staff-chat-form {
+            padding: 15px;
+        }
+
+        .staff-chat-form button {
+            width: 100%;
+        }
     }
 </style>
 
@@ -108,11 +231,13 @@
         ← Все обращения
     </a>
 
-    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+    <p class="staff-chat-eyebrow">
+        SIMPLESTORE / ПОДДЕРЖКА
+    </p>
 
     <h1>Переписка с покупателем</h1>
 
-    <p class="muted">
+    <p class="staff-chat-customer">
         Покупатель: <strong>@customerName</strong>
     </p>
 
@@ -141,6 +266,7 @@
 
             </div>
         }
+
     </div>
 
     <form class="staff-chat-form"
@@ -154,7 +280,12 @@
                name="userId"
                value="@customerId" />
 
-        <textarea name="text"
+        <label for="staff-chat-input">
+            Ваш ответ покупателю
+        </label>
+
+        <textarea id="staff-chat-input"
+                  name="text"
                   maxlength="2000"
                   required
                   placeholder="Напишите ответ покупателю..."></textarea>
@@ -162,6 +293,7 @@
         <button type="submit">
             Отправить ответ →
         </button>
+
     </form>
 
 </div>
@@ -256,6 +388,7 @@
     }
 
     setInterval(refreshStaffChat, 5000);
+
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden) refreshStaffChat();
     });

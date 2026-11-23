@@ -1,40 +1,381 @@
+
 @using Microsoft.AspNetCore.Identity
-@model List<Microsoft.AspNetCore.Identity.IdentityUser>
+@model List<IdentityUser>
+
+@inject UserManager<IdentityUser> UserManager
 
 @{
     ViewData["Title"] = "Управление пользователями";
+    var currentUserId = UserManager.GetUserId(User);
 }
 
-<section class="page-heading">
-    <p class="eyebrow">SIMPLESTORE / АДМИНИСТРАТОР</p>
-    <h1>Пользователи</h1>
-    <p class="muted">Назначение и снятие ролей.</p>
-</section>
+<div class="admin-page">
+    <div class="hero">
+        <div>
+            <p class="eyebrow">SIMPLESTORE / АДМИНИСТРИРОВАНИЕ</p>
+            <h1>Пользователи</h1>
+            <p class="muted">
+                Управление учетными записями и правами доступа к магазину.
+            </p>
+        </div>
 
-<div class="cart-list">
-    @foreach (var user in Model)
+        <div class="admin-count">
+            <span class="muted">Всего пользователей</span>
+            <strong>@Model.Count</strong>
+        </div>
+    </div>
+
+    @if (TempData["AdminSuccess"] != null)
     {
-        <article class="cart-item">
-            <div class="cart-item-info">
-                <h3>@user.Email</h3>
-                <p class="muted">ID: @user.Id</p>
-            </div>
-
-            @foreach (var role in new[] { "Moderator", "Admin" })
-            {
-                <form asp-action="SetRole" method="post">
-                    <input type="hidden" name="userId" value="@user.Id" />
-                    <input type="hidden" name="role" value="@role" />
-
-                    <button class="button button-light" type="submit">
-                        @(await ViewContext.HttpContext.RequestServices
-                            .GetRequiredService<UserManager<Microsoft.AspNetCore.Identity.IdentityUser>>()
-                            .IsInRoleAsync(user, role)
-                            ? "Снять " + role
-                            : "Назначить " + role)
-                    </button>
-                </form>
-            }
-        </article>
+        <div class="admin-message success">
+            @TempData["AdminSuccess"]
+        </div>
     }
+
+    @if (TempData["AdminError"] != null)
+    {
+        <div class="admin-message error">
+            @TempData["AdminError"]
+        </div>
+    }
+
+    <div class="admin-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">АККАУНТЫ</p>
+                <h2>Список пользователей</h2>
+            </div>
+        </div>
+
+        <form asp-action="Index" method="get" class="admin-search">
+            <input
+                type="text"
+                name="search"
+                value="@ViewBag.Search"
+                placeholder="Поиск по email..." />
+
+            <button type="submit" class="button button-dark">
+                Найти
+            </button>
+
+            @if (!string.IsNullOrWhiteSpace(ViewBag.Search as string))
+            {
+                <a asp-action="Index" class="button button-light">
+                    Сбросить
+                </a>
+            }
+        </form>
+
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state">
+                <h3>Пользователи не найдены</h3>
+                <p class="muted">
+                    Попробуйте изменить поисковый запрос.
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="admin-user-list">
+                @foreach (var user in Model)
+                {
+                    var isCurrentUser = user.Id == currentUserId;
+                    var isBlocked = user.LockoutEnabled &&
+                                    user.LockoutEnd.HasValue &&
+                                    user.LockoutEnd > DateTimeOffset.UtcNow;
+
+                    var roles = await UserManager.GetRolesAsync(user);
+
+                    <div class="admin-user-card">
+                        <div class="admin-user-info">
+                            <div class="admin-user-avatar">
+                                @(string.IsNullOrEmpty(user.Email)
+                                    ? "?"
+                                    : user.Email.Substring(0, 1).ToUpper())
+                            </div>
+
+                            <div>
+                                <h3>@(user.Email ?? "Без email")</h3>
+                                <p class="muted">
+                                    ID: @user.Id
+                                </p>
+
+                                <div class="admin-user-status">
+                                    @if (isBlocked)
+                                    {
+                                        <span class="status-blocked">
+                                            Заблокирован
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-active">
+                                            Активен
+                                        </span>
+                                    }
+
+                                    @if (isCurrentUser)
+                                    {
+                                        <span class="status-self">
+                                            Это вы
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="admin-role-labels">
+                                    @if (roles.Count == 0)
+                                    {
+                                        <span class="muted">
+                                            Покупатель
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var role in roles)
+                                        {
+                                            <span class="role-label">
+                                                @role
+                                            </span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-user-actions">
+                            <div class="admin-user-roles">
+                                @foreach (var role in new[] { "Moderator", "Admin" })
+                                {
+                                    var hasRole = roles.Contains(role);
+
+                                    <form asp-action="SetRole"
+                                          method="post"
+                                          class="role-form">
+
+                                        <input type="hidden"
+                                               name="userId"
+                                               value="@user.Id" />
+
+                                        <input type="hidden"
+                                               name="role"
+                                               value="@role" />
+
+                                        <button type="submit"
+                                                class="button @(hasRole ? "button-light" : "button-dark")"
+                                                disabled="@(isCurrentUser && role == "Admin")">
+                                            @(hasRole
+                                                ? $"Снять {role}"
+                                                : $"Назначить {role}")
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+
+                            @if (isBlocked)
+                            {
+                                <form asp-action="UnblockUser"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="userId"
+                                           value="@user.Id" />
+
+                                    <button type="submit"
+                                            class="button button-dark">
+                                        Разблокировать
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="BlockUser"
+                                      method="post"
+                                      onsubmit="return confirm('Заблокировать этого пользователя?');">
+
+                                    <input type="hidden"
+                                           name="userId"
+                                           value="@user.Id" />
+
+                                    <button type="submit"
+                                            class="button button-danger"
+                                            disabled="@isCurrentUser">
+                                        Заблокировать
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
+
+<style>
+    .admin-search {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .admin-search input {
+        flex: 1;
+        min-width: 220px;
+        padding: 12px 15px;
+        border: 1px solid #E5EAE5;
+        border-radius: 12px;
+        background: white;
+        font: inherit;
+    }
+
+    .admin-user-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: white;
+    }
+
+    .admin-user-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .admin-user-avatar {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #DCE8DF;
+        color: #263C35;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .admin-user-info h3 {
+        margin: 0 0 5px;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-user-info p {
+        margin: 0;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-user-status,
+    .admin-role-labels {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 9px;
+    }
+
+    .status-active,
+    .status-blocked,
+    .status-self,
+    .role-label {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #E4F1E7;
+        color: #315E3D;
+    }
+
+    .status-blocked {
+        background: #FCE8E6;
+        color: #A33B32;
+    }
+
+    .status-self {
+        background: #EEF0ED;
+        color: #59645D;
+    }
+
+    .role-label {
+        background: #DCE8DF;
+        color: #263C35;
+    }
+
+    .admin-user-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .admin-user-roles {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .button-danger {
+        padding: 10px 15px;
+        border: 0;
+        border-radius: 10px;
+        background: #FCE8E6;
+        color: #A33B32;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+    }
+
+    .button-danger:hover {
+        background: #F7D8D5;
+    }
+
+    .button:disabled,
+    .button-danger:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .admin-message {
+        padding: 13px 16px;
+        margin: 15px 0;
+        border-radius: 12px;
+        font-size: 14px;
+    }
+
+    .admin-message.success {
+        background: #E4F1E7;
+        color: #315E3D;
+    }
+
+    .admin-message.error {
+        background: #FCE8E6;
+        color: #A33B32;
+    }
+
+    @@media (max-width: 700px) {
+        .admin-user-card {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .admin-user-actions {
+            align-items: stretch;
+        }
+
+        .admin-user-roles {
+            justify-content: flex-start;
+        }
+    }
+</style>

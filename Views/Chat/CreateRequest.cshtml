@@ -1,50 +1,315 @@
-@{
+ @{
     ViewData["Title"] = "Новое обращение";
 }
 
-<div class="hero">
-    <p class="eyebrow">СЛУЖБА ПОДДЕРЖКИ</p>
-    <h1>Новое обращение</h1>
-    <p class="muted">
-        Опиши свой вопрос. Сотрудник поддержки сможет ответить тебе в переписке.
-    </p>
+<div class="create-request-page">
+
+    <section class="create-request-hero">
+        <span class="create-request-eyebrow">СЛУЖБА ПОДДЕРЖКИ SIMPLESTORE</span>
+        <h1>Новое обращение</h1>
+        <p>
+            Опиши свой вопрос. Сотрудник поддержки ответит тебе
+            в отдельной переписке.
+        </p>
+    </section>
+
+    <section class="create-request-card">
+
+        <div class="create-request-card-heading">
+            <div class="create-request-icon">✉</div>
+            <div>
+                <h2>Чем мы можем помочь?</h2>
+                <p>Постарайся подробно описать свою ситуацию.</p>
+            </div>
+        </div>
+
+        @if (TempData["RequestError"] != null)
+        {
+            <div class="create-request-error">
+                @TempData["RequestError"]
+            </div>
+        }
+
+        <form asp-controller="Chat"
+              asp-action="CreateRequest"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="create-request-form-group">
+                <label for="question">Текст вопроса</label>
+
+                <textarea id="question"
+                          name="question"
+                          rows="8"
+                          minlength="3"
+                          maxlength="2000"
+                          required
+                          placeholder="Напиши, с каким вопросом нужна помощь..."></textarea>
+
+                <div class="create-request-field-bottom">
+                    <span>Минимум 3 символа, максимум 2000</span>
+                    <span id="question-counter">0 / 2000</span>
+                </div>
+            </div>
+
+            <div class="create-request-actions">
+                <button type="submit"
+                        class="create-request-button create-request-primary">
+                    Отправить обращение
+                    <span>→</span>
+                </button>
+
+                <a asp-controller="Chat"
+                   asp-action="MyRequests"
+                   class="create-request-button create-request-secondary">
+                    Назад к обращениям
+                </a>
+            </div>
+        </form>
+
+        <div class="create-request-note">
+            <span>ⓘ</span>
+            После отправки ты сможешь следить за ответами сотрудников
+            в разделе «Мои обращения».
+        </div>
+    </section>
 </div>
 
-<div class="review">
-    @if (TempData["RequestError"] != null)
-    {
-        <p style="color: #a33b3b;">
-            @TempData["RequestError"]
-        </p>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const question = document.getElementById("question");
+        const counter = document.getElementById("question-counter");
+
+        if (!question || !counter) return;
+
+        function updateCounter() {
+            counter.textContent = question.value.length + " / 2000";
+        }
+
+        question.addEventListener("input", updateCounter);
+        updateCounter();
+    });
+</script>
+
+<style>
+    .create-request-page {
+        --request-primary: #263C35;
+        --request-accent: #DCE8DF;
+        --request-bg: #F5F6F2;
+        --request-text: #26332D;
+        --request-muted: #78827B;
+        --request-border: #E5EAE5;
+
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+        color: var(--request-text);
+        font-family: 'Inter', sans-serif;
     }
 
-    <form asp-controller="Chat"
-          asp-action="CreateRequest"
-          method="post">
+    .create-request-hero {
+        padding: 30px 0;
+    }
 
-        @Html.AntiForgeryToken()
+    .create-request-eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: var(--request-muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+    }
 
-        <div class="form-group">
-            <label for="question">Текст вопроса</label>
+    .create-request-hero h1 {
+        margin: 0 0 10px;
+        font-size: clamp(29px, 4vw, 38px);
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
 
-            <textarea id="question"
-                      name="question"
-                      rows="7"
-                      maxlength="2000"
-                      required
-                      placeholder="Напиши, с каким вопросом нужна помощь..."></textarea>
-        </div>
+    .create-request-hero p {
+        max-width: 570px;
+        margin: 0;
+        color: var(--request-muted);
+        line-height: 1.65;
+    }
 
-        <div class="form-actions">
-            <button type="submit" class="button button-dark">
-                Отправить обращение
-            </button>
+    .create-request-card {
+        padding: 30px;
+        background: #fff;
+        border: 1px solid var(--request-border);
+        border-radius: 20px;
+        box-shadow: 0 8px 28px rgba(38, 60, 53, .04);
+    }
 
-            <a asp-controller="Chat"
-               asp-action="MyRequests"
-               class="button button-light">
-                Назад
-            </a>
-        </div>
-    </form>
-</div>
+    .create-request-card-heading {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 27px;
+    }
+
+    .create-request-icon {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 52px;
+        height: 52px;
+        color: var(--request-primary);
+        background: var(--request-accent);
+        border-radius: 16px;
+        font-size: 24px;
+    }
+
+    .create-request-card-heading h2 {
+        margin: 0 0 5px;
+        font-size: 19px;
+        font-weight: 800;
+    }
+
+    .create-request-card-heading p {
+        margin: 0;
+        color: var(--request-muted);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .create-request-error {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #963C3C;
+        background: #FBECEC;
+        border: 1px solid #F2D5D5;
+        border-radius: 11px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .create-request-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+
+    .create-request-form-group label {
+        font-size: 13px;
+        font-weight: 750;
+    }
+
+    .create-request-form-group textarea {
+        display: block;
+        width: 100%;
+        min-height: 180px;
+        padding: 15px 16px;
+        color: var(--request-text);
+        background: #FAFBF9;
+        border: 1px solid var(--request-border);
+        border-radius: 12px;
+        outline: none;
+        resize: vertical;
+        font: inherit;
+        font-size: 14px;
+        line-height: 1.6;
+        box-sizing: border-box;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .create-request-form-group textarea:focus {
+        border-color: #8FA99A;
+        box-shadow: 0 0 0 3px rgba(143, 169, 154, .16);
+    }
+
+    .create-request-form-group textarea::placeholder {
+        color: #A0AAA3;
+    }
+
+    .create-request-field-bottom {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--request-muted);
+        font-size: 11px;
+    }
+
+    .create-request-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 24px;
+    }
+
+    .create-request-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 45px;
+        padding: 12px 18px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .create-request-primary {
+        color: #fff;
+        background: var(--request-primary);
+    }
+
+    .create-request-primary:hover {
+        color: #fff;
+        background: #38564A;
+        transform: translateY(-1px);
+    }
+
+    .create-request-secondary {
+        color: var(--request-primary);
+        background: #fff;
+        border-color: var(--request-border);
+    }
+
+    .create-request-secondary:hover {
+        color: var(--request-primary);
+        background: var(--request-bg);
+    }
+
+    .create-request-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin-top: 25px;
+        padding-top: 19px;
+        color: var(--request-muted);
+        border-top: 1px solid var(--request-border);
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .create-request-note span {
+        color: var(--request-primary);
+        font-weight: 800;
+    }
+
+    @@media (max-width: 600px) {
+        .create-request-card {
+            padding: 22px 18px;
+        }
+
+        .create-request-actions {
+            flex-direction: column;
+        }
+
+        .create-request-button {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .create-request-card-heading {
+            align-items: flex-start;
+        }
+    }
+</style>

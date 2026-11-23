@@ -19,220 +19,674 @@
                      ?? new Dictionary<int, int>();
 }
 
-<section class="hero">
-    <p class="eyebrow">НЕБОЛЬШОЙ МАГАЗИН</p>
-    <h1>Вещи на каждый день.</h1>
-    <p class="muted">Простые товары. Ничего лишнего.</p>
-</section>
+<style>
+    .shop-catalog {
+        color: #26332D;
+        padding-bottom: 50px;
+    }
 
-<div class="section-heading">
-    <h2>Каталог</h2>
-    <span class="muted">@Model.Count() товаров</span>
-</div>
+    .shop-hero {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 290px;
+        padding: 48px 55px;
+        margin: 20px 0 42px;
+        border-radius: 22px;
+        background: #263C35;
+        color: #fff;
+    }
 
-@if (User.Identity?.IsAuthenticated == true)
-{
-    <p>
-        <a class="button button-light"
-           asp-controller="Bookmarks"
-           asp-action="Index">
-            ♡ Мои закладки
-        </a>
-    </p>
-}
+    .shop-hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+    }
 
-@if (TempData["BookmarkMessage"] != null)
-{
-    <p class="muted">@TempData["BookmarkMessage"]</p>
-}
+    .shop-eyebrow {
+        margin: 0 0 13px;
+        color: #AFC7B7;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
 
-<form asp-controller="Products"
-      asp-action="Index"
-      method="get"
-      style="margin: 20px 0;">
+    .shop-hero h1 {
+        margin: 0 0 16px;
+        font-size: clamp(30px, 4vw, 45px);
+        line-height: 1.12;
+        font-weight: 700;
+        letter-spacing: -1.5px;
+    }
 
-    <label for="category"
-           style="display: block; margin-bottom: 8px;">
-        Категория товаров
-    </label>
+    .shop-hero-description {
+        margin: 0 0 27px;
+        color: #D5E0D9;
+        font-size: 15px;
+    }
 
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <select id="category"
-                name="category"
-                style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; min-width: 220px;">
+    .shop-hero-decoration {
+        position: absolute;
+        right: 55px;
+        top: 50%;
+        transform: translateY(-55%);
+        color: rgba(255,255,255,.07);
+        font-size: 250px;
+        line-height: 1;
+        font-weight: 800;
+        pointer-events: none;
+    }
 
-            <option value=""
-                    selected="@(string.IsNullOrEmpty(selectedCategory))">
-                Все товары
-            </option>
+    .shop-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 43px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 650;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
 
-            @foreach (var category in categories)
-            {
-                <option value="@category"
-                        selected="@(selectedCategory == category)">
-                    @category
+    .shop-button:hover {
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+
+    .shop-button-primary {
+        background: #263C35;
+        color: #fff;
+    }
+
+    .shop-button-primary:hover {
+        background: #365449;
+        color: #fff;
+    }
+
+    .shop-button-light {
+        background: #EAF0EB;
+        color: #263C35;
+    }
+
+    .shop-button-light:hover {
+        background: #DCE8DF;
+        color: #263C35;
+    }
+
+    .shop-hero .shop-button {
+        background: #fff;
+        color: #263C35;
+    }
+
+    .shop-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+    }
+
+    .shop-heading .shop-eyebrow {
+        color: #78827B;
+        margin-bottom: 7px;
+    }
+
+    .shop-heading h2 {
+        margin: 0 0 7px;
+        color: #26332D;
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: -.7px;
+    }
+
+    .shop-muted {
+        color: #78827B;
+        font-size: 13px;
+    }
+
+    .shop-filter {
+        display: flex;
+        align-items: flex-end;
+        gap: 13px;
+        padding: 19px;
+        margin-bottom: 30px;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px;
+        background: #fff;
+    }
+
+    .shop-filter-field {
+        flex: 1;
+        min-width: 180px;
+    }
+
+    .shop-filter-field label {
+        display: block;
+        margin-bottom: 7px;
+        color: #26332D;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .shop-filter-field select {
+        width: 100%;
+        min-height: 43px;
+        padding: 0 13px;
+        border: 1px solid #E1E7E1;
+        border-radius: 9px;
+        background: #FAFBF9;
+        color: #26332D;
+        font-size: 13px;
+    }
+
+    .shop-message {
+        padding: 13px 16px;
+        margin-bottom: 20px;
+        border: 1px solid #DCE8DF;
+        border-radius: 10px;
+        background: #F0F6F1;
+        color: #365449;
+        font-size: 13px;
+    }
+
+    .shop-product-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .shop-product-card {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: #fff;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .shop-product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(38, 60, 53, .08);
+    }
+
+    .shop-product-image {
+        position: relative;
+        display: block;
+        height: 220px;
+        overflow: hidden;
+        background: #F5F6F2;
+    }
+
+    .shop-product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .3s ease;
+    }
+
+    .shop-product-card:hover .shop-product-image img {
+        transform: scale(1.035);
+    }
+
+    .shop-discount {
+        position: absolute;
+        top: 13px;
+        left: 13px;
+        padding: 6px 10px;
+        border-radius: 7px;
+        background: #263C35;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .shop-product-info {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 17px;
+    }
+
+    .shop-category {
+        margin: 0 0 7px;
+        color: #788F7E;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        text-transform: uppercase;
+    }
+
+    .shop-product-title {
+        min-height: 45px;
+        margin: 0 0 10px;
+        font-size: 17px;
+        line-height: 1.35;
+        font-weight: 650;
+    }
+
+    .shop-product-title a {
+        color: #26332D;
+        text-decoration: none;
+    }
+
+    .shop-product-title a:hover {
+        color: #587563;
+    }
+
+    .shop-rating-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-height: 22px;
+        margin-bottom: 13px;
+        font-size: 12px;
+    }
+
+    .shop-star {
+        color: #D5A744;
+        font-size: 15px;
+    }
+
+    .shop-likes {
+        margin-left: auto;
+        color: #78827B;
+        white-space: nowrap;
+    }
+
+    .shop-price-row {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin-bottom: 9px;
+    }
+
+    .shop-current-price {
+        color: #263C35;
+        font-size: 23px;
+        font-weight: 750;
+    }
+
+    .shop-old-price {
+        color: #9AA39C;
+        font-size: 13px;
+        text-decoration: line-through;
+    }
+
+    .shop-stock {
+        min-height: 19px;
+        margin: 0 0 16px;
+        color: #65816D;
+        font-size: 12px;
+    }
+
+    .shop-stock-low {
+        color: #A47735;
+    }
+
+    .shop-stock-out {
+        color: #A65353;
+    }
+
+    .shop-product-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        margin-top: auto;
+    }
+
+    .shop-product-actions .shop-button {
+        width: 100%;
+    }
+
+    .shop-details-link {
+        display: block;
+        padding: 3px 0;
+        color: #587563;
+        font-size: 13px;
+        font-weight: 650;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .shop-details-link:hover {
+        color: #263C35;
+    }
+
+    .shop-empty {
+        padding: 55px 20px;
+        border: 1px dashed #D6DED7;
+        border-radius: 16px;
+        background: #fff;
+        text-align: center;
+    }
+
+    .shop-empty-icon {
+        margin-bottom: 12px;
+        color: #829589;
+        font-size: 42px;
+    }
+
+    .shop-empty h3 {
+        margin: 0 0 8px;
+        color: #26332D;
+        font-size: 21px;
+    }
+
+    .shop-empty p {
+        margin: 0 0 20px;
+        color: #78827B;
+        font-size: 13px;
+    }
+
+    @@media (max-width: 900px) {
+        .shop-product-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .shop-hero {
+            padding: 38px;
+        }
+
+        .shop-hero-decoration {
+            right: 20px;
+            font-size: 190px;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .shop-hero {
+            min-height: 260px;
+            padding: 28px 23px;
+            margin-top: 12px;
+        }
+
+        .shop-hero h1 {
+            font-size: 30px;
+        }
+
+        .shop-hero-decoration {
+            right: -15px;
+            font-size: 140px;
+        }
+
+        .shop-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .shop-filter {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .shop-filter-field {
+            min-width: 0;
+        }
+
+        .shop-product-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .shop-product-image {
+            height: 230px;
+        }
+    }
+</style>
+
+<div class="shop-catalog">
+
+    <section class="shop-hero">
+        <div class="shop-hero-content">
+            <p class="shop-eyebrow">SIMPLESTORE · МАГАЗИН НА КАЖДЫЙ ДЕНЬ</p>
+            <h1>Выбирайте то,<br />что делает жизнь удобнее.</h1>
+            <p class="shop-hero-description">
+                Полезные товары, понятные цены и ничего лишнего.
+            </p>
+            <a class="shop-button" href="#catalog-products">
+                Смотреть каталог
+            </a>
+        </div>
+
+        <div class="shop-hero-decoration">S</div>
+    </section>
+
+    <div class="shop-heading" id="catalog-products">
+        <div>
+            <p class="shop-eyebrow">НАШ АССОРТИМЕНТ</p>
+            <h2>Каталог товаров</h2>
+            <span class="shop-muted">Найдено товаров: @Model.Count()</span>
+        </div>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="shop-button shop-button-light"
+               asp-controller="Bookmarks"
+               asp-action="Index">
+                ♡ Мои закладки
+            </a>
+        }
+    </div>
+
+    @if (TempData["BookmarkMessage"] != null)
+    {
+        <div class="shop-message">
+            @TempData["BookmarkMessage"]
+        </div>
+    }
+
+    <form asp-controller="Products"
+          asp-action="Index"
+          method="get"
+          class="shop-filter">
+
+        <div class="shop-filter-field">
+            <label for="category">Категория товаров</label>
+
+            <select id="category" name="category">
+                <option value=""
+                        selected="@(string.IsNullOrEmpty(selectedCategory))">
+                    Все товары
                 </option>
-            }
-        </select>
 
-        <button class="button button-dark" type="submit">
+                @foreach (var category in categories)
+                {
+                    <option value="@category"
+                            selected="@(selectedCategory == category)">
+                        @category
+                    </option>
+                }
+            </select>
+        </div>
+
+        <button class="shop-button shop-button-primary" type="submit">
             Применить
         </button>
 
         @if (!string.IsNullOrEmpty(selectedCategory))
         {
-            <a class="text-link"
+            <a class="shop-button shop-button-light"
                asp-controller="Products"
                asp-action="Index">
-                Сбросить фильтр
+                Сбросить
             </a>
         }
-    </div>
-</form>
+    </form>
 
-@if (!Model.Any())
-{
-    <p class="muted">В этой категории пока нет товаров.</p>
-}
-else
-{
-    <div class="product-grid">
-        @foreach (var product in Model)
-        {
-            var averageRating = averageRatings.ContainsKey(product.Id)
-                ? averageRatings[product.Id]
-                : 0;
+    @if (!Model.Any())
+    {
+        <div class="shop-empty">
+            <div class="shop-empty-icon">⌕</div>
+            <h3>Товары не найдены</h3>
+            <p>В этой категории пока нет товаров.</p>
 
-            var reviewCount = reviewCounts.ContainsKey(product.Id)
-                ? reviewCounts[product.Id]
-                : 0;
+            <a class="shop-button shop-button-primary"
+               asp-controller="Products"
+               asp-action="Index">
+                Вернуться ко всем товарам
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="shop-product-grid">
+            @foreach (var product in Model)
+            {
+                var averageRating = averageRatings.ContainsKey(product.Id)
+                    ? averageRatings[product.Id]
+                    : 0;
 
-            var likeCount = likeCounts.ContainsKey(product.Id)
-                ? likeCounts[product.Id]
-                : 0;
+                var reviewCount = reviewCounts.ContainsKey(product.Id)
+                    ? reviewCounts[product.Id]
+                    : 0;
 
-            <article class="product-card">
-                <a class="product-image"
-                   asp-controller="Products"
-                   asp-action="Details"
-                   asp-route-id="@product.Id">
-                    <img src="@product.ImageUrl" alt="@product.Name" />
-                </a>
+                var likeCount = likeCounts.ContainsKey(product.Id)
+                    ? likeCounts[product.Id]
+                    : 0;
 
-                <div class="product-info">
-                    <div>
-                        <h3>@product.Name</h3>
+                <article class="shop-product-card">
+
+                    <a class="shop-product-image"
+                       asp-controller="Products"
+                       asp-action="Details"
+                       asp-route-id="@product.Id">
+
+                        <img src="@product.ImageUrl" alt="@product.Name" />
+
+                        @if (product.HasLowStock && product.StockQuantity > 0)
+                        {
+                            <span class="shop-discount">−30%</span>
+                        }
+                    </a>
+
+                    <div class="shop-product-info">
 
                         @if (!string.IsNullOrWhiteSpace(product.Category))
                         {
-                            <p class="muted" style="font-size: 13px;">
-                                @product.Category
-                            </p>
+                            <p class="shop-category">@product.Category</p>
                         }
 
-                        <div style="margin: 8px 0 12px; font-size: 14px;">
+                        <h3 class="shop-product-title">
+                            <a asp-controller="Products"
+                               asp-action="Details"
+                               asp-route-id="@product.Id">
+                                @product.Name
+                            </a>
+                        </h3>
+
+                        <div class="shop-rating-row">
                             @if (reviewCount > 0)
                             {
-                                <span style="color: #b8860b;">★</span>
-                                <strong>@averageRating.ToString("0.0") / 5</strong>
-
-                                <span class="muted">
-                                    · @reviewCount
+                                <span class="shop-star">★</span>
+                                <strong>@averageRating.ToString("0.0")</strong>
+                                <span class="shop-muted">
+                                    (@reviewCount
                                     @(reviewCount == 1 ? "отзыв" :
-                                      reviewCount >= 2 && reviewCount <= 4 ? "отзыва" : "отзывов")
+                                      reviewCount >= 2 && reviewCount <= 4 ? "отзыва" : "отзывов"))
                                 </span>
                             }
                             else
                             {
-                                <span class="muted">Пока нет отзывов</span>
+                                <span class="shop-muted">Пока нет отзывов</span>
+                            }
+
+                            <span class="shop-likes">♥ @likeCount</span>
+                        </div>
+
+                        <div class="shop-price-row">
+                            @if (product.HasLowStock && product.StockQuantity > 0)
+                            {
+                                <span class="shop-old-price">
+                                    @product.Price.ToString("N0") ₽
+                                </span>
+
+                                <strong class="shop-current-price">
+                                    @product.DiscountedPrice.ToString("N0") ₽
+                                </strong>
+                            }
+                            else
+                            {
+                                <strong class="shop-current-price">
+                                    @product.Price.ToString("N0") ₽
+                                </strong>
                             }
                         </div>
 
-                        <p style="font-size: 14px; margin: 0 0 12px;">
-                            <span style="color: #a33b3b;">♥</span>
-                            <strong>@likeCount</strong>
-                            <span class="muted">лайков</span>
-                        </p>
-
-                        @if (product.HasLowStock && product.StockQuantity > 0)
+                        @if (product.StockQuantity <= 0)
                         {
-                            <p class="price">
-                                <span style="text-decoration: line-through; color: #888;">
-                                    @product.Price.ToString("N0") ₽
-                                </span>
-                                <strong>
-                                    @product.DiscountedPrice.ToString("N0") ₽
-                                </strong>
+                            <p class="shop-stock shop-stock-out">
+                                Нет в наличии
                             </p>
-
-                            <p style="color: #b45309; font-size: 13px;">
-                                Скидка 30% — осталось:
-                                @product.StockQuantity шт.
+                        }
+                        else if (product.HasLowStock)
+                        {
+                            <p class="shop-stock shop-stock-low">
+                                Скидка 30% · Осталось: @product.StockQuantity шт.
                             </p>
                         }
                         else
                         {
-                            <p class="price">
-                                @product.Price.ToString("N0") ₽
-                            </p>
-                        }
-
-                        @if (product.StockQuantity <= 0)
-                        {
-                            <p style="color: #b91c1c; font-size: 13px;">
-                                Нет в наличии
-                            </p>
-                        }
-                        else if (product.StockQuantity >= 3)
-                        {
-                            <p class="muted" style="font-size: 13px;">
+                            <p class="shop-stock">
                                 В наличии: @product.StockQuantity шт.
                             </p>
                         }
+
+                        <div class="shop-product-actions">
+                            @if (product.StockQuantity > 0)
+                            {
+                                <button class="shop-button shop-button-primary"
+                                        type="button"
+                                        data-add-to-cart="@product.Id">
+                                    В корзину
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="shop-button shop-button-light"
+                                        type="button"
+                                        disabled>
+                                    Нет в наличии
+                                </button>
+                            }
+
+                            <a class="shop-details-link"
+                               asp-controller="Products"
+                               asp-action="Details"
+                               asp-route-id="@product.Id">
+                                Подробнее →
+                            </a>
+
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <form asp-controller="Bookmarks"
+                                      asp-action="Toggle"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="productId"
+                                           value="@product.Id" />
+
+                                    <button class="shop-button shop-button-light"
+                                            type="submit">
+                                        ♡ В закладки
+                                    </button>
+                                </form>
+                            }
+                        </div>
                     </div>
-
-                    <a class="text-link"
-                       asp-controller="Products"
-                       asp-action="Details"
-                       asp-route-id="@product.Id">
-                        Подробнее →
-                    </a>
-
-                    @if (product.StockQuantity > 0)
-                    {
-                        <button class="button button-dark full"
-                                type="button"
-                                data-add-to-cart="@product.Id">
-                            В корзину
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="button button-dark full"
-                                type="button"
-                                disabled>
-                            Нет в наличии
-                        </button>
-                    }
-
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <form asp-controller="Bookmarks"
-                              asp-action="Toggle"
-                              method="post">
-
-                            <input type="hidden"
-                                   name="productId"
-                                   value="@product.Id" />
-
-                            <button class="button button-light full"
-                                    type="submit">
-                                ♡ Добавить / убрать закладку
-                            </button>
-                        </form>
-                    }
-                </div>
-            </article>
-        }
-    </div>
-}
+                </article>
+            }
+        </div>
+    }
+</div>

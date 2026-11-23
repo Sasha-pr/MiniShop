@@ -28,7 +28,6 @@ public class OrdersController : Controller
         return View(orders);
     }
 
-    
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -48,7 +47,6 @@ public class OrdersController : Controller
 
         return View(order);
     }
-
 
     private async Task RestoreStock(int orderId)
     {
@@ -70,8 +68,7 @@ public class OrdersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateStatus(
-        int id, string status)
+    public async Task<IActionResult> UpdateStatus(int id, string status)
     {
         string[] allowedStatuses =
         {
@@ -84,9 +81,7 @@ public class OrdersController : Controller
 
         if (!allowedStatuses.Contains(status))
         {
-            TempData["OrderError"] =
-                "Недопустимый статус заказа.";
-
+            TempData["OrderError"] = "Недопустимый статус заказа.";
             return RedirectToAction(nameof(Details), new { id });
         }
 
@@ -94,6 +89,7 @@ public class OrdersController : Controller
             await _db.Database.BeginTransactionAsync();
 
         var order = await _db.Orders
+            .Include(o => o.Items)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
@@ -107,10 +103,8 @@ public class OrdersController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        // Сохраняем предыдущий статус
         string oldStatus = order.Status;
 
-        // Записываем историю, только если статус изменился
         if (oldStatus != status)
         {
             var history = new OrderStatusHistory
@@ -124,6 +118,21 @@ public class OrdersController : Controller
             };
 
             _db.OrderStatusHistories.Add(history);
+
+            // Создаём уведомление для покупателя
+            if (!string.IsNullOrEmpty(order.UserId))
+            {
+                var notification = new UserNotification
+                {
+                    UserId = order.UserId,
+                    ProductId = order.Items.FirstOrDefault()?.ProductId ?? 0,
+                    Message = $"Статус вашего заказа №{order.Id} изменён: {oldStatus} → {status}.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _db.UserNotifications.Add(notification);
+            }
         }
 
         if (status == "Отменён" && order.Status != "Отменён")
@@ -131,7 +140,6 @@ public class OrdersController : Controller
             await RestoreStock(id);
         }
 
-        // Запоминаем дату первого завершения заказа
         if (status == "Завершён" && order.CompletedAt == null)
         {
             order.CompletedAt = DateTime.UtcNow;
@@ -142,8 +150,7 @@ public class OrdersController : Controller
         await _db.SaveChangesAsync();
         await transaction.CommitAsync();
 
-        TempData["OrderSuccess"] =
-            "Статус заказа обновлён.";
+        TempData["OrderSuccess"] = "Статус заказа обновлён.";
 
         return RedirectToAction(nameof(Details), new { id });
     }

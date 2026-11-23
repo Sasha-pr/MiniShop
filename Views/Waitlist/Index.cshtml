@@ -1,4 +1,3 @@
-
 @using MiniShop.Models
 @model List<WaitlistItemViewModel>
 
@@ -6,179 +5,74 @@
     ViewData["Title"] = "Лист ожидания";
 }
 
-<style>
-    .waitlist-page {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 25px 0 70px;
-    }
-
-    .waitlist-page h1 {
-        font-size: 38px;
-        margin: 10px 0 15px;
-    }
-
-    .waitlist-description {
-        color: #777;
-        margin-bottom: 35px;
-        line-height: 1.6;
-    }
-
-    .waitlist-card {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 25px;
-        flex-wrap: wrap;
-        padding: 24px;
-        margin-bottom: 16px;
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 14px;
-    }
-
-    .waitlist-product {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex: 1;
-        min-width: 220px;
-    }
-
-    .waitlist-product img {
-        width: 95px;
-        height: 95px;
-        object-fit: cover;
-        border-radius: 10px;
-        background: #f5f6f2;
-    }
-
-    .waitlist-product h3 {
-        margin: 0 0 10px;
-        font-size: 19px;
-    }
-
-    .waitlist-product h3 a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .waitlist-product h3 a:hover {
-        text-decoration: underline;
-    }
-
-    .waitlist-status {
-        font-size: 13px;
-        margin: 0;
-    }
-
-    .waitlist-status.empty {
-        color: #a35b15;
-    }
-
-    .waitlist-status.available {
-        color: #42734c;
-    }
-
-    .waitlist-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .waitlist-actions form {
-        margin: 0;
-    }
-
-    .waitlist-actions .button {
-        padding: 12px 18px;
-        border-radius: 9px;
-        cursor: pointer;
-        font: inherit;
-        font-size: 13px;
-    }
-
-    .waitlist-message {
-        padding: 15px 18px;
-        margin-bottom: 25px;
-        background: #edf4e9;
-        color: #476348;
-        border-radius: 10px;
-    }
-
-    .waitlist-empty {
-        text-align: center;
-        padding: 60px 25px;
-        border: 1px solid #e8e8e8;
-        border-radius: 16px;
-    }
-
-    .waitlist-empty h2 {
-        margin-bottom: 15px;
-    }
-
-    @@media (max-width: 600px) {
-        .waitlist-page h1 {
-            font-size: 30px;
-        }
-
-        .waitlist-card {
-            padding: 18px;
-        }
-
-        .waitlist-actions {
-            width: 100%;
-        }
-    }
-</style>
-
 <div class="waitlist-page">
 
-    <p class="eyebrow">SIMPLESTORE / МОЙ АККАУНТ</p>
+    <section class="waitlist-hero">
+        <div>
+            <span class="waitlist-eyebrow">SIMPLESTORE / МОЙ АККАУНТ</span>
+            <h1>Лист ожидания</h1>
+            <p>
+                Здесь находятся товары, поступления которых вы ожидаете.
+                Когда товар появится на складе, его статус обновится.
+            </p>
+        </div>
 
-    <h1>Лист ожидания</h1>
-
-    <p class="waitlist-description">
-        Здесь находятся товары, поступления которых
-        вы ожидаете. Когда товар появится на складе,
-        его статус изменится.
-    </p>
+        <div class="waitlist-hero-icon">♡</div>
+    </section>
 
     @if (TempData["WaitlistMessage"] != null)
     {
         <div class="waitlist-message" role="status">
+            <span>✓</span>
             @TempData["WaitlistMessage"]
         </div>
     }
 
-    @if (Model.Count == 0)
+    @if (Model == null || Model.Count == 0)
     {
-        <div class="waitlist-empty">
+        <section class="waitlist-empty">
+            <div class="waitlist-empty-icon">♡</div>
             <h2>Ваш лист ожидания пуст</h2>
-
-            <p class="muted">
+            <p>
                 Пока вы не ожидаете поступления товаров.
+                Добавьте товар в лист ожидания на его странице.
             </p>
 
-            <a class="button button-dark"
+            <a class="waitlist-button waitlist-button-primary"
                asp-controller="Products"
                asp-action="Index">
                 Перейти в каталог
+                <span>→</span>
             </a>
-        </div>
+        </section>
     }
     else
     {
-        @foreach (var item in Model)
-        {
-            <article class="waitlist-card">
+        <div class="waitlist-list-heading">
+            <div>
+                <h2>Ожидаемые товары</h2>
+                <p>Товаров в списке: @Model.Count</p>
+            </div>
+        </div>
 
-                <div class="waitlist-product">
+        <div class="waitlist-list">
+            @foreach (var item in Model)
+            {
+                <article class="waitlist-card">
 
-                    <img src="@item.ImageUrl"
-                         alt="@item.ProductName" />
+                    <a class="waitlist-image-link"
+                       asp-controller="Products"
+                       asp-action="Details"
+                       asp-route-id="@item.ProductId">
 
-                    <div>
+                        <img src="@item.ImageUrl"
+                             alt="@item.ProductName"
+                             class="waitlist-image" />
+                    </a>
+
+                    <div class="waitlist-product-info">
+                        <span class="waitlist-product-label">ТОВАР</span>
+
                         <h3>
                             <a asp-controller="Products"
                                asp-action="Details"
@@ -187,55 +81,394 @@
                             </a>
                         </h3>
 
-                        <p>
+                        <div class="waitlist-price">
                             @item.Price.ToString("N0") ₽
-                        </p>
+                        </div>
 
                         @if (item.StockQuantity > 0)
                         {
-                            <p class="waitlist-status available">
-                                ✓ Товар снова в наличии!
-                            </p>
+                            <span class="waitlist-status status-available">
+                                <span>✓</span> Товар снова в наличии
+                            </span>
                         }
                         else
                         {
-                            <p class="waitlist-status empty">
-                                Ожидается поступление
-                            </p>
+                            <span class="waitlist-status status-empty">
+                                <span>◷</span> Ожидается поступление
+                            </span>
                         }
                     </div>
-                </div>
 
-                <div class="waitlist-actions">
+                    <div class="waitlist-actions">
 
-                    @if (item.StockQuantity > 0)
-                    {
-                        <a class="button button-dark"
-                           asp-controller="Products"
-                           asp-action="Details"
-                           asp-route-id="@item.ProductId">
-                            Перейти к товару
-                        </a>
-                    }
+                        @if (item.StockQuantity > 0)
+                        {
+                            <a class="waitlist-button waitlist-button-primary"
+                               asp-controller="Products"
+                               asp-action="Details"
+                               asp-route-id="@item.ProductId">
+                                Перейти к товару
+                                <span>→</span>
+                            </a>
+                        }
 
-                    <form asp-controller="Waitlist"
-                          asp-action="Unsubscribe"
-                          method="post">
+                        <form asp-controller="Waitlist"
+                              asp-action="Unsubscribe"
+                              method="post">
 
-                        @Html.AntiForgeryToken()
+                            @Html.AntiForgeryToken()
 
-                        <input type="hidden"
-                               name="productId"
-                               value="@item.ProductId" />
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@item.ProductId" />
 
-                        <button type="submit"
-                                class="button button-light">
-                            Удалить из ожидания
-                        </button>
-                    </form>
+                            <button type="submit"
+                                    class="waitlist-button waitlist-button-secondary">
+                                Удалить из ожидания
+                            </button>
+                        </form>
+                    </div>
 
-                </div>
-            </article>
-        }
+                </article>
+            }
+        </div>
     }
 </div>
+
+<style>
+    .waitlist-page {
+        --wait-primary: #263C35;
+        --wait-accent: #DCE8DF;
+        --wait-bg: #F5F6F2;
+        --wait-text: #26332D;
+        --wait-muted: #78827B;
+        --wait-border: #E5EAE5;
+
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+        color: var(--wait-text);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .waitlist-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 25px;
+        padding: 32px;
+        margin-bottom: 27px;
+        background: var(--wait-bg);
+        border: 1px solid var(--wait-border);
+        border-radius: 22px;
+    }
+
+    .waitlist-eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: var(--wait-muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+    }
+
+    .waitlist-hero h1 {
+        margin: 0 0 10px;
+        font-size: clamp(29px, 4vw, 38px);
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .waitlist-hero p {
+        max-width: 600px;
+        margin: 0;
+        color: var(--wait-muted);
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .waitlist-hero-icon {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 75px;
+        height: 75px;
+        color: var(--wait-primary);
+        background: var(--wait-accent);
+        border-radius: 22px;
+        font-size: 40px;
+    }
+
+    .waitlist-message {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 15px 18px;
+        margin-bottom: 24px;
+        color: #356348;
+        background: #E3F0E6;
+        border: 1px solid #D2E5D7;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .waitlist-message span {
+        font-weight: 900;
+    }
+
+    .waitlist-list-heading {
+        margin-bottom: 16px;
+    }
+
+    .waitlist-list-heading h2 {
+        margin: 0 0 5px;
+        font-size: 21px;
+        font-weight: 800;
+    }
+
+    .waitlist-list-heading p {
+        margin: 0;
+        color: var(--wait-muted);
+        font-size: 13px;
+    }
+
+    .waitlist-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .waitlist-card {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid var(--wait-border);
+        border-radius: 18px;
+        transition: .2s ease;
+    }
+
+    .waitlist-card:hover {
+        border-color: #C8D6CC;
+        box-shadow: 0 8px 24px rgba(38, 60, 53, .05);
+    }
+
+    .waitlist-image-link {
+        display: block;
+        flex-shrink: 0;
+        width: 112px;
+        height: 112px;
+        overflow: hidden;
+        background: var(--wait-bg);
+        border-radius: 13px;
+    }
+
+    .waitlist-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .25s ease;
+    }
+
+    .waitlist-image-link:hover .waitlist-image {
+        transform: scale(1.04);
+    }
+
+    .waitlist-product-info {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .waitlist-product-label {
+        color: var(--wait-muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+    }
+
+    .waitlist-product-info h3 {
+        margin: 6px 0 8px;
+        font-size: 18px;
+        font-weight: 750;
+    }
+
+    .waitlist-product-info h3 a {
+        color: var(--wait-text);
+        text-decoration: none;
+    }
+
+    .waitlist-product-info h3 a:hover {
+        color: var(--wait-primary);
+        text-decoration: underline;
+    }
+
+    .waitlist-price {
+        margin-bottom: 12px;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .waitlist-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 750;
+    }
+
+    .status-available {
+        color: #356348;
+        background: #E3F0E6;
+    }
+
+    .status-empty {
+        color: #805D20;
+        background: #F8EFD9;
+    }
+
+    .waitlist-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 9px;
+        flex-shrink: 0;
+    }
+
+    .waitlist-actions form {
+        margin: 0;
+    }
+
+    .waitlist-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        min-height: 42px;
+        padding: 10px 15px;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 750;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .waitlist-button-primary {
+        color: #fff;
+        background: var(--wait-primary);
+    }
+
+    .waitlist-button-primary:hover {
+        color: #fff;
+        background: #38564A;
+        transform: translateY(-1px);
+    }
+
+    .waitlist-button-secondary {
+        width: 100%;
+        color: var(--wait-primary);
+        background: #fff;
+        border-color: var(--wait-border);
+        box-sizing: border-box;
+    }
+
+    .waitlist-button-secondary:hover {
+        background: var(--wait-bg);
+    }
+
+    .waitlist-empty {
+        padding: 55px 25px;
+        background: #fff;
+        border: 1px solid var(--wait-border);
+        border-radius: 20px;
+        text-align: center;
+    }
+
+    .waitlist-empty-icon {
+        display: grid;
+        place-items: center;
+        width: 65px;
+        height: 65px;
+        margin: 0 auto 18px;
+        color: var(--wait-primary);
+        background: var(--wait-accent);
+        border-radius: 20px;
+        font-size: 32px;
+    }
+
+    .waitlist-empty h2 {
+        margin: 0 0 10px;
+        font-size: 22px;
+    }
+
+    .waitlist-empty p {
+        max-width: 430px;
+        margin: 0 auto 22px;
+        color: var(--wait-muted);
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 750px) {
+        .waitlist-card {
+            flex-wrap: wrap;
+        }
+
+        .waitlist-actions {
+            width: 100%;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .waitlist-actions form {
+            flex: 1;
+        }
+
+        .waitlist-actions .waitlist-button {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .waitlist-hero {
+            padding: 23px 20px;
+        }
+
+        .waitlist-hero-icon {
+            width: 55px;
+            height: 55px;
+            font-size: 30px;
+        }
+
+        .waitlist-card {
+            gap: 15px;
+            padding: 16px;
+        }
+
+        .waitlist-image-link {
+            width: 85px;
+            height: 85px;
+        }
+
+        .waitlist-product-info {
+            min-width: 0;
+        }
+
+        .waitlist-product-info h3 {
+            font-size: 15px;
+        }
+
+        .waitlist-actions {
+            flex-direction: column;
+        }
+    }
+</style>

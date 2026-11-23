@@ -4,54 +4,287 @@
     ViewData["Title"] = "Обращения покупателей";
 }
 
-<div class="hero">
-    <p class="eyebrow">ПАНЕЛЬ СОТРУДНИКА</p>
-    <h1>Обращения покупателей</h1>
-    <p class="muted">
-        Здесь отображаются вопросы покупателей и история их обращений.
-    </p>
+<div class="page-container">
+
+    <section class="hero">
+        <p class="eyebrow">ПАНЕЛЬ СОТРУДНИКА</p>
+        <h1>Обращения покупателей</h1>
+        <p class="muted">
+            Просматривайте вопросы покупателей и отвечайте им в переписке.
+        </p>
+
+        <div class="hero-stats">
+            <div class="stat-card">
+                <span class="stat-label">Всего обращений</span>
+                <strong class="stat-value">@Model.Count</strong>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Новые обращения</span>
+                <strong class="stat-value">
+                    @Model.Count(r => r.Status == "Новое")
+                </strong>
+            </div>
+        </div>
+    </section>
+
+    @if (Model.Count == 0)
+    {
+        <section class="empty-state">
+            <div class="empty-icon">✉</div>
+            <h2>Обращений пока нет</h2>
+            <p class="muted">
+                Когда покупатели отправят вопросы, они появятся здесь.
+            </p>
+        </section>
+    }
+    else
+    {
+        <div class="requests-list">
+
+            @foreach (var request in Model)
+            {
+                <article class="request-card">
+
+                    <div class="request-header">
+                        <div>
+                            <span class="request-number">
+                                ОБРАЩЕНИЕ №@request.Id
+                            </span>
+                            <h2>@request.UserName</h2>
+                        </div>
+
+                        <span class="request-status
+                            @(request.Status == "Новое" ? "status-new" :
+                              request.Status == "В обработке" ? "status-progress" :
+                              "status-other")">
+                            @request.Status
+                        </span>
+                    </div>
+
+                    <div class="request-date">
+                        <span>Дата создания</span>
+                        <strong>
+                            @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        </strong>
+                    </div>
+
+                    <div class="request-question">
+                        <span class="question-label">ВОПРОС ПОКУПАТЕЛЯ</span>
+                        <p>@request.Question</p>
+                    </div>
+
+                    <div class="request-footer">
+                        <a asp-controller="Chat"
+                           asp-action="StaffRequest"
+                           asp-route-id="@request.Id"
+                           class="button button-dark">
+                            Открыть переписку
+                            <span>→</span>
+                        </a>
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+
 </div>
 
-@if (Model.Count == 0)
-{
-    <div class="review">
-        <h3>Обращений пока нет</h3>
-        <p class="muted">Новые обращения появятся здесь.</p>
-    </div>
-}
-else
-{
-    <div class="reviews-list">
-        @foreach (var request in Model)
-        {
-            <div class="review">
-                <div class="form-actions">
-                    <h3>Обращение №@request.Id</h3>
-                    <strong>@request.Status</strong>
-                </div>
+<style>
+    .page-container {
+        max-width: 1050px;
+        margin: 0 auto;
+    }
 
-                <p class="muted">
-                    Дата:
-                    @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                </p>
+    .hero {
+        margin-bottom: 30px;
+    }
 
-                <p>
-                    **Покупатель:** @request.UserName
-                </p>
+    .hero h1 {
+        color: #263C35;
+        margin-bottom: 10px;
+    }
 
-                <p>
-                    **Вопрос:**
-                </p>
+    .eyebrow {
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+    }
 
-                <p>@request.Question</p>
+    .muted {
+        color: #78827B;
+    }
 
-                <a asp-controller="Chat"
-                   asp-action="StaffRequest"
-                   asp-route-id="@request.Id"
-                   class="button button-dark">
-                    Открыть переписку
-                </a>
-            </div>
+    .hero-stats {
+        display: flex;
+        gap: 14px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        background: #FFFFFF;
+        border: 1px solid #E5EAE5;
+        border-radius: 14px;
+        padding: 16px 22px;
+        min-width: 170px;
+    }
+
+    .stat-label {
+        display: block;
+        color: #78827B;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .stat-value {
+        color: #263C35;
+        font-size: 25px;
+    }
+
+    .requests-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    .request-card {
+        background: #FFFFFF;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        padding: 22px;
+    }
+
+    .request-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .request-number {
+        display: block;
+        color: #78827B;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 7px;
+    }
+
+    .request-header h2 {
+        color: #263C35;
+        font-size: 19px;
+        margin: 0;
+    }
+
+    .request-status {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .status-new {
+        background: #DCE8DF;
+        color: #263C35;
+    }
+
+    .status-progress {
+        background: #F2EBD8;
+        color: #80652D;
+    }
+
+    .status-other {
+        background: #EEF0ED;
+        color: #626B64;
+    }
+
+    .request-date {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        color: #78827B;
+        font-size: 13px;
+        margin-top: 16px;
+    }
+
+    .request-date strong {
+        color: #26332D;
+        font-weight: 600;
+    }
+
+    .request-question {
+        background: #F5F6F2;
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 18px;
+    }
+
+    .question-label {
+        display: block;
+        color: #78827B;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 9px;
+    }
+
+    .request-question p {
+        color: #26332D;
+        line-height: 1.6;
+        margin: 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .request-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 18px;
+    }
+
+    .request-footer .button {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        background: #FFFFFF;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        padding: 45px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        color: #263C35;
+        font-size: 35px;
+        margin-bottom: 12px;
+    }
+
+    .empty-state h2 {
+        color: #263C35;
+        font-size: 20px;
+    }
+
+    @@media (max-width: 600px) {
+        .request-card {
+            padding: 17px;
         }
-    </div>
-}
+
+        .request-footer .button {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .stat-card {
+            flex: 1;
+        }
+    }
+</style>

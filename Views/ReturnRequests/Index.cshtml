@@ -1,3 +1,4 @@
+
 @using MiniShop.Models
 @model IEnumerable<ReturnRequest>
 
@@ -7,9 +8,9 @@
 
 <style>
     .returns-page {
-        max-width: 950px;
+        max-width: 1050px;
         margin: 0 auto;
-        padding: 25px 0 70px;
+        padding: 35px 0 80px;
     }
 
     .returns-page * {
@@ -17,94 +18,120 @@
     }
 
     .returns-heading {
-        margin-bottom: 30px;
+        margin-bottom: 32px;
     }
 
     .returns-heading h1 {
-        font-size: 38px;
+        font-size: clamp(29px, 4vw, 40px);
+        letter-spacing: -1.4px;
         margin: 12px 0;
+        color: #20211f;
     }
 
-    .returns-heading p {
+    .returns-heading p.description {
         color: #777;
-        line-height: 1.6;
+        line-height: 1.7;
+        max-width: 650px;
+        margin: 0;
     }
 
     .returns-alert {
         padding: 16px 20px;
-        border-radius: 10px;
+        border-radius: 12px;
         margin-bottom: 18px;
         line-height: 1.5;
-        background: #f4f6f1;
-        border: 1px solid #e1e7dc;
+        background: #f1f5ed;
+        border: 1px solid #dfe8d8;
+        color: #526b43;
     }
 
     .returns-alert.error {
-        background: #fff5f5;
-        border-color: #f0dddd;
+        background: #fff4f3;
+        border-color: #f0d8d5;
         color: #a33b3b;
     }
 
     .returns-list {
         display: grid;
-        gap: 16px;
+        gap: 18px;
     }
 
     .return-item {
         background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 15px;
+        border: 1px solid #e9eae6;
+        border-radius: 18px;
         padding: 25px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .return-item:hover {
+        border-color: #cbd4c2;
+        box-shadow: 0 8px 25px rgba(32, 33, 31, .045);
     }
 
     .return-item-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         flex-wrap: wrap;
-        margin-bottom: 20px;
+        margin-bottom: 22px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #eeeeeb;
     }
 
     .return-item-number {
         font-size: 18px;
-        font-weight: 700;
+        font-weight: 750;
+        color: #20211f;
     }
 
     .return-item-status {
-        display: inline-block;
-        padding: 8px 13px;
-        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 14px;
+        border-radius: 30px;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 700;
         background: #f5f6f2;
+        color: #777;
+    }
+
+    .return-item-status::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
     }
 
     .return-item-status.approved {
-        color: #648052;
-        background: #f0f5ed;
+        color: #587849;
+        background: #eff5eb;
     }
 
     .return-item-status.rejected {
         color: #a33b3b;
-        background: #fff0f0;
+        background: #fff0ef;
     }
 
     .return-item-status.pending {
         color: #a17b35;
-        background: #fbf6e9;
+        background: #fbf5e8;
     }
 
     .return-item-info {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
     }
 
     .return-item-field {
-        padding: 15px;
+        padding: 16px;
         background: #f7f8f5;
-        border-radius: 10px;
+        border: 1px solid #f0f1ed;
+        border-radius: 12px;
         min-width: 0;
     }
 
@@ -112,18 +139,22 @@
         display: block;
         color: #888;
         font-size: 12px;
-        margin-bottom: 7px;
+        font-weight: 600;
+        margin-bottom: 8px;
     }
 
     .return-item-value {
         color: #20211f;
         font-size: 14px;
+        font-weight: 600;
         line-height: 1.5;
         overflow-wrap: anywhere;
     }
 
     .return-item-actions {
-        margin-top: 20px;
+        margin-top: 22px;
+        display: flex;
+        justify-content: flex-start;
     }
 
     .return-item-actions a {
@@ -132,26 +163,41 @@
 
     .returns-empty {
         text-align: center;
-        padding: 55px 25px;
-        border: 1px solid #e8e8e8;
-        border-radius: 15px;
+        padding: 65px 25px;
+        border: 1px solid #e9eae6;
+        border-radius: 18px;
         background: #fff;
     }
 
+    .returns-empty-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 18px;
+        background: #f1f4ed;
+        color: #788b69;
+        font-size: 27px;
+    }
+
     .returns-empty h2 {
-        font-size: 23px;
-        margin-bottom: 12px;
+        font-size: 24px;
+        margin: 0 0 12px;
+        color: #20211f;
     }
 
     .returns-empty p {
         color: #777;
-        line-height: 1.6;
-        margin-bottom: 22px;
+        line-height: 1.7;
+        max-width: 420px;
+        margin: 0 auto 24px;
     }
 
     @@media (max-width: 600px) {
-        .returns-heading h1 {
-            font-size: 29px;
+        .returns-page {
+            padding-top: 20px;
         }
 
         .return-item {
@@ -160,6 +206,15 @@
 
         .return-item-info {
             grid-template-columns: 1fr;
+        }
+
+        .return-item-actions a {
+            width: 100%;
+            text-align: center;
+        }
+
+        .returns-empty {
+            padding: 45px 18px;
         }
     }
 </style>
@@ -171,7 +226,7 @@
 
         <h1>Мои заявки на возврат</h1>
 
-        <p>
+        <p class="description">
             Здесь отображаются все отправленные тобой заявки,
             их текущие статусы и ответы сотрудников магазина.
         </p>
@@ -194,11 +249,14 @@
     @if (Model == null || !Model.Any())
     {
         <div class="returns-empty">
+            <div class="returns-empty-icon">↩</div>
+
             <h2>Заявок пока нет</h2>
 
             <p>
                 Когда ты отправишь заявку на возврат,
                 она появится в этом разделе.
+                Здесь можно будет следить за её рассмотрением.
             </p>
 
             <a class="button button-dark"
@@ -226,7 +284,7 @@
                     <div class="return-item-top">
 
                         <div class="return-item-number">
-                            @request.RequestNumber
+                            Заявка @request.RequestNumber
                         </div>
 
                         <span class="return-item-status @statusClass">
@@ -243,8 +301,7 @@
                             </span>
 
                             <div class="return-item-value">
-                                @request.CreatedAt.ToLocalTime()
-                                    .ToString("dd.MM.yyyy HH:mm")
+                                @(request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
                             </div>
                         </div>
 
@@ -270,15 +327,11 @@
 
                         @if (request.ReviewedAt.HasValue)
                         {
-                            <div class="return-item-field">
-                                <span class="return-item-label">
-                                    Дата рассмотрения
-                                </span>
-
-                                <div class="return-item-value">
-                                    @request.ReviewedAt.Value.ToLocalTime()
-                                        .ToString("dd.MM.yyyy HH:mm")
-                                </div>
+                            <div class="return-reviewed-date">
+                                <span class="return-reviewed-label">Дата рассмотрения</span>
+                                <strong>
+                                    @request.ReviewedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                </strong>
                             </div>
                         }
 

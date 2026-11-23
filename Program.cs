@@ -36,6 +36,7 @@ builder.Services.AddAntiforgery(options =>
 
 var app = builder.Build();
 
+// Создание базы и добавление начальных товаров
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider
@@ -66,21 +67,14 @@ using (var scope = app.Services.CreateScope())
 
             if (!result.Succeeded)
             {
-                Console.WriteLine($"Не удалось создать роль {role}:");
-
                 foreach (var error in result.Errors)
                 {
                     Console.WriteLine(error.Description);
                 }
             }
-            else
-            {
-                Console.WriteLine($"Роль {role} создана.");
-            }
         }
     }
 
-    // Почта аккаунта администратора
     var adminEmail = "admin@gmail.com";
 
     var admin = await userManager.FindByEmailAsync(adminEmail);
@@ -88,8 +82,7 @@ using (var scope = app.Services.CreateScope())
     if (admin == null)
     {
         Console.WriteLine(
-            $"Администратор {adminEmail} не найден! " +
-            "Проверь почту зарегистрированного аккаунта.");
+            $"Администратор {adminEmail} не найден.");
     }
     else
     {
@@ -100,8 +93,6 @@ using (var scope = app.Services.CreateScope())
 
             if (!result.Succeeded)
             {
-                Console.WriteLine("Ошибка назначения роли Admin:");
-
                 foreach (var error in result.Errors)
                 {
                     Console.WriteLine(error.Description);
@@ -109,15 +100,18 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        var isAdmin = await userManager.IsInRoleAsync(
-            admin, "Admin");
-
         Console.WriteLine(
-            $"Администратор: {admin.Email}. Роль Admin: {isAdmin}");
+            $"Администратор: {admin.Email}. " +
+            $"Роль Admin: {await userManager.IsInRoleAsync(admin, "Admin")}");
     }
 }
 
-if (!app.Environment.IsDevelopment())
+// Обработка ошибок
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Products/Index");
     app.UseHsts();

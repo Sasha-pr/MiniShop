@@ -1,4 +1,3 @@
-
 using System.ComponentModel.DataAnnotations;
 
 namespace MiniShop.Models;
@@ -21,7 +20,10 @@ public class Order
     public string Phone { get; set; } = "";
 
     [Required(ErrorMessage = "Укажите адрес доставки")]
-    [StringLength(300)]
+    [StringLength(300, ErrorMessage = "Адрес не должен превышать 300 символов")]
+    [RegularExpression(
+        @"^(?=.*[A-Za-zА-Яа-яЁё]{2,}[\s,.-]+[A-Za-zА-Яа-яЁё]{2,})(?=.*\d)[A-Za-zА-Яа-яЁё0-9\s.,\-\/№]+$",
+        ErrorMessage = "Укажите корректный адрес: город, улицу и номер дома.")]
     public string Address { get; set; } = "";
 
     [Required(ErrorMessage = "Выберите способ оплаты")]

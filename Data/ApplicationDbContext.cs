@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MiniShop.Models;
@@ -24,9 +25,11 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
     public DbSet<ReturnRequest> ReturnRequests { get; set; } = null!;
 
-    // История изменения статусов заказов
     public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; } = null!;
     public DbSet<SupportRequest> SupportRequests { get; set; } = null!;
+
+    // Новые обращения по товарам
+    public DbSet<ProductSupportRequest> ProductSupportRequests { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -55,10 +58,35 @@ public class ApplicationDbContext : IdentityDbContext
             .WithMany()
             .HasForeignKey(h => h.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Старые обращения
         builder.Entity<ChatMessage>()
             .HasOne(m => m.SupportRequest)
             .WithMany(r => r.Messages)
             .HasForeignKey(m => m.SupportRequestId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Новые обращения по товарам
+        builder.Entity<ProductSupportRequest>()
+            .HasOne(r => r.Order)
+            .WithMany()
+            .HasForeignKey(r => r.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ProductSupportRequest>()
+            .HasOne(r => r.OrderItem)
+            .WithMany()
+            .HasForeignKey(r => r.OrderItemId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ChatMessage>()
+            .HasOne(m => m.ProductSupportRequest)
+            .WithMany(r => r.Messages)
+            .HasForeignKey(m => m.ProductSupportRequestId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<ProductSupportRequest>()
+            .HasIndex(r => r.RequestNumber)
+            .IsUnique();
     }
 }

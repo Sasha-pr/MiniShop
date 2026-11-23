@@ -1,0 +1,186 @@
+
+@using MiniShop.Models
+@{
+    ViewData["Title"] = "Обращение по товару";
+    var item = ViewBag.OrderItem as OrderItem;
+}
+
+<style>
+    .support-page {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 30px 0 75px;
+    }
+
+    .support-card {
+        background: #fff;
+        border: 1px solid #e5eae5;
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 7px 24px rgba(32,33,31,.035);
+    }
+
+    .support-page h1 {
+        font-size: 34px;
+        margin: 12px 0;
+        letter-spacing: -1px;
+    }
+
+    .support-muted {
+        color: #78827b;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+    .support-product {
+        padding: 17px;
+        margin: 24px 0;
+        background: #f5f6f2;
+        border-radius: 13px;
+    }
+
+    .support-product strong {
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .support-field {
+        margin-top: 20px;
+    }
+
+    .support-field label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 650;
+    }
+
+    .support-field input,
+    .support-field textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 14px;
+        border: 1px solid #dfe4dc;
+        border-radius: 11px;
+        background: #fafbf8;
+        font: inherit;
+        font-size: 14px;
+    }
+
+    .support-field textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .support-field input:focus,
+    .support-field textarea:focus {
+        outline: none;
+        border-color: #8b9a77;
+        box-shadow: 0 0 0 3px rgba(139,154,119,.13);
+        background: #fff;
+    }
+
+    .field-error {
+        color: #a12c2c;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .support-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 25px;
+    }
+
+    @@media(max-width:600px) {
+        .support-page { padding: 18px 0 50px; }
+        .support-card { padding: 20px 16px; }
+        .support-page h1 { font-size: 28px; }
+        .support-actions { flex-direction: column; }
+        .support-actions a,
+        .support-actions button { width: 100%; text-align: center; }
+    }
+</style>
+
+<div class="support-page">
+    <a class="back-link"
+       asp-controller="MyOrders"
+       asp-action="Details"
+       asp-route-id="@(item?.OrderId)">
+        ← Назад к заказу
+    </a>
+
+    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+    <h1>Обращение по товару</h1>
+    <p class="support-muted">
+        Опишите вопрос, связанный с полученным товаром.
+        Сотрудник магазина ответит в этой переписке.
+    </p>
+
+    @if (item != null)
+    {
+        <div class="support-product">
+            <strong>@item.ProductName</strong>
+            <span class="support-muted">
+                Заказ №@item.OrderId · @item.Quantity шт.
+            </span>
+        </div>
+    }
+
+    <div class="support-card">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="orderItemId"
+                   value="@item?.Id" />
+
+            <div asp-validation-summary="All" class="field-error"></div>
+
+            <div class="support-field">
+                <label for="subject">Тема обращения</label>
+                <input id="subject"
+                       name="subject"
+                       maxlength="150"
+                       minlength="3"
+                       required
+                       placeholder="Например: Вопрос о качестве товара" />
+                <span class="field-error">
+                    @Html.ValidationMessage("subject")
+                </span>
+            </div>
+
+            <div class="support-field">
+                <label for="question">Ваш вопрос</label>
+                <textarea id="question"
+                          name="question"
+                          maxlength="2000"
+                          minlength="5"
+                          required
+                          placeholder="Подробно опишите, что произошло или что вы хотите уточнить..."></textarea>
+                <span class="field-error">
+                    @Html.ValidationMessage("question")
+                </span>
+            </div>
+
+            <p class="support-muted">
+                После отправки обращению будет присвоен номер.
+                Все ответы появятся на странице переписки.
+            </p>
+
+            <div class="support-actions">
+                <button type="submit" class="button button-dark">
+                    Отправить обращение
+                </button>
+
+                <a asp-controller="MyOrders"
+                   asp-action="Details"
+                   asp-route-id="@item?.OrderId"
+                   class="button button-light">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

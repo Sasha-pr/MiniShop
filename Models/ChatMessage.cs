@@ -16,7 +16,14 @@ public class ChatMessage
     public bool IsStaff { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Старое обращение в поддержку
     public int? SupportRequestId { get; set; }
 
     public SupportRequest? SupportRequest { get; set; }
+
+    // Новое обращение по конкретному товару
+    public int? ProductSupportRequestId { get; set; }
+
+    public ProductSupportRequest? ProductSupportRequest { get; set; }
 }

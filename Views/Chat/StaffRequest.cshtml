@@ -7,108 +7,135 @@
 
 @if (supportRequest == null)
 {
-    <div class="review">
-        <p>Обращение не найдено.</p>
-        <a asp-action="StaffRequests" class="button button-light">Назад</a>
+    <div class="staff-chat-empty">
+        <h2>Обращение не найдено</h2>
+        <a asp-action="StaffRequests" class="button button-light">
+            Назад к обращениям
+        </a>
     </div>
 }
 else
 {
-    <div class="hero">
-        <p class="eyebrow">ПАНЕЛЬ СОТРУДНИКА</p>
-        <h1>Обращение №@supportRequest.Id</h1>
+    <div class="staff-chat-page">
 
-        <p>
-            Покупатель:
-            <strong>@supportRequest.UserName</strong>
-        </p>
+        <div class="staff-chat-heading">
+            <a asp-action="StaffRequests" class="back-link">← Все обращения</a>
 
-        <p class="muted">
-            Создано:
-            @supportRequest.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-        </p>
+            <p class="eyebrow">ПАНЕЛЬ СОТРУДНИКА</p>
+            <h1>Обращение №@supportRequest.Id</h1>
 
-        <p>Статус: <strong>@supportRequest.Status</strong></p>
-    </div>
-
-    <div class="review">
-        <h3>Первоначальный вопрос</h3>
-        <p>@supportRequest.Question</p>
-    </div>
-
-    <div class="review">
-        <h3>Переписка</h3>
-
-        <div id="messages"
-             style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
-
-            @foreach (var message in Model)
-            {
-                <div data-message-id="@message.Id"
-                     style="align-self: @(message.IsStaff ? "flex-end" : "flex-start"); max-width: 80%; padding: 12px 16px; border-radius: 12px; background: @(message.IsStaff ? "#e8eddf" : "#f5f6f2");">
-
-                    <strong>
-                        @(message.IsStaff ? "Вы (сотрудник)" : "Покупатель")
-                    </strong>
-
-                    <p style="margin: 8px 0;">@message.Text</p>
-
-                    <small class="muted">
-                        @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                    </small>
+            <div class="request-info">
+                <div>
+                    <span>Покупатель</span>
+                    <strong>@supportRequest.UserName</strong>
                 </div>
-            }
+
+                <div>
+                    <span>Создано</span>
+                    <strong>@supportRequest.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</strong>
+                </div>
+
+                <div>
+                    <span>Статус</span>
+                    <strong class="request-status">@supportRequest.Status</strong>
+                </div>
+            </div>
         </div>
 
-        @if (TempData["ChatError"] != null)
-        {
-            <p style="color: #a33b3b;">@TempData["ChatError"]</p>
-        }
+        <section class="question-card">
+            <span class="section-label">ПЕРВОНАЧАЛЬНЫЙ ВОПРОС</span>
+            <p>@supportRequest.Question</p>
+        </section>
 
-        <form asp-controller="Chat"
-              asp-action="ReplyRequest"
-              method="post"
-              style="margin-top: 24px;">
+        <section class="conversation-card">
+            <div class="conversation-heading">
+                <div>
+                    <h2>Переписка</h2>
+                    <p class="muted">Общение с покупателем в рамках обращения</p>
+                </div>
 
-            @Html.AntiForgeryToken()
+                <span class="online-label">Поддержка</span>
+            </div>
 
-            <input type="hidden"
-                   name="requestId"
-                   value="@supportRequest.Id" />
+            <div id="messages" class="messages-list">
+                @if (Model != null && Model.Count > 0)
+                {
+                    @foreach (var message in Model)
+                    {
+                        <div class="message @(message.IsStaff ? "message-staff" : "message-customer")"
+                             data-message-id="@message.Id">
 
-            <div class="form-group">
-                <label for="text">Ваш ответ</label>
+                            <strong class="message-sender">
+                                @(message.IsStaff ? "Вы (сотрудник)" : "Покупатель")
+                            </strong>
+
+                            <p class="message-text">@message.Text</p>
+
+                            <small class="message-date">
+                                @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            </small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div id="empty-messages" class="messages-empty">
+                        Пока сообщений нет.
+                    </div>
+                }
+            </div>
+
+            @if (TempData["ChatError"] != null)
+            {
+                <div class="chat-error">
+                    @TempData["ChatError"]
+                </div>
+            }
+
+            <form asp-controller="Chat"
+                  asp-action="ReplyRequest"
+                  method="post"
+                  class="reply-form">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="requestId"
+                       value="@supportRequest.Id" />
+
+                <label for="text">Ваш ответ покупателю</label>
 
                 <textarea id="text"
                           name="text"
                           rows="4"
+                          minlength="3"
                           maxlength="2000"
                           required
                           placeholder="Напишите ответ покупателю..."></textarea>
-            </div>
 
-            <div class="form-actions">
-                <button type="submit" class="button button-dark">
-                    Отправить ответ
-                </button>
+                <div class="reply-footer">
+                    <span class="muted">От 3 до 2000 символов</span>
 
-                <a asp-action="StaffRequests"
-                   class="button button-light">
-                    К обращениям
-                </a>
-            </div>
-        </form>
+                    <button type="submit" class="button button-dark">
+                        Отправить ответ →
+                    </button>
+                </div>
+            </form>
+        </section>
     </div>
 
     <script>
-        let lastMessageId = @((Model.Count > 0) ? Model.Max(m => m.Id) : 0);
+        let lastMessageId = @((Model != null && Model.Count > 0) ? Model.Max(m => m.Id) : 0);
+
         const requestId = @supportRequest.Id;
         const messagesContainer = document.getElementById("messages");
 
         let isLoading = false;
 
         async function loadNewMessages() {
-            if (isLoading) return;
+            if (isLoading || !messagesContainer) {
+                return;
+            }
 
             isLoading = true;
 
@@ -125,51 +152,46 @@ else
                 const messages = await response.json();
 
                 messages.forEach(message => {
-                    if (message.id <= lastMessageId) return;
+                    if (message.id <= lastMessageId) {
+                        return;
+                    }
+
+                    const emptyMessage = document.getElementById("empty-messages");
+
+                    if (emptyMessage) {
+                        emptyMessage.remove();
+                    }
 
                     const bubble = document.createElement("div");
 
-                    bubble.style.alignSelf = message.isStaff
-                        ? "flex-end"
-                        : "flex-start";
+                    bubble.className = message.isStaff
+                        ? "message message-staff"
+                        : "message message-customer";
 
-                    bubble.style.maxWidth = "80%";
-                    bubble.style.padding = "12px 16px";
-                    bubble.style.borderRadius = "12px";
-
-                    bubble.style.background = message.isStaff
-                        ? "#e8eddf"
-                        : "#f5f6f2";
+                    bubble.dataset.messageId = message.id;
 
                     const sender = document.createElement("strong");
-
+                    sender.className = "message-sender";
                     sender.textContent = message.isStaff
                         ? "Вы (сотрудник)"
                         : "Покупатель";
 
                     const text = document.createElement("p");
-
-                    text.style.margin = "8px 0";
+                    text.className = "message-text";
                     text.textContent = message.text;
 
                     const date = document.createElement("small");
-
-                    date.className = "muted";
-                    date.textContent = new Date(message.createdAt)
-                        .toLocaleString();
+                    date.className = "message-date";
+                    date.textContent = new Date(message.createdAt).toLocaleString();
 
                     bubble.append(sender, text, date);
-
-                    bubble.dataset.messageId = message.id;
-
                     messagesContainer.appendChild(bubble);
 
                     lastMessageId = message.id;
                 });
 
                 if (messages.length > 0) {
-                    messagesContainer.scrollTop =
-                        messagesContainer.scrollHeight;
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }
             }
             catch (error) {
@@ -180,8 +202,276 @@ else
             }
         }
 
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
         loadNewMessages();
         setInterval(loadNewMessages, 3000);
     </script>
 }
 
+<style>
+    .staff-chat-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding-bottom: 40px;
+        color: #26332D;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .staff-chat-heading {
+        margin-bottom: 22px;
+    }
+
+    .back-link {
+        display: inline-block;
+        color: #52665A;
+        text-decoration: none;
+        font-size: 14px;
+        margin-bottom: 22px;
+    }
+
+    .back-link:hover {
+        color: #263C35;
+    }
+
+    .eyebrow {
+        color: #78827B;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+    }
+
+    .staff-chat-heading h1 {
+        color: #263C35;
+        margin: 8px 0 22px;
+    }
+
+    .request-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .request-info > div {
+        flex: 1;
+        min-width: 150px;
+        background: #FFFFFF;
+        border: 1px solid #E5EAE5;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+
+    .request-info span {
+        display: block;
+        color: #78827B;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .request-info strong {
+        color: #26332D;
+        font-size: 14px;
+    }
+
+    .request-status {
+        color: #263C35 !important;
+    }
+
+    .question-card,
+    .conversation-card,
+    .staff-chat-empty {
+        background: #FFFFFF;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        padding: 22px;
+        margin-bottom: 18px;
+    }
+
+    .section-label {
+        display: block;
+        color: #78827B;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+
+    .question-card p {
+        color: #26332D;
+        line-height: 1.6;
+        margin: 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .conversation-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .conversation-heading h2 {
+        color: #263C35;
+        font-size: 20px;
+        margin: 0 0 5px;
+    }
+
+    .muted {
+        color: #78827B;
+        font-size: 13px;
+    }
+
+    .conversation-heading p {
+        margin: 0;
+    }
+
+    .online-label {
+        background: #DCE8DF;
+        color: #263C35;
+        border-radius: 20px;
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .messages-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 520px;
+        min-height: 150px;
+        overflow-y: auto;
+        padding: 5px 3px 18px;
+        border-bottom: 1px solid #E5EAE5;
+    }
+
+    .messages-empty {
+        padding: 30px 15px;
+        color: #78827B;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    .message {
+        display: flex;
+        flex-direction: column;
+        max-width: 78%;
+        padding: 12px 15px;
+        border-radius: 14px;
+        overflow-wrap: anywhere;
+        box-sizing: border-box;
+    }
+
+    .message-staff {
+        align-self: flex-end;
+        background: #DCE8DF;
+        color: #26332D;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message-customer {
+        align-self: flex-start;
+        background: #F5F6F2;
+        color: #26332D;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-sender {
+        font-size: 12px;
+        color: #52665A;
+        margin-bottom: 5px;
+    }
+
+    .message-text {
+        margin: 0 0 8px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .message-date {
+        color: #78827B;
+        font-size: 10px;
+        align-self: flex-end;
+    }
+
+    .reply-form {
+        margin-top: 20px;
+    }
+
+    .reply-form label {
+        display: block;
+        color: #263C35;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 9px;
+    }
+
+    .reply-form textarea {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #DDE4DD;
+        border-radius: 12px;
+        padding: 13px 15px;
+        background: #FFFFFF;
+        color: #26332D;
+        font: inherit;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .reply-form textarea:focus {
+        outline: none;
+        border-color: #526F5E;
+        box-shadow: 0 0 0 3px rgba(82, 111, 94, 0.12);
+    }
+
+    .reply-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+
+    .chat-error {
+        color: #A33B3B;
+        background: #FBECEC;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 14px;
+    }
+
+    .staff-chat-empty {
+        text-align: center;
+    }
+
+    .staff-chat-empty h2 {
+        color: #263C35;
+    }
+
+    @@media (max-width: 600px) {
+        .question-card,
+        .conversation-card {
+            padding: 16px;
+        }
+
+        .message {
+            max-width: 90%;
+        }
+
+        .reply-footer {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .reply-footer .button {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+ 

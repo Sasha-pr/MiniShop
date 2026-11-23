@@ -1,4 +1,3 @@
-
 @using MiniShop.Models
 @model Product
 
@@ -20,97 +19,227 @@
 
 <style>
     .shop-details {
-        max-width: 1100px;
+        max-width: 1180px;
         margin: 0 auto;
-        padding: 20px 0 70px;
+        padding: 22px 0 70px;
+        color: #26332D;
     }
 
     .shop-details * {
         box-sizing: border-box;
     }
 
+    .shop-details .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 22px;
+        color: #78827B;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .shop-details .back-link:hover {
+        color: #263C35;
+    }
+
     .shop-details .product-layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 50px;
-        margin: 30px 0 65px;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+        gap: 45px;
         align-items: start;
+        margin-bottom: 65px;
     }
 
     .shop-details .product-photo {
-        background: #f5f6f2;
-        border-radius: 18px;
+        position: sticky;
+        top: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 470px;
+        padding: 35px;
         overflow: hidden;
-        padding: 25px;
+        border: 1px solid #E5EAE5;
+        border-radius: 20px;
+        background: #F5F6F2;
     }
 
     .shop-details .product-photo img {
-        width: 100%;
-        height: 380px;
-        object-fit: contain;
         display: block;
+        width: 100%;
+        max-height: 430px;
+        object-fit: contain;
+    }
+
+    .shop-details .product-info {
+        padding: 10px 0;
+    }
+
+    .shop-details .eyebrow {
+        margin: 0 0 10px;
+        color: #788F7E;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 1.4px;
     }
 
     .shop-details .product-title {
-        font-size: 38px;
-        margin: 12px 0 16px;
+        margin: 0 0 17px;
+        color: #26332D;
+        font-size: clamp(29px, 4vw, 41px);
+        line-height: 1.15;
+        font-weight: 750;
+        letter-spacing: -1.3px;
+        overflow-wrap: anywhere;
+    }
+
+    .shop-details .product-rating {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin: 15px 0 23px;
+    }
+
+    .shop-details .stars {
+        color: #D5A744;
+        font-size: 19px;
+        letter-spacing: 2px;
+        white-space: nowrap;
+    }
+
+    .shop-details .rating-number {
+        color: #26332D;
+        font-size: 14px;
+        font-weight: 750;
+    }
+
+    .shop-details .rating-caption,
+    .shop-details .muted {
+        color: #78827B;
+        font-size: 13px;
+    }
+
+    .shop-details .price-block {
+        padding: 22px 0;
+        border-top: 1px solid #E5EAE5;
+        border-bottom: 1px solid #E5EAE5;
     }
 
     .shop-details .product-price {
-        font-size: 29px;
-        font-weight: 700;
-        margin: 15px 0;
+        margin: 0;
+        color: #263C35;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -1px;
     }
 
     .shop-details .old-price {
-        font-size: 19px;
-        color: #888;
+        margin-right: 10px;
+        color: #9AA39C;
+        font-size: 18px;
+        font-weight: 400;
         text-decoration: line-through;
-        margin-right: 12px;
+    }
+
+    .shop-details .discount-label {
+        display: inline-block;
+        margin-top: 9px;
+        padding: 6px 11px;
+        border-radius: 7px;
+        background: #F3EBDD;
+        color: #93672D;
+        font-size: 12px;
+        font-weight: 700;
     }
 
     .shop-details .stock-message {
-        padding: 12px 16px;
-        border-radius: 9px;
-        margin: 18px 0;
-        background: #edf4e9;
-        color: #476348;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 20px 0;
+        padding: 13px 15px;
+        border: 1px solid #DCE8DF;
+        border-radius: 10px;
+        background: #F0F6F1;
+        color: #476B53;
+        font-size: 13px;
+        font-weight: 600;
     }
 
     .shop-details .stock-message.warning {
-        background: #fff4e5;
-        color: #a35b15;
+        border-color: #F0E2C8;
+        background: #FBF5EA;
+        color: #956B32;
     }
 
     .shop-details .stock-message.empty {
-        background: #fff0f0;
-        color: #a12c2c;
+        border-color: #F0DADA;
+        background: #FBEEEE;
+        color: #A65353;
     }
 
     .shop-details .product-description {
-        color: #666;
-        line-height: 1.8;
-        margin: 25px 0;
+        margin: 24px 0;
+        color: #626D65;
+        font-size: 14px;
+        line-height: 1.85;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
     }
 
     .shop-details .product-actions {
         display: flex;
         flex-direction: column;
-        gap: 14px;
-        margin-top: 30px;
+        gap: 11px;
+        margin-top: 25px;
     }
 
     .shop-details .product-actions form {
+        min-width: 0;
         margin: 0;
     }
 
-    .shop-details .product-actions button {
+    .shop-details .product-actions button,
+    .shop-details .product-actions > a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        min-height: 49px;
-        padding: 13px 20px;
+        min-height: 48px;
+        padding: 12px 17px;
+        border: 1px solid transparent;
         border-radius: 10px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
         cursor: pointer;
-        font-size: 14px;
+        transition: .2s ease;
+    }
+
+    .shop-details .button-dark {
+        background: #263C35;
+        color: #fff;
+    }
+
+    .shop-details .button-dark:hover {
+        background: #365449;
+        color: #fff;
+    }
+
+    .shop-details .button-light {
+        border-color: #DCE5DD !important;
+        background: #EAF0EB;
+        color: #263C35;
+    }
+
+    .shop-details .button-light:hover {
+        background: #DCE8DF;
+        color: #263C35;
     }
 
     .shop-details .product-actions button:disabled {
@@ -120,45 +249,69 @@
 
     .shop-details .secondary-actions {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
+        width: 100%;
+        margin-top: 2px;
+    }
+
+    .shop-details .secondary-actions form {
+        display: flex;
+        min-width: 0;
+        width: 100%;
+        margin: 0;
+    }
+
+    .shop-details .secondary-actions button,
+    .shop-details .secondary-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        padding: 11px 12px;
+        border: 1px solid #DCE5DD;
+        border-radius: 10px;
+        background: #EAF0EB;
+        color: #263C35;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.4;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .2s ease, border-color .2s ease;
+    }
+
+    .shop-details .secondary-actions button:hover,
+    .shop-details .secondary-actions a:hover {
+        border-color: #C5D6C9;
+        background: #DCE8DF;
+        color: #263C35;
+    }
+
+    .shop-details .secondary-actions button:disabled {
+        opacity: .6;
+        cursor: not-allowed;
     }
 
     .shop-details .product-notice {
-        margin: 0;
-        color: #55724e;
+        margin: 3px 0 0;
+        padding: 12px 14px;
+        border-radius: 9px;
+        background: #F0F6F1;
+        color: #476B53;
         font-size: 13px;
     }
 
-    /* Рейтинг товара */
-    .shop-details .product-rating {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin: 15px 0;
-    }
+    /* Отзывы */
 
-    .shop-details .stars {
-        color: #d59b28;
-        letter-spacing: 2px;
-        font-size: 21px;
-        white-space: nowrap;
-    }
-
-    .shop-details .rating-number {
-        font-weight: 700;
-        font-size: 16px;
-    }
-
-    .shop-details .rating-caption {
-        color: #777;
-        font-size: 13px;
-    }
-
-    /* Блок отзывов */
     .shop-details .reviews {
-        margin-top: 45px;
+        padding-top: 42px;
+        border-top: 1px solid #E5EAE5;
     }
 
     .shop-details .reviews-heading {
@@ -166,26 +319,31 @@
     }
 
     .shop-details .reviews-heading h2 {
+        margin: 7px 0;
+        color: #26332D;
         font-size: 29px;
-        margin: 0 0 8px;
+        font-weight: 750;
+        letter-spacing: -.8px;
     }
 
     .shop-details .reviews-toggle {
-        border: 1px solid #e8e8e8;
-        background: #fff;
-        border-radius: 15px;
         overflow: hidden;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px;
+        background: #fff;
     }
 
     .shop-details .reviews-toggle summary {
-        cursor: pointer;
-        list-style: none;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 15px;
-        padding: 22px 25px;
-        font-weight: 700;
+        padding: 21px 24px;
+        color: #26332D;
+        cursor: pointer;
+        list-style: none;
+        font-size: 14px;
+        font-weight: 750;
     }
 
     .shop-details .reviews-toggle summary::-webkit-details-marker {
@@ -194,8 +352,9 @@
 
     .shop-details .reviews-toggle summary::after {
         content: "+";
+        color: #587563;
         font-size: 25px;
-        color: #8b9a77;
+        font-weight: 400;
         flex-shrink: 0;
     }
 
@@ -204,127 +363,162 @@
     }
 
     .shop-details .reviews-toggle summary:hover {
-        background: #f8f9f6;
+        background: #F8FAF7;
     }
 
     .shop-details .reviews-content {
-        padding: 0 25px 25px;
-        border-top: 1px solid #eee;
+        padding: 20px 24px 25px;
+        border-top: 1px solid #E5EAE5;
+    }
+
+    .shop-details .reviews-content > .muted {
+        margin: 0;
+        line-height: 1.6;
     }
 
     .shop-details .reviews-list {
         display: grid;
-        gap: 18px;
-        margin-top: 22px;
+        gap: 12px;
+        margin: 0;
     }
 
     .shop-details .review-card {
-        border: 1px solid #e8e8e8;
+        min-width: 0;
+        padding: 17px 19px;
+        border: 1px solid #E5EAE5;
+        border-radius: 12px;
         background: #fff;
-        border-radius: 15px;
-        padding: 25px;
     }
 
     .shop-details .review-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 15px;
         flex-wrap: wrap;
-        margin-bottom: 12px;
+        gap: 5px 12px;
+        margin: 0 0 8px;
     }
 
     .shop-details .review-author {
-        font-weight: 700;
+        color: #26332D;
+        font-size: 14px;
+        font-weight: 750;
         overflow-wrap: anywhere;
     }
 
     .shop-details .review-date {
-        color: #999;
+        color: #929B94;
         font-size: 12px;
+        white-space: nowrap;
     }
 
     .shop-details .review-stars {
-        color: #d59b28;
-        font-size: 19px;
-        letter-spacing: 2px;
-        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 0 0 9px;
+        color: #D5A744;
+        font-size: 16px;
+        letter-spacing: 1px;
+    }
+
+    .shop-details .review-stars .rating-caption {
+        color: #929B94;
+        font-size: 11px;
+        letter-spacing: 0;
     }
 
     .shop-details .review-text {
-        line-height: 1.7;
+        margin: 0;
+        padding: 0;
+        color: #4F5C53;
+        font-size: 14px;
+        line-height: 1.6;
         white-space: pre-wrap;
         overflow-wrap: anywhere;
     }
 
     .shop-details .staff-reply {
-        background: #f5f6f2;
-        padding: 20px;
-        border-radius: 11px;
-        margin-top: 22px;
-        border-left: 3px solid #8b9a77;
+        margin: 12px 0 0;
+        padding: 11px 14px;
+        border-left: 3px solid #587563;
+        border-radius: 0 8px 8px 0;
+        background: #F1F5F1;
     }
 
     .shop-details .staff-reply strong {
         display: block;
-        margin-bottom: 10px;
+        margin: 0 0 5px;
+        color: #365449;
+        font-size: 12px;
     }
 
     .shop-details .staff-reply p {
         margin: 0;
+        padding: 0;
+        color: #4F5C53;
+        font-size: 13px;
         line-height: 1.6;
         white-space: pre-wrap;
         overflow-wrap: anywhere;
     }
 
     .shop-details .review-form-card {
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 16px;
-        padding: 25px;
-        margin-top: 25px;
+        margin-top: 20px;
+        padding: 22px;
+        border: 1px solid #E5EAE5;
+        border-radius: 14px;
+        background: #F8FAF7;
     }
 
     .shop-details .review-form-card h3 {
-        margin: 0 0 12px;
-        font-size: 22px;
+        margin: 0 0 8px;
+        color: #26332D;
+        font-size: 20px;
+        font-weight: 750;
     }
 
     .shop-details .review-form {
         display: flex;
         flex-direction: column;
-        gap: 14px;
-        margin-top: 20px;
+        gap: 13px;
+        margin-top: 16px;
     }
 
     .shop-details .review-form label {
-        font-size: 14px;
-        font-weight: 600;
+        color: #35443A;
+        font-size: 13px;
+        font-weight: 650;
     }
 
     .shop-details .review-form textarea {
-        width: 100%;
-        min-height: 115px;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        font: inherit;
-        resize: vertical;
-    }
+    width: 100%;
+    min-height: 65px;
+    height: 65px;
+    padding: 10px 12px;
+    border: 1px solid #DCE5DD;
+    border-radius: 9px;
+    background: #fff;
+    color: #26332D;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    resize: vertical;
+}
 
     .shop-details .review-form textarea:focus {
-        outline: 2px solid #8b9a77;
+        outline: 2px solid #8AA694;
         outline-offset: 1px;
     }
 
     .shop-details .review-form button {
         align-self: flex-start;
-        min-height: 45px;
-        padding: 12px 25px;
+        min-height: 44px;
+        padding: 11px 22px;
         border-radius: 9px;
     }
 
-    /* Выбор оценки */
     .shop-details .review-rating-picker {
         display: flex;
         flex-direction: column;
@@ -334,9 +528,9 @@
     }
 
     .shop-details .review-rating-title {
-        color: #20211f;
+        color: #35443A;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 650;
     }
 
     .shop-details .review-rating-stars {
@@ -348,13 +542,13 @@
 
     .shop-details .review-rating-stars input {
         position: absolute;
-        opacity: 0;
         width: 1px;
         height: 1px;
+        opacity: 0;
     }
 
     .shop-details .review-rating-stars label {
-        color: #d7d9d1;
+        color: #D7DCD6;
         font-size: 35px;
         line-height: 1;
         cursor: pointer;
@@ -368,25 +562,59 @@
     .shop-details .review-rating-stars label:hover,
     .shop-details .review-rating-stars label:hover ~ label,
     .shop-details .review-rating-stars input:checked ~ label {
-        color: #d59b28;
+        color: #D5A744;
     }
 
     .shop-details .review-rating-stars input:focus-visible + label {
-        outline: 2px solid #8b9a77;
+        outline: 2px solid #8AA694;
         outline-offset: 3px;
         border-radius: 3px;
     }
 
     .shop-details .review-rating-hint {
-        color: #777;
+        color: #78827B;
         font-size: 12px;
     }
 
+    .shop-details .review-error,
+    .shop-details .review-success {
+        margin-bottom: 17px;
+        padding: 13px 15px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .shop-details .review-error {
+        border: 1px solid #F0DADA;
+        background: #FBEEEE;
+        color: #A65353;
+    }
+
+    .shop-details .review-success {
+        border: 1px solid #DCE8DF;
+        background: #F0F6F1;
+        color: #476B53;
+    }
+
+    .shop-details .staff-form {
+        margin-top: 13px;
+    }
 
     @@media (max-width: 750px) {
+        .shop-details {
+            padding: 15px 0 45px;
+        }
+
         .shop-details .product-layout {
             grid-template-columns: 1fr;
-            gap: 25px;
+            gap: 24px;
+            margin-bottom: 45px;
+        }
+
+        .shop-details .product-photo {
+            position: static;
+            min-height: 300px;
+            padding: 20px;
         }
 
         .shop-details .product-photo img {
@@ -394,7 +622,7 @@
         }
 
         .shop-details .product-title {
-            font-size: 30px;
+            font-size: 31px;
         }
 
         .shop-details .secondary-actions {
@@ -403,7 +631,7 @@
 
         .shop-details .review-card,
         .shop-details .review-form-card {
-            padding: 20px;
+            padding: 16px;
         }
 
         .shop-details .reviews-toggle summary {
@@ -411,7 +639,7 @@
         }
 
         .shop-details .reviews-content {
-            padding: 0 15px 20px;
+            padding: 15px 12px 19px;
         }
     }
 </style>
@@ -430,7 +658,7 @@
             <img src="@Model.ImageUrl" alt="@Model.Name" />
         </div>
 
-        <div>
+        <div class="product-info">
             <p class="eyebrow">SIMPLESTORE / ТОВАР</p>
 
             <h1 class="product-title">@Model.Name</h1>
@@ -444,6 +672,7 @@
                                 averageRating,
                                 MidpointRounding.AwayFromZero);
                         }
+
                         @for (int i = 1; i <= 5; i++)
                         {
                             @(i <= fullStars ? "★" : "☆")
@@ -461,43 +690,47 @@
                 else
                 {
                     <span class="stars">☆☆☆☆☆</span>
-                    <span class="rating-caption">
-                        Пока нет оценок
-                    </span>
+                    <span class="rating-caption">Пока нет оценок</span>
                 }
             </div>
 
-            @if (Model.HasLowStock && Model.StockQuantity > 0)
-            {
-                <p class="product-price">
-                    <span class="old-price">
-                        @Model.Price.ToString("N0") ₽
-                    </span>
-                    @Model.DiscountedPrice.ToString("N0") ₽
-                </p>
+            <div class="price-block">
+                @if (Model.HasLowStock && Model.StockQuantity > 0)
+                {
+                    <p class="product-price">
+                        <span class="old-price">
+                            @Model.Price.ToString("N0") ₽
+                        </span>
+                        @Model.DiscountedPrice.ToString("N0") ₽
+                    </p>
 
+                    <span class="discount-label">Скидка 30%</span>
+                }
+                else
+                {
+                    <p class="product-price">
+                        @Model.Price.ToString("N0") ₽
+                    </p>
+                }
+            </div>
+
+            @if (Model.StockQuantity <= 0)
+            {
+                <div class="stock-message empty">
+                    Нет в наличии
+                </div>
+            }
+            else if (Model.HasLowStock)
+            {
                 <div class="stock-message warning">
-                    Скидка 30% — осталось @Model.StockQuantity шт.
+                    Осталось всего @Model.StockQuantity шт.
                 </div>
             }
             else
             {
-                <p class="product-price">
-                    @Model.Price.ToString("N0") ₽
-                </p>
-
-                @if (Model.StockQuantity <= 0)
-                {
-                    <div class="stock-message empty">
-                        Нет в наличии
-                    </div>
-                }
-                else
-                {
-                    <div class="stock-message">
-                        В наличии: @Model.StockQuantity шт.
-                    </div>
-                }
+                <div class="stock-message">
+                    В наличии: @Model.StockQuantity шт.
+                </div>
             }
 
             <p class="product-description">
@@ -508,7 +741,7 @@
 
                 @if (Model.StockQuantity > 0)
                 {
-                    <button class="button button-dark"
+                    <button class="button-dark"
                             type="button"
                             data-add-to-cart="@Model.Id">
                         Добавить в корзину
@@ -528,22 +761,21 @@
                                    name="productId"
                                    value="@Model.Id" />
 
-                            <button class="button button-dark"
+                            <button class="button-dark"
                                     type="submit">
                                 🔔 Сообщить о поступлении
                             </button>
                         </form>
 
-                        <a class="button button-light"
+                        <a class="button-light"
                            asp-controller="Waitlist"
-                           asp-action="Index"
-                           style="text-align: center;">
+                           asp-action="Index">
                             Мой лист ожидания
                         </a>
                     }
                     else
                     {
-                        <a class="button button-dark"
+                        <a class="button-dark"
                            asp-controller="Account"
                            asp-action="Login">
                             Войти, чтобы ожидать товар
@@ -566,7 +798,7 @@
                                    name="productId"
                                    value="@Model.Id" />
 
-                            <button class="button button-light"
+                            <button class="button-light"
                                     type="submit"
                                     id="like-button">
 
@@ -592,7 +824,7 @@
                                    name="productId"
                                    value="@Model.Id" />
 
-                            <button class="button button-light"
+                            <button class="button-light"
                                     type="submit">
                                 ♡ В закладки
                             </button>
@@ -600,13 +832,13 @@
                     }
                     else
                     {
-                        <a class="button button-light"
+                        <a class="button-light"
                            asp-controller="Account"
                            asp-action="Login">
                             ♡ Войти для лайков
                         </a>
 
-                        <a class="button button-light"
+                        <a class="button-light"
                            asp-controller="Account"
                            asp-action="Login">
                             ♡ Войти для закладок
@@ -628,8 +860,8 @@
     <section class="reviews">
 
         <div class="reviews-heading">
-            <p class="eyebrow">ОТЗЫВЫ</p>
-            <h2>Отзывы покупателей</h2>
+            <p class="eyebrow">МНЕНИЯ ПОКУПАТЕЛЕЙ</p>
+            <h2>Отзывы о товаре</h2>
             <p class="muted">
                 Читай впечатления покупателей и делись своим опытом.
             </p>
@@ -653,6 +885,7 @@
             <summary>
                 <span>
                     Посмотреть отзывы (@totalReviews)
+
                     @if (totalReviews > 0)
                     {
                         <span class="rating-caption">
@@ -666,7 +899,7 @@
 
                 @if (reviews.Count == 0)
                 {
-                    <p class="muted" style="margin-top: 22px;">
+                    <p class="muted">
                         У этого товара пока нет отзывов.
                         Стань первым покупателем, который поделится впечатлением!
                     </p>
@@ -685,25 +918,24 @@
                                     </span>
 
                                     <span class="review-date">
-                                        @review.CreatedAt.ToLocalTime()
-                                            .ToString("dd.MM.yyyy HH:mm")
+                                        @(review.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
                                     </span>
                                 </div>
 
                                 <div class="review-stars"
                                      aria-label="Оценка: @review.Rating из 5">
+
                                     @for (int i = 1; i <= 5; i++)
                                     {
                                         @(i <= review.Rating ? "★" : "☆")
                                     }
+
                                     <span class="rating-caption">
                                         @review.Rating из 5
                                     </span>
                                 </div>
 
-                                <div class="review-text">
-                                    @review.Text
-                                </div>
+                                <p class="review-text">@review.Text</p>
 
                                 @if (!string.IsNullOrWhiteSpace(review.ModeratorReply))
                                 {
@@ -719,7 +951,6 @@
                                 @if (isStaff)
                                 {
                                     <div class="staff-form">
-
                                         <form class="review-form"
                                               asp-controller="Reviews"
                                               asp-action="Reply"
@@ -741,7 +972,7 @@
                                                       placeholder="Напишите ответ от имени магазина..."
                                                       required>@review.ModeratorReply</textarea>
 
-                                            <button class="button button-dark"
+                                            <button class="button-dark"
                                                     type="submit">
                                                 Сохранить ответ
                                             </button>
@@ -774,33 +1005,34 @@
                                    name="productId"
                                    value="@Model.Id" />
 
-
-                            
                             <div class="review-rating-picker">
                                 <span class="review-rating-title">Ваша оценка</span>
 
-                                <div class="review-rating-stars" role="radiogroup" aria-label="Оценка товара">
+                                <div class="review-rating-stars"
+                                     role="radiogroup"
+                                     aria-label="Оценка товара">
+
                                     @for (int rating = 5; rating >= 1; rating--)
                                     {
-                                        <input
-                                            type="radio"
-                                            id="rating-@rating"
-                                            name="Rating"
-                                            value="@rating"
-                                            checked="@(rating == 5)"
-                                            required />
+                                        <input type="radio"
+                                               id="rating-@rating"
+                                               name="Rating"
+                                               value="@rating"
+                                               checked="@(rating == 5)"
+                                               required />
 
                                         <label for="rating-@rating"
-                                            title="@($"{rating} из 5")"
-                                            aria-label="@($"{rating} из 5 звёзд")">
+                                               title="@($"{rating} из 5")"
+                                               aria-label="@($"{rating} из 5 звёзд")">
                                             ★
                                         </label>
                                     }
                                 </div>
 
-                                <span class="review-rating-hint">Выбери от 1 до 5 звёзд</span>
+                                <span class="review-rating-hint">
+                                    Выбери от 1 до 5 звёзд
+                                </span>
                             </div>
-
 
                             <label for="review-text">
                                 Ваш отзыв
@@ -813,7 +1045,7 @@
                                       placeholder="Что вам понравилось в товаре?"
                                       required></textarea>
 
-                            <button class="button button-dark"
+                            <button class="button-dark"
                                     type="submit">
                                 Опубликовать отзыв
                             </button>
@@ -829,7 +1061,7 @@
                             Войдите в аккаунт, чтобы оставить отзыв после получения товара.
                         </p>
 
-                        <a class="button button-dark"
+                        <a class="button-dark"
                            asp-controller="Account"
                            asp-action="Login">
                             Войти
@@ -841,7 +1073,6 @@
         </details>
     </section>
 </div>
-
 
 <script>
     const likeForm = document.getElementById("like-form");
@@ -893,4 +1124,3 @@
         });
     }
 </script>
-

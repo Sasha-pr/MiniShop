@@ -6,221 +6,409 @@
 }
 
 <style>
+    .manage-returns,
+    .manage-returns * {
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
     .manage-returns {
         max-width: 1100px;
         margin: 0 auto;
-        padding: 25px 0 70px;
+        padding: 38px 16px 70px;
+        color: #26332D;
     }
 
     .manage-heading {
-        margin-bottom: 30px;
+        margin-bottom: 28px;
+    }
+
+    .manage-heading .eyebrow {
+        margin: 0 0 12px;
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
     }
 
     .manage-heading h1 {
-        font-size: 38px;
-        margin: 12px 0;
+        margin: 0 0 12px;
+        color: #263C35;
+        font-size: clamp(30px, 4vw, 38px);
+        letter-spacing: -1px;
     }
 
     .manage-heading p {
-        color: #777;
-        line-height: 1.6;
+        max-width: 650px;
+        margin: 0;
+        color: #78827B;
+        line-height: 1.7;
     }
 
     .manage-alert {
-        padding: 16px 20px;
+        margin-bottom: 16px;
+        padding: 14px 17px;
+        border: 1px solid #DCE8DF;
         border-radius: 10px;
-        margin-bottom: 18px;
-        background: #f4f6f1;
-        border: 1px solid #e1e7dc;
+        background: #EAF1EB;
+        color: #42634D;
+        font-size: 13px;
+        line-height: 1.5;
     }
 
     .manage-alert.error {
-        background: #fff5f5;
-        border-color: #f0dddd;
-        color: #a33b3b;
+        border-color: #F0DEDC;
+        background: #FFF0EE;
+        color: #A33B3B;
     }
 
     .manage-list {
         display: grid;
-        gap: 20px;
+        gap: 13px;
     }
 
     .manage-card {
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 15px;
-        padding: 25px;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(38, 60, 53, .035);
+        overflow: hidden;
     }
 
-    .manage-card-header {
+    .manage-card-summary {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 22px;
+        gap: 15px;
+        padding: 20px 23px;
+        cursor: pointer;
+        list-style: none;
+        transition: background .2s;
     }
 
-    .manage-card-header h2 {
-        font-size: 20px;
+    .manage-card-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .manage-card-summary:hover {
+        background: #F7F8F5;
+    }
+
+    .manage-card-summary-left {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 0;
+    }
+
+    .manage-card-summary h2 {
         margin: 0;
+        color: #263C35;
+        font-size: 17px;
+        overflow-wrap: anywhere;
+    }
+
+    .manage-card-date {
+        color: #929B94;
+        font-size: 12px;
+    }
+
+    .manage-card-summary-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+
+    .manage-arrow {
+        color: #78827B;
+        font-size: 20px;
+        transition: transform .2s;
+    }
+
+    .manage-card[open] .manage-arrow {
+        transform: rotate(180deg);
     }
 
     .manage-status {
-        display: inline-block;
-        padding: 8px 13px;
-        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 8px;
+        background: #F7F0DF;
+        color: #8A6B2E;
         font-size: 12px;
-        font-weight: 600;
-        background: #fbf6e9;
-        color: #a17b35;
+        font-weight: 700;
     }
 
     .manage-status.approved {
-        background: #f0f5ed;
-        color: #648052;
+        background: #E8F0E9;
+        color: #42634D;
     }
 
     .manage-status.rejected {
-        background: #fff0f0;
-        color: #a33b3b;
+        background: #FFF0EE;
+        color: #A33B3B;
+    }
+
+    .manage-card-content {
+        padding: 22px 23px 24px;
+        border-top: 1px solid #EDF0EC;
     }
 
     .manage-info {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
+        gap: 11px;
+        margin-bottom: 18px;
     }
 
     .manage-field {
-        background: #f7f8f5;
-        border-radius: 10px;
-        padding: 14px;
         min-width: 0;
+        padding: 13px 14px;
+        border: 1px solid #EDF0EC;
+        border-radius: 10px;
+        background: #F7F8F5;
     }
 
     .manage-label {
         display: block;
-        color: #888;
-        font-size: 12px;
-        margin-bottom: 7px;
+        margin-bottom: 6px;
+        color: #929B94;
+        font-size: 11px;
+        font-weight: 600;
     }
 
     .manage-value {
-        font-size: 14px;
-        line-height: 1.5;
+        color: #35453B;
+        font-size: 13px;
+        line-height: 1.6;
         overflow-wrap: anywhere;
     }
 
     .manage-reason {
-        background: #f7f8f5;
-        border-radius: 10px;
-        padding: 17px;
-        margin-bottom: 20px;
-        line-height: 1.6;
+        margin-bottom: 18px;
+        padding: 16px;
+        border: 1px solid #E5EAE5;
+        border-radius: 11px;
+        background: #F7F8F5;
+        color: #526157;
+        font-size: 13px;
+        line-height: 1.7;
         overflow-wrap: anywhere;
     }
 
     .manage-reason strong {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 7px;
+        color: #35453B;
     }
 
     .manage-review-form {
-        border-top: 1px solid #e8e8e8;
-        padding-top: 20px;
         margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #E5EAE5;
     }
 
     .manage-review-form h3 {
-        font-size: 17px;
         margin: 0 0 15px;
+        color: #263C35;
+        font-size: 17px;
+    }
+
+    .manage-review-form label {
+        display: block;
+        margin-bottom: 8px;
+        color: #526157;
+        font-size: 13px;
+        font-weight: 600;
     }
 
     .manage-review-form textarea {
+        display: block;
         width: 100%;
-        min-height: 100px;
+        min-height: 105px;
         padding: 13px;
-        border: 1px solid #deded9;
+        border: 1px solid #DDE4DD;
         border-radius: 10px;
+        background: #FFFFFF;
+        color: #35453B;
         font: inherit;
+        font-size: 13px;
+        line-height: 1.5;
         resize: vertical;
     }
 
     .manage-review-form textarea:focus {
         outline: none;
-        border-color: #8b9a77;
+        border-color: #8FA997;
+        box-shadow: 0 0 0 3px rgba(143, 169, 151, .15);
+    }
+
+    .manage-review-form textarea::placeholder {
+        color: #A0A9A1;
     }
 
     .manage-actions {
         display: flex;
-        gap: 10px;
         flex-wrap: wrap;
-        margin-top: 15px;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .manage-actions button {
+        min-height: 41px;
+        padding: 10px 16px;
+        border: 1px solid #DDE4DD;
+        border-radius: 9px;
+        background: #FFFFFF;
+        color: #526157;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .2s, border-color .2s;
+    }
+
+    .manage-actions button:hover {
+        background: #F7F8F5;
+        border-color: #C8D6CA;
+    }
+
+    .manage-actions button.button-dark {
+        border-color: #263C35;
+        background: #263C35;
+        color: #FFFFFF;
+    }
+
+    .manage-actions button.button-dark:hover {
+        background: #354F43;
     }
 
     .manage-reply {
+        margin-top: 17px;
         padding: 15px;
-        background: #f4f6f1;
+        border: 1px solid #DCE8DF;
         border-radius: 10px;
-        margin-top: 18px;
+        background: #EAF1EB;
+        color: #526157;
+        font-size: 13px;
         line-height: 1.6;
         overflow-wrap: anywhere;
     }
 
+    .manage-reply strong {
+        display: block;
+        margin-bottom: 7px;
+        color: #35453B;
+    }
+
+    .manage-reply p {
+        margin: 0;
+    }
+
     .manage-date {
-        color: #888;
-        font-size: 13px;
-        margin-top: 12px;
+        margin: 13px 0 0;
+        color: #929B94;
+        font-size: 12px;
     }
 
     .manage-details {
         margin-top: 18px;
+        padding-top: 17px;
+        border-top: 1px solid #EDF0EC;
     }
 
     .manage-details a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 9px 14px;
+        border: 1px solid #DDE4DD;
+        border-radius: 9px;
+        background: #FFFFFF;
+        color: #35453B;
+        font-size: 13px;
+        font-weight: 600;
         text-decoration: none;
     }
 
+    .manage-details a:hover {
+        background: #F7F8F5;
+    }
+
     .manage-empty {
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 15px;
-        padding: 45px 25px;
+        padding: 50px 25px;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: #FFFFFF;
         text-align: center;
     }
 
+    .manage-empty h2 {
+        margin: 0 0 10px;
+        color: #263C35;
+        font-size: 21px;
+    }
+
     .manage-empty p {
-        color: #777;
+        margin: 0;
+        color: #78827B;
+        font-size: 13px;
+        line-height: 1.6;
     }
 
     @@media (max-width: 600px) {
-        .manage-heading h1 {
-            font-size: 29px;
+        .manage-returns {
+            padding: 24px 12px 50px;
         }
 
-        .manage-card {
+        .manage-card-summary {
+            padding: 17px;
+        }
+
+        .manage-card-content {
             padding: 18px;
         }
 
         .manage-info {
             grid-template-columns: 1fr;
         }
+
+        .manage-card-summary-right {
+            gap: 8px;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+        }
+
+        .manage-actions {
+            flex-direction: column;
+        }
+
+        .manage-actions button,
+        .manage-details a {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
 
 <div class="manage-returns">
 
-    <div class="manage-heading">
-        <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
+    <section class="manage-heading">
+
+        <p class="eyebrow">
+            SIMPLESTORE / УПРАВЛЕНИЕ
+        </p>
 
         <h1>Заявки на возврат</h1>
 
         <p>
             Просмотр обращений покупателей и обработка заявок на возврат товаров.
         </p>
-    </div>
+
+    </section>
 
     @if (TempData["ReturnSuccess"] != null)
     {
@@ -239,8 +427,13 @@
     @if (Model == null || !Model.Any())
     {
         <div class="manage-empty">
+
             <h2>Заявок пока нет</h2>
-            <p>Новые обращения покупателей появятся здесь.</p>
+
+            <p>
+                Новые обращения покупателей появятся здесь.
+            </p>
+
         </div>
     }
     else
@@ -256,141 +449,166 @@
                     _ => ""
                 };
 
-                <article class="manage-card">
+                <details class="manage-card">
 
-                    <div class="manage-card-header">
-                        <h2>@request.RequestNumber</h2>
+                    <summary class="manage-card-summary">
 
-                        <span class="manage-status @statusClass">
-                            @request.Status
-                        </span>
-                    </div>
+                        <div class="manage-card-summary-left">
 
-                    <div class="manage-info">
+                            <h2>@request.RequestNumber</h2>
 
-                        <div class="manage-field">
-                            <span class="manage-label">Дата создания</span>
-                            <div class="manage-value">
-                                @request.CreatedAt.ToLocalTime()
-                                    .ToString("dd.MM.yyyy HH:mm")
-                            </div>
+                            <span class="manage-card-date">
+                                @(request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
+                            </span>
+
                         </div>
 
-                        <div class="manage-field">
-                            <span class="manage-label">Покупатель</span>
-                            <div class="manage-value">
-                                @(request.Order?.CustomerName ?? "Не указано")
-                            </div>
+                        <div class="manage-card-summary-right">
+
+                            <span class="manage-status @statusClass">
+                                @request.Status
+                            </span>
+
+                            <span class="manage-arrow">⌄</span>
+
                         </div>
 
-                        <div class="manage-field">
-                            <span class="manage-label">Email покупателя</span>
-                            <div class="manage-value">
-                                @(request.Order?.CustomerEmail ?? "Не указан")
+                    </summary>
+
+                    <div class="manage-card-content">
+
+                        <div class="manage-info">
+
+                            <div class="manage-field">
+                                <span class="manage-label">Дата создания</span>
+                                <div class="manage-value">
+                                    @(request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
+                                </div>
                             </div>
+
+                            <div class="manage-field">
+                                <span class="manage-label">Покупатель</span>
+                                <div class="manage-value">
+                                    @(request.Order?.CustomerName ?? "Не указано")
+                                </div>
+                            </div>
+
+                            <div class="manage-field">
+                                <span class="manage-label">Email покупателя</span>
+                                <div class="manage-value">
+                                    @(request.Order?.CustomerEmail ?? "Не указан")
+                                </div>
+                            </div>
+
+                            <div class="manage-field">
+                                <span class="manage-label">Номер заказа</span>
+                                <div class="manage-value">
+                                    №@request.OrderId
+                                </div>
+                            </div>
+
+                            <div class="manage-field">
+                                <span class="manage-label">Товар</span>
+                                <div class="manage-value">
+                                    @(request.OrderItem?.ProductName ?? "Информация недоступна")
+                                </div>
+                            </div>
+
+                            <div class="manage-field">
+                                <span class="manage-label">Количество</span>
+                                <div class="manage-value">
+                                    @(request.OrderItem?.Quantity.ToString() ?? "—")
+                                </div>
+                            </div>
+
                         </div>
 
-                        <div class="manage-field">
-                            <span class="manage-label">Номер заказа</span>
-                            <div class="manage-value">
-                                №@request.OrderId
-                            </div>
+                        <div class="manage-reason">
+                            <strong>Причина возврата</strong>
+                            @request.Reason
                         </div>
 
-                        <div class="manage-field">
-                            <span class="manage-label">Товар</span>
-                            <div class="manage-value">
-                                @(request.OrderItem?.ProductName ?? "Информация недоступна")
-                            </div>
-                        </div>
-
-                        <div class="manage-field">
-                            <span class="manage-label">Количество</span>
-                            <div class="manage-value">
-                                @(request.OrderItem?.Quantity.ToString() ?? "—")
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="manage-reason">
-                        <strong>Причина возврата</strong>
-                        @request.Reason
-                    </div>
-
-                    @if (request.Status == "Новая")
-                    {
-                        <form class="manage-review-form"
-                              asp-controller="ReturnRequests"
-                              asp-action="Review"
-                              method="post">
-
-                            @Html.AntiForgeryToken()
-
-                            <input type="hidden"
-                                   name="id"
-                                   value="@request.Id" />
-
-                            <h3>Рассмотрение заявки</h3>
-
-                            <div class="form-group">
-                                <label for="comment-@request.Id">
-                                    Комментарий покупателю
-                                </label>
-
-                                <textarea id="comment-@request.Id"
-                                          name="adminComment"
-                                          rows="3"
-                                          maxlength="1000"
-                                          placeholder="Напишите ответ покупателю"></textarea>
-                            </div>
-
-                            <div class="manage-actions">
-
-                                <button class="button button-dark"
-                                        type="submit"
-                                        name="status"
-                                        value="Одобрена">
-                                    Одобрить
-                                </button>
-
-                                <button class="button"
-                                        type="submit"
-                                        name="status"
-                                        value="Отклонена">
-                                    Отклонить
-                                </button>
-
-                            </div>
-                        </form>
-                    }
-                    else
-                    {
-                        @if (!string.IsNullOrWhiteSpace(request.AdminComment))
+                        @if (request.Status == "Новая")
                         {
-                            <div class="manage-reply">
-                                <strong>Комментарий магазина</strong>
-                                <p>@request.AdminComment</p>
-                            </div>
+                            <form class="manage-review-form"
+                                  asp-controller="ReturnRequests"
+                                  asp-action="Review"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@request.Id" />
+
+                                <h3>Рассмотрение заявки</h3>
+
+                                <div class="form-group">
+
+                                    <label for="comment-@request.Id">
+                                        Комментарий покупателю
+                                    </label>
+
+                                    <textarea id="comment-@request.Id"
+                                              name="adminComment"
+                                              rows="3"
+                                              maxlength="1000"
+                                              placeholder="Напишите ответ покупателю"></textarea>
+
+                                </div>
+
+                                <div class="manage-actions">
+
+                                    <button class="button-dark"
+                                            type="submit"
+                                            name="status"
+                                            value="Одобрена">
+                                        Одобрить
+                                    </button>
+
+                                    <button type="submit"
+                                            name="status"
+                                            value="Отклонена">
+                                        Отклонить
+                                    </button>
+
+                                </div>
+
+                            </form>
+                        }
+                        else
+                        {
+                            @if (!string.IsNullOrWhiteSpace(request.AdminComment))
+                            {
+                                <div class="manage-reply">
+
+                                    <strong>Комментарий магазина</strong>
+
+                                    <p>@request.AdminComment</p>
+
+                                </div>
+                            }
+
+                            <p class="manage-date">
+                                Дата обработки:
+                                @(request.ReviewedAt?.ToLocalTime()
+                                    .ToString("dd.MM.yyyy HH:mm") ?? "Не указана")
+                            </p>
                         }
 
-                        <p class="manage-date">
-                            Дата обработки:
-                            @(request.ReviewedAt?.ToLocalTime()
-                                .ToString("dd.MM.yyyy HH:mm") ?? "Не указана")
-                        </p>
-                    }
+                        <div class="manage-details">
 
-                    <div class="manage-details">
-                        <a class="button button-light"
-                           asp-controller="ReturnRequests"
-                           asp-action="Details"
-                           asp-route-id="@request.Id">
-                            Открыть подробности
-                        </a>
+                            <a asp-controller="ReturnRequests"
+                               asp-action="Details"
+                               asp-route-id="@request.Id">
+                                Открыть подробности
+                            </a>
+
+                        </div>
+
                     </div>
 
-                </article>
+                </details>
             }
 
         </div>

@@ -5,69 +5,104 @@
 }
 
 <style>
+    .orders-admin,
+    .orders-admin * {
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
     .orders-admin {
         max-width: 1100px;
         margin: 0 auto;
-        padding: 25px 0 70px;
+        padding: 38px 16px 70px;
+        color: #26332D;
     }
 
     .orders-heading {
-        margin-bottom: 30px;
+        margin-bottom: 28px;
+    }
+
+    .orders-heading .eyebrow {
+        margin: 0 0 12px;
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
     }
 
     .orders-heading h1 {
-        font-size: 38px;
-        margin: 12px 0;
+        margin: 0 0 12px;
+        color: #263C35;
+        font-size: clamp(30px, 4vw, 38px);
+        letter-spacing: -1px;
     }
 
     .orders-heading p {
-        color: #777;
-        line-height: 1.6;
+        max-width: 650px;
+        margin: 0;
+        color: #78827B;
+        line-height: 1.7;
     }
 
     .admin-orders-list {
         display: grid;
-        gap: 16px;
+        gap: 15px;
     }
 
     .admin-order-card {
         display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 20px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
         align-items: center;
         padding: 24px;
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 15px;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(38, 60, 53, .035);
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .admin-order-card:hover {
+        border-color: #CFDED3;
+        box-shadow: 0 8px 22px rgba(38, 60, 53, .06);
+    }
+
+    .admin-order-main {
+        min-width: 0;
     }
 
     .admin-order-main h2 {
+        margin: 0 0 16px;
+        color: #263C35;
         font-size: 20px;
-        margin: 0 0 14px;
     }
 
     .admin-order-info {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
+        gap: 11px;
     }
 
     .admin-order-field {
-        background: #f7f8f5;
-        padding: 12px 14px;
-        border-radius: 9px;
         min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid #EDF0EC;
+        border-radius: 10px;
+        background: #F7F8F5;
     }
 
     .admin-order-label {
         display: block;
-        color: #888;
-        font-size: 12px;
         margin-bottom: 6px;
+        color: #929B94;
+        font-size: 11px;
+        font-weight: 600;
     }
 
     .admin-order-value {
-        font-size: 14px;
+        color: #35453B;
+        font-size: 13px;
+        line-height: 1.5;
         overflow-wrap: anywhere;
     }
 
@@ -75,75 +110,95 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        gap: 15px;
+        gap: 14px;
     }
 
     .admin-order-total {
-        font-size: 23px;
+        color: #263C35;
+        font-size: 24px;
+        font-weight: 750;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .admin-order-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        border-radius: 8px;
+        background: #F0F2EF;
+        color: #68746B;
+        font-size: 12px;
         font-weight: 700;
         white-space: nowrap;
     }
 
-    .admin-order-status {
-        display: inline-block;
-        padding: 8px 13px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        background: #f5f6f2;
-        color: #666;
-    }
-
     .admin-order-status.new {
-        background: #fbf6e9;
-        color: #a17b35;
+        background: #F7F0DF;
+        color: #8A6B2E;
     }
 
     .admin-order-status.processing {
-        background: #edf3fa;
-        color: #54799f;
+        background: #EAF0F5;
+        color: #4F6F8C;
     }
 
     .admin-order-status.sent {
-        background: #f0effa;
-        color: #71659c;
+        background: #EFEDF7;
+        color: #6D6192;
     }
 
     .admin-order-status.completed {
-        background: #f0f5ed;
-        color: #648052;
+        background: #E8F0E9;
+        color: #42634D;
     }
 
     .admin-order-status.cancelled {
-        background: #fff0f0;
-        color: #a33b3b;
+        background: #FFF0EE;
+        color: #A33B3B;
     }
 
     .admin-order-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 10px 16px;
+        border-radius: 9px;
         text-decoration: none;
         white-space: nowrap;
+        font-size: 13px;
     }
 
     .admin-orders-empty {
+        padding: 55px 25px;
+        border: 1px solid #E5EAE5;
+        border-radius: 16px;
+        background: #FFFFFF;
         text-align: center;
-        padding: 50px 25px;
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 15px;
+    }
+
+    .admin-orders-empty h2 {
+        margin: 0 0 12px;
+        color: #263C35;
+        font-size: 23px;
     }
 
     .admin-orders-empty p {
-        color: #777;
-        line-height: 1.6;
+        margin: 0;
+        color: #78827B;
+        line-height: 1.7;
     }
 
-    @@media (max-width: 650px) {
-        .orders-heading h1 {
-            font-size: 29px;
+    @@media (max-width: 700px) {
+        .orders-admin {
+            padding: 24px 12px 50px;
         }
 
         .admin-order-card {
             grid-template-columns: 1fr;
+            gap: 18px;
             padding: 18px;
         }
 
@@ -153,6 +208,12 @@
 
         .admin-order-side {
             align-items: flex-start;
+            padding-top: 15px;
+            border-top: 1px solid #E5EAE5;
+        }
+
+        .admin-order-link {
+            width: 100%;
         }
     }
 </style>
@@ -160,7 +221,10 @@
 <div class="orders-admin">
 
     <section class="orders-heading">
-        <p class="eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ</p>
+
+        <p class="eyebrow">
+            SIMPLESTORE / УПРАВЛЕНИЕ
+        </p>
 
         <h1>Заказы</h1>
 
@@ -168,17 +232,20 @@
             Просмотр заказов покупателей, их состава,
             стоимости и текущего состояния.
         </p>
+
     </section>
 
     @if (Model == null || Model.Count == 0)
     {
         <div class="admin-orders-empty">
+
             <h2>Заказов пока нет</h2>
 
             <p>
                 Когда покупатели оформят заказы,
                 они появятся в этом разделе.
             </p>
+
         </div>
     }
     else
@@ -233,8 +300,7 @@
                                 </span>
 
                                 <div class="admin-order-value">
-                                    @order.CreatedAt.ToLocalTime()
-                                        .ToString("dd.MM.yyyy HH:mm")
+                                    @(order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
                                 </div>
                             </div>
 
@@ -265,7 +331,7 @@
                         <a class="button button-dark admin-order-link"
                            asp-action="Details"
                            asp-route-id="@order.Id">
-                            Открыть заказ
+                            Открыть заказ →
                         </a>
 
                     </div>
@@ -277,3 +343,4 @@
     }
 
 </div>
+

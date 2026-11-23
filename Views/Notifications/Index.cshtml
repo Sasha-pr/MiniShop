@@ -3,147 +3,243 @@
 
 @{
     ViewData["Title"] = "Мои уведомления";
-
     var unreadCount = Model.Count(n => !n.IsRead);
 }
 
 <style>
+    .notifications-page,
+    .notifications-page * {
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
     .notifications-page {
         max-width: 900px;
         margin: 0 auto;
-        padding: 25px 0 70px;
+        padding: 38px 16px 75px;
+        color: #26332D;
+        -webkit-font-smoothing: antialiased;
     }
 
-    .notifications-page * {
-        box-sizing: border-box;
+    .notifications-page .eyebrow {
+        margin-bottom: 12px;
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
     }
 
     .notifications-page h1 {
-        font-size: 38px;
-        margin: 10px 0 15px;
+        margin: 0 0 13px;
+        color: #263C35;
+        font-size: clamp(30px, 4vw, 38px);
+        letter-spacing: -1px;
     }
 
     .notifications-description {
-        color: #777;
-        line-height: 1.6;
-        margin-bottom: 30px;
+        max-width: 650px;
+        margin: 0 0 30px;
+        color: #78827B;
+        line-height: 1.7;
     }
 
     .notifications-toolbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 15px;
         flex-wrap: wrap;
-        margin-bottom: 25px;
+        gap: 15px;
+        margin-bottom: 22px;
+        padding: 17px 20px;
+        border: 1px solid #E5EAE5;
+        border-radius: 13px;
+        background: #FFFFFF;
     }
 
     .notifications-count {
+        color: #78827B;
         font-size: 14px;
-        color: #666;
+    }
+
+    .notifications-count strong {
+        color: #263C35;
+        font-size: 16px;
+    }
+
+    .notifications-toolbar form,
+    .notification-actions form {
+        margin: 0;
+    }
+
+    .notifications-toolbar .button,
+    .notification-actions .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 10px 16px;
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 13px;
+        text-decoration: none;
+        cursor: pointer;
     }
 
     .notification-card {
-        background: #fff;
-        border: 1px solid #e5e5e5;
-        border-radius: 14px;
-        padding: 24px;
-        margin-bottom: 15px;
+        margin-bottom: 14px;
+        padding: 22px 24px;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(38, 60, 53, .035);
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .notification-card:hover {
+        border-color: #CFDED3;
+        box-shadow: 0 8px 22px rgba(38, 60, 53, .06);
     }
 
     .notification-card.unread {
-        border-left: 4px solid #8b9a77;
-        background: #fafbf8;
+        border-left: 4px solid #789384;
+        background: #FBFCFA;
     }
 
     .notification-top {
         display: flex;
         justify-content: space-between;
-        gap: 15px;
         align-items: center;
         flex-wrap: wrap;
-        margin-bottom: 15px;
+        gap: 10px;
+        margin-bottom: 14px;
     }
 
     .notification-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #52735E;
         font-size: 12px;
-        font-weight: 600;
-        color: #648052;
+        font-weight: 700;
+    }
+
+    .notification-status.read {
+        color: #929B94;
+        font-weight: 500;
     }
 
     .notification-date {
+        color: #929B94;
         font-size: 12px;
-        color: #999;
+        font-variant-numeric: tabular-nums;
     }
 
     .notification-message {
-        font-size: 16px;
+        margin: 0 0 19px;
+        color: #26332D;
+        font-size: 15px;
         line-height: 1.7;
-        margin: 0 0 20px;
         overflow-wrap: anywhere;
     }
 
     .notification-actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
         align-items: center;
-    }
-
-    .notification-actions form {
-        margin: 0;
-    }
-
-    .notification-actions .button,
-    .notifications-toolbar .button {
-        padding: 11px 17px;
-        border-radius: 9px;
-        cursor: pointer;
-        font: inherit;
-        font-size: 13px;
-        text-decoration: none;
+        gap: 9px;
     }
 
     .notification-delete {
-        color: #a33b3b;
+        min-height: 40px;
+        padding: 9px 12px;
+        border: 1px solid transparent;
+        border-radius: 9px;
         background: transparent;
-        border: 0;
-        cursor: pointer;
-        padding: 10px;
-        font: inherit;
+        color: #A16A64;
+        font-family: inherit;
         font-size: 13px;
+        cursor: pointer;
+        transition: background .2s, color .2s;
     }
 
     .notification-delete:hover {
-        background: #fff0f0;
-        border-radius: 8px;
+        background: #FFF3F1;
+        color: #A12C2C;
     }
 
     .notifications-empty {
+        padding: 55px 25px;
+        border: 1px solid #E5EAE5;
+        border-radius: 17px;
+        background: #FFFFFF;
         text-align: center;
-        padding: 60px 25px;
-        border: 1px solid #e8e8e8;
-        border-radius: 16px;
+    }
+
+    .notifications-empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 62px;
+        height: 62px;
+        margin: 0 auto 18px;
+        border-radius: 19px;
+        background: #DCE8DF;
+        font-size: 26px;
     }
 
     .notifications-empty h2 {
-        font-size: 24px;
-        margin-bottom: 15px;
+        margin: 0 0 12px;
+        color: #263C35;
+        font-size: 23px;
     }
 
     .notifications-empty p {
-        color: #777;
-        line-height: 1.6;
-        margin-bottom: 25px;
+        max-width: 470px;
+        margin: 0 auto 23px;
+        color: #78827B;
+        line-height: 1.7;
     }
 
     @@media (max-width: 600px) {
-        .notifications-page h1 {
-            font-size: 30px;
+        .notifications-page {
+            padding: 24px 12px 55px;
+        }
+
+        .notifications-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .notifications-toolbar form,
+        .notifications-toolbar button {
+            width: 100%;
         }
 
         .notification-card {
-            padding: 18px;
+            padding: 18px 16px;
+        }
+
+        .notification-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .notification-actions form,
+        .notification-actions a,
+        .notification-actions button {
+            width: 100%;
+        }
+
+        .notification-actions .button {
+            width: 100%;
+        }
+
+        .notification-delete {
+            text-align: center;
+        }
+
+        .notifications-empty {
+            padding: 40px 18px;
         }
     }
 </style>
@@ -188,6 +284,8 @@
     {
         <div class="notifications-empty">
 
+            <div class="notifications-empty-icon">🔔</div>
+
             <h2>Уведомлений пока нет</h2>
 
             <p>
@@ -219,8 +317,7 @@
 
                     @if (notification.IsRead)
                     {
-                        <span class="notification-status"
-                              style="color: #999;">
+                        <span class="notification-status read">
                             Прочитано
                         </span>
                     }
@@ -232,8 +329,7 @@
                     }
 
                     <span class="notification-date">
-                        @notification.CreatedAt.ToLocalTime()
-                            .ToString("dd.MM.yyyy HH:mm")
+                        @(notification.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))
                     </span>
                 </div>
 

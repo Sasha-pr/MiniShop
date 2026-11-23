@@ -1,0 +1,238 @@
+
+@using MiniShop.Models
+@model List<ChatMessage>
+
+@{
+    ViewData["Title"] = "Переписка";
+
+    var request = ViewBag.SupportRequest as ProductSupportRequest;
+    bool isStaff = ViewBag.IsStaff == true;
+}
+
+<style>
+    .support-page {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 30px 0 75px;
+    }
+
+    .support-page h1 {
+        font-size: 32px;
+        letter-spacing: -1px;
+        margin: 12px 0;
+    }
+
+    .support-info,
+    .support-chat {
+        background: #fff;
+        border: 1px solid #e5eae5;
+        border-radius: 17px;
+        padding: 23px;
+        margin-top: 20px;
+    }
+
+    .support-muted {
+        color: #78827b;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .support-status {
+        display: inline-block;
+        padding: 7px 12px;
+        background: #edf3eb;
+        color: #526b4c;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 650;
+    }
+
+    .support-messages {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin: 22px 0;
+    }
+
+    .support-message {
+        max-width: 80%;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: #f1f3ee;
+        align-self: flex-start;
+        overflow-wrap: anywhere;
+    }
+
+    .support-message.mine {
+        background: #e4eddf;
+        align-self: flex-end;
+    }
+
+    .support-message-author {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 7px;
+        color: #526b4c;
+    }
+
+    .support-message-text {
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .support-message-date {
+        margin-top: 8px;
+        font-size: 11px;
+        color: #78827b;
+        text-align: right;
+    }
+
+    .support-chat textarea {
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 110px;
+        padding: 14px;
+        border: 1px solid #dfe4dc;
+        border-radius: 12px;
+        font: inherit;
+        resize: vertical;
+    }
+
+    .support-chat textarea:focus {
+        outline: none;
+        border-color: #8b9a77;
+        box-shadow: 0 0 0 3px rgba(139,154,119,.13);
+    }
+
+    .support-chat button {
+        margin-top: 12px;
+    }
+
+    .support-closed {
+        padding: 17px;
+        background: #f5f6f2;
+        border-radius: 12px;
+        color: #78827b;
+        font-size: 14px;
+    }
+
+    @@media(max-width:600px) {
+        .support-page { padding: 18px 0 50px; }
+        .support-info, .support-chat { padding: 18px 15px; }
+        .support-message { max-width: 94%; }
+        .support-page h1 { font-size: 27px; }
+        .support-chat button { width: 100%; }
+    }
+</style>
+
+<div class="support-page">
+    @if (request != null)
+    {
+        <a class="back-link"
+           asp-action="@(isStaff ? "Manage" : "MyRequests")">
+            ← @(isStaff ? "Все обращения" : "Мои обращения")
+        </a>
+
+        <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+        <h1>@request.Subject</h1>
+
+        <section class="support-info">
+            <p><strong>Номер обращения:</strong> @request.RequestNumber</p>
+            <p><strong>Товар:</strong> @request.OrderItem?.ProductName</p>
+            <p><strong>Заказ:</strong> №@request.OrderId</p>
+            <p><strong>Покупатель:</strong> @request.UserName</p>
+            <p>
+                <strong>Статус:</strong>
+                <span class="support-status">@request.Status</span>
+            </p>
+            <p class="support-muted">
+                Создано: @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+            </p>
+        </section>
+
+        @if (TempData["ProductSupportError"] != null)
+        {
+            <div class="return-message error">
+                @TempData["ProductSupportError"]
+            </div>
+        }
+
+        @if (TempData["ProductSupportSuccess"] != null)
+        {
+            <div class="return-message success">
+                @TempData["ProductSupportSuccess"]
+            </div>
+        }
+
+        <section class="support-chat">
+            <h2>История переписки</h2>
+
+            <div class="support-messages">
+                @foreach (var message in Model)
+                {
+                    bool mine = isStaff
+                        ? message.IsStaff
+                        : !message.IsStaff;
+
+                    <div class="support-message @(mine ? "mine" : "")">
+                        <div class="support-message-author">
+                            @message.SenderName
+                            @(message.IsStaff ? " · Сотрудник" : " · Покупатель")
+                        </div>
+
+                        <div class="support-message-text">
+                            @message.Text
+                        </div>
+
+                        <div class="support-message-date">
+                            @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (request.Status != "Закрыто")
+            {
+                <form asp-action="@(isStaff ? "Reply" : "SendMessage")"
+                      method="post">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="@(isStaff ? "requestId" : "requestId")"
+                           value="@request.Id" />
+
+                    <textarea name="text"
+                              maxlength="2000"
+                              required
+                              placeholder="Введите сообщение..."></textarea>
+
+                    <button type="submit" class="button button-dark">
+                        Отправить сообщение
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div class="support-closed">
+                    Это обращение закрыто. Отправка новых сообщений недоступна.
+                </div>
+            }
+
+            @if (isStaff && request.Status != "Закрыто")
+            {
+                <form asp-action="Close"
+                      method="post"
+                      style="margin-top:20px;">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="id" value="@request.Id" />
+
+                    <button type="submit" class="button button-light">
+                        Закрыть обращение
+                    </button>
+                </form>
+            }
+        </section>
+    }
+</div>

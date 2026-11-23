@@ -1,4 +1,3 @@
-
 @using MiniShop.Models
 @model List<ChatMessage>
 
@@ -8,164 +7,339 @@
 }
 
 <style>
-    .chat-page {
-        max-width: 850px;
-        margin: 30px auto 70px;
+    .support-chat-page {
+        width: min(900px, calc(100% - 32px));
+        margin: 40px auto 75px;
+        color: #26332D;
     }
 
-    .chat-description {
-        color: #777;
+    .support-chat-header {
         margin-bottom: 25px;
     }
 
-    .chat-window {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        background: #f5f6f2;
-        border: 1px solid #e5e8df;
-        border-radius: 16px;
-        padding: 25px;
-        min-height: 300px;
-        max-height: 550px;
-        overflow-y: auto;
-    }
-
-    .chat-message {
-        max-width: 80%;
-        padding: 15px 18px;
-        border-radius: 14px;
-        background: white;
-        align-self: flex-start;
-        overflow-wrap: anywhere;
-    }
-
-    .chat-message.mine {
-        align-self: flex-end;
-        background: #dfe7d7;
-    }
-
-    .chat-sender {
+    .support-chat-eyebrow {
+        color: #78827B;
         font-size: 12px;
         font-weight: 700;
-        margin-bottom: 7px;
+        letter-spacing: 1.5px;
+        margin-bottom: 12px;
     }
 
-    .chat-text {
-        white-space: pre-wrap;
-        line-height: 1.6;
-        font-size: 14px;
+    .support-chat-header h1 {
+        margin: 0 0 12px;
+        color: #263C35;
+        font-size: clamp(28px, 4vw, 38px);
+        letter-spacing: -1px;
     }
 
-    .chat-date {
-        font-size: 11px;
-        color: #888;
-        margin-top: 9px;
+    .support-chat-description {
+        max-width: 600px;
+        margin: 0;
+        color: #78827B;
+        line-height: 1.7;
     }
 
-    .chat-form {
-        margin-top: 20px;
+    .support-chat-card {
+        overflow: hidden;
+        background: #FFFFFF;
+        border: 1px solid #E5EAE5;
+        border-radius: 20px;
+        box-shadow: 0 12px 35px rgba(38, 60, 53, 0.06);
     }
 
-    .chat-form textarea {
-        display: block;
-        width: 100%;
-        min-height: 110px;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        font: inherit;
-        resize: vertical;
+    .support-chat-card-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 20px 25px;
+        background: #FFFFFF;
+        border-bottom: 1px solid #E5EAE5;
+    }
+
+    .support-chat-avatar {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: #DCE8DF;
+        color: #263C35;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .support-chat-card-title {
+        margin-bottom: 5px;
+        color: #263C35;
+        font-weight: 700;
+    }
+
+    .support-chat-status {
+        color: #78827B;
+        font-size: 12px;
+    }
+
+    .support-chat-window {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        min-height: 350px;
+        max-height: 520px;
+        overflow-y: auto;
+        padding: 25px;
+        background: #F5F6F2;
         box-sizing: border-box;
     }
 
-    .chat-form button {
-        margin-top: 12px;
-        padding: 13px 25px;
-        border: none;
-        border-radius: 9px;
-        background: #20211f;
-        color: white;
-        cursor: pointer;
+    .support-chat-message {
+        display: block;
+        width: fit-content;
+        max-width: min(75%, 520px);
+        min-width: 80px;
+        padding: 13px 16px;
+        box-sizing: border-box;
+        align-self: flex-start;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        background: #FFFFFF;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px 15px 15px 4px;
+        box-shadow: 0 3px 10px rgba(38, 60, 53, 0.03);
     }
 
-    .chat-error {
-        color: #b13c3c;
-        margin-bottom: 15px;
+    .support-chat-message.mine {
+        align-self: flex-end;
+        background: #DCE8DF;
+        border-color: #CFDED3;
+        border-radius: 15px 15px 4px 15px;
     }
 
-    .chat-empty {
-        color: #777;
-        text-align: center;
+    .support-chat-sender {
+        margin-bottom: 7px;
+        color: #526B5D;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .support-chat-text {
+        display: block;
+        max-width: 100%;
+        color: #26332D;
+        font-size: 14px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .support-chat-date {
+        margin-top: 9px;
+        color: #78827B;
+        font-size: 11px;
+        text-align: right;
+    }
+
+    .support-chat-empty {
         margin: auto;
+        color: #78827B;
+        line-height: 1.7;
+        text-align: center;
+    }
+
+    .support-chat-form {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 22px 25px 25px;
+        background: #FFFFFF;
+        border-top: 1px solid #E5EAE5;
+    }
+
+    .support-chat-form textarea {
+        display: block;
+        width: 100%;
+        min-height: 105px;
+        padding: 15px 17px;
+        box-sizing: border-box;
+        border: 1px solid #E5EAE5;
+        border-radius: 13px;
+        background: #F5F6F2;
+        color: #26332D;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.6;
+        resize: vertical;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .support-chat-form textarea:focus {
+        border-color: #789384;
+        box-shadow: 0 0 0 3px rgba(120, 147, 132, 0.13);
+    }
+
+    .support-chat-form textarea::placeholder {
+        color: #9AA39C;
+    }
+
+    .support-chat-submit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-self: flex-end;
+        gap: 12px;
+        min-height: 46px;
+        padding: 12px 22px;
+        border: none;
+        border-radius: 11px;
+        background: #263C35;
+        color: #FFFFFF;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .2s, transform .2s;
+    }
+
+    .support-chat-submit:hover {
+        background: #3B574B;
+        transform: translateY(-1px);
+    }
+
+    .support-chat-error {
+        margin-bottom: 18px;
+        padding: 13px 16px;
+        border: 1px solid #F0D5D2;
+        border-radius: 11px;
+        background: #FFF3F1;
+        color: #A9433C;
+    }
+
+    @@media (max-width: 600px) {
+        .support-chat-page {
+            width: calc(100% - 24px);
+            margin: 22px auto 45px;
+        }
+
+        .support-chat-card {
+            border-radius: 15px;
+        }
+
+        .support-chat-card-header {
+            padding: 16px;
+        }
+
+        .support-chat-window {
+            min-height: 300px;
+            max-height: 450px;
+            padding: 16px 12px;
+        }
+
+        .support-chat-message {
+            max-width: 88%;
+        }
+
+        .support-chat-form {
+            padding: 16px;
+        }
+
+        .support-chat-submit {
+            width: 100%;
+            align-self: stretch;
+        }
     }
 </style>
 
-<div class="chat-page">
+<div class="support-chat-page">
 
-    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+    <div class="support-chat-header">
+        <p class="support-chat-eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
 
-    <h1>Чат с магазином</h1>
+        <h1>Чат с магазином</h1>
 
-    <p class="chat-description">
-        Задайте вопрос о товаре, заказе или доставке.
-        Новые сообщения появляются автоматически.
-    </p>
+        <p class="support-chat-description">
+            Остались вопросы о товарах, заказах или доставке?
+            Напишите нам — мы постараемся помочь.
+        </p>
+    </div>
 
     @if (TempData["ChatError"] != null)
     {
-        <p class="chat-error">@TempData["ChatError"]</p>
+        <p class="support-chat-error">@TempData["ChatError"]</p>
     }
 
-    <div class="chat-window" id="chat-window">
+    <div class="support-chat-card">
 
-        @if (Model.Count == 0)
-        {
-            <p class="chat-empty" id="chat-empty">
-                Сообщений пока нет. Напишите нам первым!
-            </p>
-        }
+        <div class="support-chat-card-header">
+            <div class="support-chat-avatar">S</div>
 
-        @foreach (var message in Model)
-        {
-            <div class="chat-message @(message.IsStaff ? "" : "mine")">
-
-                <div class="chat-sender">
-                    @(message.IsStaff ? "Поддержка магазина" : "Вы")
+            <div>
+                <div class="support-chat-card-title">
+                    Поддержка SIMPLESTORE
                 </div>
 
-                <div class="chat-text">@message.Text</div>
-
-                <div class="chat-date">
-                    @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                <div class="support-chat-status">
+                    ● Чат для связи с магазином
                 </div>
-
             </div>
-        }
+        </div>
+
+        <div class="support-chat-window" id="chat-window">
+
+            @if (Model.Count == 0)
+            {
+                <p class="support-chat-empty" id="chat-empty">
+                    Сообщений пока нет.<br />
+                    Напишите нам, если нужна помощь!
+                </p>
+            }
+
+            @foreach (var message in Model)
+            {
+                <div class="support-chat-message @(message.IsStaff ? "" : "mine")">
+
+                    <div class="support-chat-sender">
+                        @(message.IsStaff ? "Поддержка магазина" : "Вы")
+                    </div>
+
+                    <div class="support-chat-text">@message.Text</div>
+
+                    <div class="support-chat-date">
+                        @message.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+        <form class="support-chat-form"
+              asp-controller="Chat"
+              asp-action="Send"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <textarea name="text"
+                      maxlength="2000"
+                      required
+                      placeholder="Напишите ваше сообщение..."></textarea>
+
+            <button class="support-chat-submit" type="submit">
+                Отправить сообщение <span>→</span>
+            </button>
+
+        </form>
 
     </div>
-
-    <form class="chat-form"
-          asp-controller="Chat"
-          asp-action="Send"
-          method="post">
-
-        @Html.AntiForgeryToken()
-
-        <textarea name="text"
-                  maxlength="2000"
-                  required
-                  placeholder="Напишите ваше сообщение..."></textarea>
-
-        <button type="submit">
-            Отправить сообщение →
-        </button>
-    </form>
-
 </div>
 
 <script>
     const chatWindow = document.getElementById('chat-window');
+
     let lastMessageId = @lastId;
     let chatLoading = false;
 
@@ -179,24 +353,24 @@
         }
 
         const bubble = document.createElement('div');
-        bubble.className = 'chat-message';
+        bubble.className = 'support-chat-message';
 
         if (!message.isStaff) {
             bubble.classList.add('mine');
         }
 
         const sender = document.createElement('div');
-        sender.className = 'chat-sender';
+        sender.className = 'support-chat-sender';
         sender.textContent = message.isStaff
             ? 'Поддержка магазина'
             : 'Вы';
 
         const text = document.createElement('div');
-        text.className = 'chat-text';
+        text.className = 'support-chat-text';
         text.textContent = message.text;
 
         const date = document.createElement('div');
-        date.className = 'chat-date';
+        date.className = 'support-chat-date';
 
         date.textContent = new Date(
             message.createdAt
@@ -244,7 +418,10 @@
     }
 
     setInterval(refreshChat, 5000);
+
     document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) refreshChat();
+        if (!document.hidden) {
+            refreshChat();
+        }
     });
 </script>

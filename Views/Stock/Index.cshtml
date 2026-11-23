@@ -1,126 +1,493 @@
-
 @using MiniShop.Models
 @model List<Product>
 
 @{
     ViewData["Title"] = "Управление складом";
+
+    var products = Model ?? new List<Product>();
+    var totalProducts = products.Count;
+    var outOfStock = products.Count(p => p.StockQuantity == 0);
+    var lowStock = products.Count(p => p.StockQuantity > 0 && p.StockQuantity < 3);
+    var availableStock = products.Sum(p => p.StockQuantity);
 }
 
-<section style="margin-bottom: 35px;">
-    <p class="eyebrow">SIMPLESTORE / АДМИНИСТРИРОВАНИЕ</p>
-    <h1>Управление складом</h1>
-    <p class="muted">
-        Изменяйте количество товаров, доступных для заказа.
-    </p>
-</section>
+<style>
+    .stock-page,
+    .stock-page * {
+        box-sizing: border-box;
+        font-family: inherit;
+    }
 
-@if (TempData["StockSuccess"] != null)
-{
-    <p style="color: #42734c; margin-bottom: 20px;">
-        @TempData["StockSuccess"]
-    </p>
-}
+    .stock-page {
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 38px 20px 70px;
+        color: #26332D;
+    }
 
-@if (TempData["StockError"] != null)
-{
-    <p style="color: #b91c1c; margin-bottom: 20px;">
-        @TempData["StockError"]
-    </p>
-}
+    .stock-heading {
+        margin-bottom: 27px;
+    }
 
-<div style="display: grid; gap: 16px;">
+    .stock-eyebrow {
+        margin: 0 0 12px;
+        color: #78827B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+    }
 
-    @foreach (var product in Model)
+    .stock-heading h1 {
+        margin: 0 0 12px;
+        color: #263C35;
+        font-size: clamp(30px, 4vw, 38px);
+        letter-spacing: -1px;
+    }
+
+    .stock-heading p:last-child {
+        margin: 0;
+        color: #78827B;
+        line-height: 1.7;
+    }
+
+    .stock-alert {
+        margin-bottom: 16px;
+        padding: 14px 17px;
+        border: 1px solid #DCE8DF;
+        border-radius: 10px;
+        background: #EAF1EB;
+        color: #42634D;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .stock-alert.error {
+        border-color: #F0DEDC;
+        background: #FFF0EE;
+        color: #A33B3B;
+    }
+
+    .stock-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 25px;
+    }
+
+    .stock-summary-card {
+        min-width: 0;
+        padding: 19px 20px;
+        border: 1px solid #E5EAE5;
+        border-radius: 13px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(38, 60, 53, .035);
+    }
+
+    .stock-summary-label {
+        display: block;
+        margin-bottom: 9px;
+        color: #929B94;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .stock-summary-value {
+        color: #263C35;
+        font-size: 25px;
+        font-weight: 750;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .stock-list {
+        display: grid;
+        gap: 14px;
+        width: 100%;
+    }
+
+    .stock-product-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 24px;
+        width: 100%;
+        min-width: 0;
+        padding: 20px 22px;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(38, 60, 53, .035);
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .stock-product-card:hover {
+        border-color: #CFDED3;
+        box-shadow: 0 8px 22px rgba(38, 60, 53, .06);
+    }
+
+    .stock-product-info {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        min-width: 0;
+    }
+
+    .stock-product-image {
+        display: block;
+        width: 82px;
+        height: 82px;
+        flex: 0 0 82px;
+        border: 1px solid #EDF0EC;
+        border-radius: 11px;
+        background: #F5F6F2;
+        object-fit: cover;
+    }
+
+    .stock-product-details {
+        min-width: 0;
+    }
+
+    .stock-product-name {
+        margin: 0 0 6px;
+        color: #263C35;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .stock-product-category {
+        margin: 0 0 10px;
+        color: #929B94;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .stock-status {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        padding: 6px 10px;
+        border-radius: 7px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    .stock-status.available {
+        background: #E8F0E9;
+        color: #42634D;
+    }
+
+    .stock-status.low {
+        background: #F7F0DF;
+        color: #8A6B2E;
+    }
+
+    .stock-status.empty {
+        background: #FFF0EE;
+        color: #A33B3B;
+    }
+
+    .stock-update-form {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        gap: 10px;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+    }
+
+    .stock-quantity-field {
+        min-width: 0;
+    }
+
+    .stock-quantity-field label {
+        display: block;
+        margin-bottom: 7px;
+        color: #526157;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .stock-quantity-field input {
+        display: block;
+        width: 115px;
+        max-width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid #DDE4DD;
+        border-radius: 9px;
+        background: #FFFFFF;
+        color: #35453B;
+        font: inherit;
+        font-size: 13px;
+    }
+
+    .stock-quantity-field input:focus {
+        outline: none;
+        border-color: #8FA997;
+        box-shadow: 0 0 0 3px rgba(143, 169, 151, .15);
+    }
+
+    .stock-update-form button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 9px;
+        background: #263C35;
+        color: #FFFFFF;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background .2s;
+    }
+
+    .stock-update-form button:hover {
+        background: #354F43;
+    }
+
+    .stock-empty {
+        padding: 50px 25px;
+        border: 1px solid #E5EAE5;
+        border-radius: 15px;
+        background: #FFFFFF;
+        text-align: center;
+    }
+
+    .stock-empty h2 {
+        margin: 0 0 10px;
+        color: #263C35;
+        font-size: 21px;
+    }
+
+    .stock-empty p {
+        margin: 0;
+        color: #78827B;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 750px) {
+        .stock-page {
+            padding: 30px 16px 55px;
+        }
+
+        .stock-product-card {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 17px;
+        }
+
+        .stock-update-form {
+            justify-content: flex-start;
+            width: 100%;
+            padding-top: 16px;
+            border-top: 1px solid #EDF0EC;
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .stock-page {
+            padding: 24px 12px 45px;
+        }
+
+        .stock-summary {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .stock-summary-card {
+            padding: 15px 17px;
+        }
+
+        .stock-summary-value {
+            font-size: 22px;
+        }
+
+        .stock-product-card {
+            padding: 16px;
+        }
+
+        .stock-product-info {
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .stock-product-image {
+            width: 65px;
+            height: 65px;
+            flex-basis: 65px;
+        }
+
+        .stock-product-name {
+            font-size: 14px;
+        }
+
+        .stock-update-form {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .stock-quantity-field input {
+            width: 100%;
+        }
+
+        .stock-update-form button {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="stock-page">
+
+    <section class="stock-heading">
+
+        <p class="stock-eyebrow">
+            SIMPLESTORE / АДМИНИСТРИРОВАНИЕ
+        </p>
+
+        <h1>Управление складом</h1>
+
+        <p>
+            Изменяйте количество товаров, доступных для заказа.
+            Следите за остатками и наличием продукции.
+        </p>
+
+    </section>
+
+    @if (TempData["StockSuccess"] != null)
     {
-        <div style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding: 22px;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            background: #fff;">
-
-            <div style="display: flex; align-items: center; gap: 16px;">
-
-                <img src="@product.ImageUrl"
-                     alt="@product.Name"
-                     style="
-                        width: 75px;
-                        height: 75px;
-                        object-fit: cover;
-                        border-radius: 8px;" />
-
-                <div>
-                    <h3 style="margin: 0 0 6px;">
-                        @product.Name
-                    </h3>
-
-                    <p class="muted" style="margin: 0 0 6px;">
-                        @product.Category
-                    </p>
-
-                    @if (product.StockQuantity == 0)
-                    {
-                        <span style="color: #b91c1c;">
-                            Нет в наличии
-                        </span>
-                    }
-                    else if (product.StockQuantity < 3)
-                    {
-                        <span style="color: #b45309;">
-                            Осталось мало: @product.StockQuantity шт.
-                        </span>
-                    }
-                    else
-                    {
-                        <span style="color: #42734c;">
-                            В наличии: @product.StockQuantity шт.
-                        </span>
-                    }
-                </div>
-            </div>
-
-            <form asp-controller="Stock"
-                  asp-action="Update"
-                  method="post"
-                  style="
-                    display: flex;
-                    align-items: end;
-                    flex-wrap: wrap;
-                    gap: 12px;">
-
-                <input type="hidden"
-                       name="productId"
-                       value="@product.Id" />
-
-                <div>
-                    <label for="quantity-@product.Id"
-                           style="display: block; margin-bottom: 7px;">
-                        Количество
-                    </label>
-
-                    <input id="quantity-@product.Id"
-                           type="number"
-                           name="quantity"
-                           value="@product.StockQuantity"
-                           min="0"
-                           max="100000"
-                           required
-                           style="
-                             width: 110px;
-                             padding: 11px;
-                             border: 1px solid #ddd;
-                             border-radius: 8px;" />
-                </div>
-
-                <button type="submit"
-                        class="button button-dark">
-                    Сохранить
-                </button>
-            </form>
+        <div class="stock-alert">
+            @TempData["StockSuccess"]
         </div>
     }
+
+    @if (TempData["StockError"] != null)
+    {
+        <div class="stock-alert error">
+            @TempData["StockError"]
+        </div>
+    }
+
+    <section class="stock-summary">
+
+        <div class="stock-summary-card">
+            <span class="stock-summary-label">Всего товаров</span>
+            <div class="stock-summary-value">@totalProducts</div>
+        </div>
+
+        <div class="stock-summary-card">
+            <span class="stock-summary-label">Единиц на складе</span>
+            <div class="stock-summary-value">@availableStock</div>
+        </div>
+
+        <div class="stock-summary-card">
+            <span class="stock-summary-label">Нет в наличии</span>
+            <div class="stock-summary-value">@outOfStock</div>
+        </div>
+
+    </section>
+
+    @if (products.Count == 0)
+    {
+        <div class="stock-empty">
+            <h2>Товаров пока нет</h2>
+            <p>
+                Добавленные товары появятся в этом разделе.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="stock-list">
+
+            @foreach (var product in products)
+            {
+                <article class="stock-product-card">
+
+                    <div class="stock-product-info">
+
+                        <img class="stock-product-image"
+                             src="@product.ImageUrl"
+                             alt="@product.Name" />
+
+                        <div class="stock-product-details">
+
+                            <h2 class="stock-product-name">
+                                @product.Name
+                            </h2>
+
+                            <p class="stock-product-category">
+                                @product.Category
+                            </p>
+
+                            @if (product.StockQuantity == 0)
+                            {
+                                <span class="stock-status empty">
+                                    Нет в наличии
+                                </span>
+                            }
+                            else if (product.StockQuantity < 3)
+                            {
+                                <span class="stock-status low">
+                                    Осталось мало: @product.StockQuantity шт.
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="stock-status available">
+                                    В наличии: @product.StockQuantity шт.
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <form asp-controller="Stock"
+                          asp-action="Update"
+                          method="post"
+                          class="stock-update-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="productId"
+                               value="@product.Id" />
+
+                        <div class="stock-quantity-field">
+
+                            <label for="quantity-@product.Id">
+                                Количество
+                            </label>
+
+                            <input id="quantity-@product.Id"
+                                   type="number"
+                                   name="quantity"
+                                   value="@product.StockQuantity"
+                                   min="0"
+                                   max="100000"
+                                   required />
+
+                        </div>
+
+                        <button type="submit">
+                            Сохранить
+                        </button>
+
+                    </form>
+
+                </article>
+            }
+
+        </div>
+    }
+
 </div>
+

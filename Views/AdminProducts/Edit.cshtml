@@ -6,217 +6,478 @@
 }
 
 <style>
-    .edit-product-page {
-        max-width: 700px;
-        margin: 40px auto 80px;
+    .product-editor {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 28px 0 60px;
+        color: #263C35;
     }
 
-    .edit-product-form {
+    .editor-heading {
         display: flex;
-        flex-direction: column;
-        gap: 18px;
-        margin-top: 30px;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        margin-bottom: 28px;
     }
 
-    .edit-product-field {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+    .editor-eyebrow {
+        margin: 0 0 10px;
+        color: #89968D;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
     }
 
-    .edit-product-field label {
-        font-weight: 600;
+    .editor-heading h1 {
+        margin: 0;
+        font-size: clamp(27px, 4vw, 36px);
+        font-weight: 700;
+        letter-spacing: -1.2px;
+    }
+
+    .editor-description {
+        margin: 10px 0 0;
+        color: #89918B;
         font-size: 14px;
     }
 
-    .edit-product-field input,
-    .edit-product-field textarea {
-        width: 100%;
-        padding: 13px;
-        border: 1px solid #ddd;
-        border-radius: 9px;
-        font: inherit;
-        box-sizing: border-box;
-    }
-
-    .edit-product-field textarea {
-        min-height: 110px;
-        resize: vertical;
-    }
-
-    .edit-product-preview {
-        width: 150px;
-        height: 150px;
-        object-fit: cover;
-        border-radius: 10px;
-        border: 1px solid #eee;
-    }
-
-    .edit-product-actions {
-        display: flex;
-        gap: 15px;
+    .editor-back {
+        display: inline-flex;
         align-items: center;
-        flex-wrap: wrap;
-        margin-top: 10px;
+        gap: 8px;
+        color: #52665A;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
     }
 
-    .edit-product-save {
-        background: #20211f;
-        color: white;
-        border: none;
-        padding: 14px 22px;
-        border-radius: 9px;
-        font: inherit;
+    .editor-back:hover {
+        color: #263C35;
+    }
+
+    .editor-product-id {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 16px;
+        padding: 8px 13px;
+        color: #52665A;
+        background: #EDF2EB;
+        border-radius: 8px;
+        font-size: 12px;
+    }
+
+    .editor-product-id strong {
+        color: #263C35;
+        font-size: 13px;
+    }
+
+    .editor-card {
+        padding: 34px;
+        background: #fff;
+        border: 1px solid #E7EBE6;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(38, 60, 53, .045);
+    }
+
+    .editor-section + .editor-section {
+        margin-top: 32px;
+        padding-top: 28px;
+        border-top: 1px solid #EDF0EC;
+    }
+
+    .editor-section-title {
+        margin: 0 0 5px;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .editor-section-subtitle {
+        margin: 0 0 22px;
+        color: #929B94;
+        font-size: 12px;
+    }
+
+    .editor-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .editor-field {
+        margin-bottom: 20px;
+    }
+
+    .editor-field:last-child {
+        margin-bottom: 0;
+    }
+
+    .editor-field label {
+        display: block;
+        margin-bottom: 9px;
+        color: #35483E;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .editor-required {
+        color: #A36E55;
+    }
+
+    .editor-field .form-control {
+        width: 100%;
+        min-height: 46px;
+        padding: 12px 14px;
+        color: #263C35;
+        background: #FAFBF9;
+        border: 1px solid #E3E9E2;
+        border-radius: 10px;
+        font-size: 13px;
+        transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+
+    .editor-field textarea.form-control {
+        min-height: 125px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    .editor-field .form-control:focus {
+        background: #fff;
+        border-color: #8B9A77;
+        box-shadow: 0 0 0 3px rgba(139, 154, 119, .13);
+        outline: none;
+    }
+
+    .editor-field .form-control::placeholder {
+        color: #B0B8B0;
+    }
+
+    .editor-hint {
+        display: block;
+        margin-top: 7px;
+        color: #9AA39B;
+        font-size: 11px;
+    }
+
+    .editor-validation {
+        display: block;
+        margin-top: 6px;
+        color: #B45F54;
+        font-size: 12px;
+    }
+
+    .validation-summary-errors {
+        margin-bottom: 22px;
+        padding: 14px 17px;
+        color: #A44F46;
+        background: #FFF4F1;
+        border: 1px solid #F2DAD5;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .validation-summary-errors ul {
+        margin: 6px 0 0;
+        padding-left: 20px;
+    }
+
+    .image-upload-box {
+        padding: 20px;
+        background: #FAFBF9;
+        border: 1px dashed #D6DED5;
+        border-radius: 14px;
+    }
+
+    .image-upload-box .form-control {
+        background: #fff;
+    }
+
+    .image-preview-area {
+        display: none;
+        margin-top: 18px;
+        padding: 16px;
+        background: #fff;
+        border: 1px solid #E8ECE7;
+        border-radius: 12px;
+    }
+
+    .image-preview-area img {
+        display: block;
+        max-width: 100%;
+        width: 220px;
+        height: 190px;
+        margin: 12px auto 0;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .image-preview-caption {
+        color: #89968D;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .editor-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #EDF0EC;
+    }
+
+    .editor-actions .button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 23px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 650;
+        text-decoration: none;
+        transition: .2s;
         cursor: pointer;
     }
 
-    .edit-product-cancel {
-        color: #777;
-        text-decoration: none;
+    .editor-actions .button-dark {
+        color: #fff;
+        background: #263C35;
+        border: 1px solid #263C35;
     }
 
-    .edit-product-error {
-        color: #b42318;
-        font-size: 13px;
+    .editor-actions .button-dark:hover {
+        background: #385448;
+        border-color: #385448;
+        transform: translateY(-1px);
+    }
+
+    .editor-actions .button-light {
+        color: #52665A;
+        background: #F3F6F1;
+        border: 1px solid #E5EAE3;
+    }
+
+    .editor-actions .button-light:hover {
+        background: #E9EFE7;
+    }
+
+    @@media (max-width: 650px) {
+        .product-editor {
+            padding-top: 18px;
+        }
+
+        .editor-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .editor-card {
+            padding: 22px 17px;
+            border-radius: 15px;
+        }
+
+        .editor-grid {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .editor-actions {
+            flex-direction: column-reverse;
+        }
+
+        .editor-actions .button {
+            width: 100%;
+        }
     }
 </style>
 
-<div class="edit-product-page">
+<div class="admin-page product-editor">
 
-    <p class="eyebrow">
-        SIMPLESTORE / АДМИНИСТРАТОР
-    </p>
+    <div class="editor-heading">
+        <div>
+            <p class="editor-eyebrow">SIMPLESTORE / УПРАВЛЕНИЕ ТОВАРАМИ</p>
+            <h1>Редактирование товара</h1>
+            <p class="editor-description">
+                Обновите информацию о товаре в каталоге магазина.
+            </p>
 
-    <h1>Редактирование товара</h1>
-
-    <p class="muted">
-        Измените информацию о товаре №@Model.Id
-    </p>
-
-    <form asp-controller="AdminProducts"
-          asp-action="Edit"
-          asp-route-id="@Model.Id"
-          method="post"
-          class="edit-product-form">
-
-        @Html.AntiForgeryToken()
-
-        <input type="hidden" asp-for="Id" />
-
-        <div asp-validation-summary="All"
-             class="edit-product-error"></div>
-
-        <div class="edit-product-field">
-            <label asp-for="Name">
-                Название товара
-            </label>
-
-            <input asp-for="Name"
-                   required
-                   maxlength="200" />
+            <div class="editor-product-id">
+                Номер товара <strong>#@Model.Id</strong>
+            </div>
         </div>
 
-        <div class="edit-product-field">
-            <label asp-for="Description">
-                Описание
-            </label>
+        <a asp-controller="AdminProducts"
+           asp-action="Index"
+           class="editor-back">
+            ← К списку товаров
+        </a>
+    </div>
 
-            <textarea asp-for="Description"></textarea>
-        </div>
+    <div class="editor-card">
 
-        <div class="edit-product-field">
-            <label asp-for="Price">
-                Цена, ₽
-            </label>
+        <form asp-controller="AdminProducts"
+              asp-action="Edit"
+              asp-route-id="@Model.Id"
+              method="post">
 
-            <input asp-for="Price"
-                   type="number"
-                   step="0.01"
-                   min="0.01"
-                   required />
-        </div>
+            @Html.AntiForgeryToken()
 
-        <div class="edit-product-field">
-            <label asp-for="Category">
-                Категория
-            </label>
+            <input type="hidden" asp-for="Id" />
 
-            <input asp-for="Category" />
-        </div>
+            <div asp-validation-summary="All"
+                 class="editor-validation"></div>
 
-        <div class="edit-product-field">
-            <label asp-for="ImageUrl">
-                Ссылка на изображение
-            </label>
+            <section class="editor-section">
+                <h2 class="editor-section-title">Основная информация</h2>
+                <p class="editor-section-subtitle">
+                    Название, описание и категория товара
+                </p>
 
-            <input asp-for="ImageUrl"
-                   id="product-image-url" />
+                <div class="editor-field">
+                    <label asp-for="Name">
+                        Название товара <span class="editor-required">*</span>
+                    </label>
+                    <input asp-for="Name"
+                           class="form-control"
+                           maxlength="150"
+                           required
+                           placeholder="Название товара" />
+                    <span asp-validation-for="Name" class="editor-validation"></span>
+                </div>
 
-            @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
-            {
-                <img id="product-image-preview"
-                     class="edit-product-preview"
-                     src="@Model.ImageUrl"
-                     alt="Изображение товара" />
-            }
-            else
-            {
-                <img id="product-image-preview"
-                     class="edit-product-preview"
-                     alt="Изображение товара"
-                     style="display:none" />
-            }
-        </div>
+                <div class="editor-field">
+                    <label asp-for="Description">Описание товара</label>
+                    <textarea asp-for="Description"
+                              class="form-control"
+                              rows="5"
+                              maxlength="3000"
+                              placeholder="Описание товара..."></textarea>
+                    <span asp-validation-for="Description" class="editor-validation"></span>
+                    <span class="editor-hint">Не более 3000 символов</span>
+                </div>
 
-        <div class="edit-product-field">
-            <label asp-for="StockQuantity">
-                Количество на складе
-            </label>
+                <div class="editor-field">
+                    <label asp-for="Category">
+                        Категория <span class="editor-required">*</span>
+                    </label>
+                    <input asp-for="Category"
+                           class="form-control"
+                           required
+                           placeholder="Например, Электроника" />
+                    <span asp-validation-for="Category" class="editor-validation"></span>
+                </div>
+            </section>
 
-            <input asp-for="StockQuantity"
-                   type="number"
-                   min="0"
-                   required />
-        </div>
+            <section class="editor-section">
+                <h2 class="editor-section-title">Цена и наличие</h2>
+                <p class="editor-section-subtitle">
+                    Управление стоимостью и остатками товара
+                </p>
 
-        <div class="edit-product-actions">
+                <div class="editor-grid">
+                    <div class="editor-field">
+                        <label asp-for="Price">
+                            Цена, ₽ <span class="editor-required">*</span>
+                        </label>
+                        <input asp-for="Price"
+                               type="number"
+                               step="0.01"
+                               min="0.01"
+                               required
+                               class="form-control"
+                               placeholder="0.00" />
+                        <span asp-validation-for="Price" class="editor-validation"></span>
+                    </div>
 
-            <button type="submit"
-                    class="edit-product-save">
-                Сохранить изменения
-            </button>
+                    <div class="editor-field">
+                        <label asp-for="StockQuantity">Количество на складе</label>
+                        <input asp-for="StockQuantity"
+                               type="number"
+                               min="0"
+                               class="form-control"
+                               placeholder="0" />
+                        <span asp-validation-for="StockQuantity" class="editor-validation"></span>
+                    </div>
+                </div>
+            </section>
 
-            <a class="edit-product-cancel"
-               asp-controller="AdminProducts"
-               asp-action="Index">
-                Отмена
-            </a>
+            <section class="editor-section">
+                <h2 class="editor-section-title">Изображение товара</h2>
+                <p class="editor-section-subtitle">
+                    Измените фотографию товара или оставьте текущую
+                </p>
 
-        </div>
+                <div class="image-upload-box">
+                    <div class="editor-field">
+                        <label asp-for="ImageUrl">Ссылка на изображение</label>
+                        <input asp-for="ImageUrl"
+                               id="imageUrlInput"
+                               type="url"
+                               class="form-control"
+                               placeholder="https://example.com/image.jpg" />
+                        <span asp-validation-for="ImageUrl" class="editor-validation"></span>
+                        <span class="editor-hint">
+                            Используйте прямую ссылку на изображение
+                        </span>
+                    </div>
 
-    </form>
+                    <div id="imagePreviewContainer" class="image-preview-area">
+                        <span class="image-preview-caption">ПРЕДПРОСМОТР</span>
+                        <img id="imagePreview" alt="Изображение товара" />
+                    </div>
+                </div>
+            </section>
 
+            <div class="editor-actions">
+                <a asp-controller="AdminProducts"
+                   asp-action="Index"
+                   class="button button-light">
+                    Отмена
+                </a>
+
+                <button type="submit" class="button button-dark">
+                    Сохранить изменения
+                </button>
+            </div>
+
+        </form>
+    </div>
 </div>
 
-<script>
-    const imageInput = document.getElementById(
-        'product-image-url'
-    );
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 
-    const imagePreview = document.getElementById(
-        'product-image-preview'
-    );
+    <script>
+        const imageUrlInput = document.getElementById("imageUrlInput");
+        const imagePreview = document.getElementById("imagePreview");
+        const previewContainer = document.getElementById("imagePreviewContainer");
 
-    imageInput.addEventListener('input', function () {
-        const imageUrl = this.value.trim();
+        function updateImagePreview() {
+            const url = imageUrlInput.value.trim();
 
-        if (imageUrl) {
-            imagePreview.src = imageUrl;
-            imagePreview.style.display = 'block';
+            if (!url) {
+                previewContainer.style.display = "none";
+                imagePreview.removeAttribute("src");
+                return;
+            }
+
+            imagePreview.onload = function () {
+                previewContainer.style.display = "block";
+            };
+
+            imagePreview.onerror = function () {
+                previewContainer.style.display = "none";
+            };
+
+            imagePreview.src = url;
         }
-        else {
-            imagePreview.removeAttribute('src');
-            imagePreview.style.display = 'none';
-        }
-    });
-</script>
+
+        imageUrlInput.addEventListener("input", updateImagePreview);
+        updateImagePreview();
+    </script>
+}

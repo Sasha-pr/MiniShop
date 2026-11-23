@@ -1,13 +1,11 @@
+
 @using Microsoft.EntityFrameworkCore
 @using MiniShop.Data
 @inject ApplicationDbContext Db
 
 @{
     var isLoggedIn = User.Identity?.IsAuthenticated == true;
-
-    var isStaff = User.IsInRole("Admin") ||
-                  User.IsInRole("Moderator");
-
+    var isStaff = User.IsInRole("Admin") || User.IsInRole("Moderator");
     var isAdmin = User.IsInRole("Admin");
 
     var userId = User.FindFirst(
@@ -21,9 +19,7 @@
     if (isLoggedIn && !string.IsNullOrEmpty(userId))
     {
         unreadCount = await Db.UserNotifications
-            .CountAsync(n =>
-                n.UserId == userId &&
-                !n.IsRead);
+            .CountAsync(n => n.UserId == userId && !n.IsRead);
     }
 
     if (isStaff)
@@ -45,75 +41,151 @@
 
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — SIMPLESTORE</title>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <title>@ViewData["Title"] — SimpleStore</title>
-
-    <link rel="stylesheet"
-          href="~/css/site.css"
-          asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <style>
-        /* Верхняя шапка */
+        :root {
+            --store-primary: #263c35;
+            --store-primary-hover: #344f45;
+            --store-accent: #dce8df;
+            --store-accent-dark: #718b79;
+            --store-bg: #f5f7f4;
+            --store-card: #ffffff;
+            --store-text: #26332d;
+            --store-muted: #78827b;
+            --store-border: #e5eae5;
+            --store-danger: #a64b4b;
+            --store-radius: 14px;
+        }
+
+        body {
+            margin: 0;
+            background: var(--store-bg);
+            color: var(--store-text);
+            font-family: Inter, Arial, sans-serif;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        /* Верхняя панель */
 
         .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 900;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
+            gap: 24px;
+            min-height: 76px;
+            padding: 12px max(6%, calc((100% - 1180px) / 2));
+            background: rgba(255,255,255,.96);
+            border-bottom: 1px solid var(--store-border);
+            backdrop-filter: blur(12px);
         }
 
-        .topbar .main-nav {
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            color: var(--store-primary);
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: -1.2px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .logo span {
+            color: var(--store-accent-dark);
+        }
+
+        .main-nav {
             display: flex;
             align-items: center;
-            gap: 25px;
+            gap: 16px;
         }
 
-        .topbar .main-nav a {
-            white-space: nowrap;
+        .main-nav > a {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 13px;
+            border-radius: 9px;
+            color: var(--store-text);
+            font-size: 13px;
+            font-weight: 600;
             text-decoration: none;
+            transition: background .2s, color .2s;
+        }
+
+        .main-nav > a:hover {
+            background: var(--store-bg);
+            color: var(--store-accent-dark);
+        }
+
+        .count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: 20px;
+            background: var(--store-accent);
+            color: var(--store-primary);
+            font-size: 11px;
+            font-weight: 700;
         }
 
         .menu-button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            background: #20211f;
-            color: white;
-            border: none;
-            border-radius: 9px;
-            padding: 11px 17px;
+            gap: 9px;
+            min-height: 42px;
+            padding: 10px 16px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--store-primary);
+            color: #fff;
             font: inherit;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
+            transition: background .2s, transform .2s;
         }
 
         .menu-button:hover {
-            background: #41443c;
+            background: var(--store-primary-hover);
+            transform: translateY(-1px);
         }
 
         .menu-icon {
-            font-size: 20px;
-            line-height: 1;
+            font-size: 17px;
         }
 
-        /* Затемнение фона */
+        /* Боковое меню */
 
         .sidebar-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.35);
             z-index: 1000;
+            background: rgba(20, 32, 26, .42);
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.25s, visibility 0.25s;
+            transition: opacity .25s, visibility .25s;
         }
 
         .sidebar-overlay.open {
@@ -121,24 +193,21 @@
             visibility: visible;
         }
 
-        /* Боковое меню */
-
         .sidebar {
             position: fixed;
             top: 0;
             right: 0;
-            width: 340px;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            width: 360px;
             max-width: 100%;
             height: 100vh;
             height: 100dvh;
             background: #fff;
-            z-index: 1001;
+            box-shadow: -12px 0 40px rgba(20, 32, 26, .12);
             transform: translateX(100%);
-            transition: transform 0.25s ease;
-            box-shadow: -8px 0 30px rgba(0, 0, 0, 0.08);
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
+            transition: transform .25s ease;
         }
 
         .sidebar.open {
@@ -149,98 +218,114 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 25px;
-            border-bottom: 1px solid #eee;
+            padding: 24px;
+            border-bottom: 1px solid var(--store-border);
         }
 
         .sidebar-title {
-            font-size: 21px;
-            font-weight: 700;
+            color: var(--store-primary);
+            font-size: 20px;
+            font-weight: 800;
         }
 
         .sidebar-close {
-            background: transparent;
-            border: none;
-            font-size: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border: 0;
+            border-radius: 9px;
+            background: var(--store-bg);
+            color: var(--store-text);
+            font-size: 24px;
             cursor: pointer;
-            color: #20211f;
         }
 
         .sidebar-content {
+            flex: 1;
             padding: 20px;
             overflow-y: auto;
-            flex: 1;
+        }
+
+        .sidebar-account {
+            padding: 17px;
+            margin-bottom: 22px;
+            border: 1px solid var(--store-border);
+            border-radius: 12px;
+            background: var(--store-bg);
+            overflow-wrap: anywhere;
+        }
+
+        .sidebar-account-label {
+            margin-bottom: 6px;
+            color: var(--store-muted);
+            font-size: 11px;
+        }
+
+        .sidebar-account-name {
+            color: var(--store-primary);
+            font-size: 14px;
+            font-weight: 700;
         }
 
         .sidebar-section-title {
-            font-size: 11px;
-            font-weight: 700;
+            margin: 22px 10px 10px;
+            color: var(--store-muted);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.3px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #888;
-            margin: 20px 10px 12px;
         }
 
         .sidebar-link {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px;
-            color: #20211f;
+            min-height: 46px;
+            padding: 11px 13px;
+            border-radius: 10px;
+            color: var(--store-text);
+            font-size: 13px;
+            font-weight: 500;
             text-decoration: none;
-            border-radius: 9px;
-            font-size: 14px;
-            transition: background 0.2s;
+            transition: background .2s, color .2s;
         }
 
         .sidebar-link:hover {
-            background: #f5f6f2;
+            background: var(--store-bg);
+            color: var(--store-accent-dark);
         }
 
-        .sidebar-link .link-icon {
-            font-size: 19px;
+        .link-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             width: 25px;
-            text-align: center;
-        }
-
-        .sidebar-divider {
-            border: none;
-            border-top: 1px solid #eee;
-            margin: 18px 0;
-        }
-
-        .sidebar-account {
-            background: #f5f6f2;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            overflow-wrap: anywhere;
-        }
-
-        .sidebar-account-label {
-            font-size: 11px;
-            color: #888;
-            margin-bottom: 5px;
-        }
-
-        .sidebar-account-name {
-            font-size: 14px;
-            font-weight: 600;
+            color: var(--store-accent-dark);
+            font-size: 18px;
         }
 
         .sidebar-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 5px;
-            border-radius: 20px;
-            background: #8b9a77;
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
+            min-width: 21px;
+            height: 21px;
+            padding: 0 6px;
             margin-left: auto;
+            border-radius: 20px;
+            background: var(--store-primary);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            margin: 18px 0;
+            border: 0;
+            background: var(--store-border);
         }
 
         .sidebar-logout {
@@ -252,51 +337,180 @@
             align-items: center;
             gap: 12px;
             width: 100%;
-            padding: 14px;
+            min-height: 46px;
+            padding: 11px 13px;
+            border: 0;
+            border-radius: 10px;
             background: transparent;
-            border: none;
-            border-radius: 9px;
-            text-align: left;
+            color: var(--store-danger);
             font: inherit;
-            font-size: 14px;
-            color: #9b3a3a;
+            font-size: 13px;
+            text-align: left;
             cursor: pointer;
         }
 
         .sidebar-logout button:hover {
-            background: #fff0f0;
+            background: #fff2f0;
         }
 
         body.sidebar-open {
             overflow: hidden;
         }
 
+        /* Основная область */
+
+        main.container {
+            min-height: calc(100vh - 230px);
+        }
+
+        /* Подвал */
+
+        .footer {
+            margin-top: 65px;
+            padding: 42px 6% 20px;
+            background: #fff;
+            border-top: 1px solid var(--store-border);
+        }
+
+        .footer-inner {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            color: var(--store-primary);
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-decoration: none;
+        }
+
+        .footer-brand p {
+            margin-top: 12px;
+            color: var(--store-muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .footer-title {
+            display: block;
+            margin-bottom: 15px;
+            color: var(--store-primary);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .footer-links,
+        .footer-socials {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .footer-links a,
+        .footer-socials a {
+            margin-bottom: 10px;
+            color: var(--store-muted);
+            font-size: 13px;
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .footer-links a:hover,
+        .footer-socials a:hover {
+            color: var(--store-accent-dark);
+        }
+
+        .footer-bottom {
+            max-width: 1180px;
+            margin: 32px auto 0;
+            padding-top: 18px;
+            border-top: 1px solid var(--store-border);
+            color: var(--store-muted);
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .toast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 1200;
+            max-width: min(380px, calc(100vw - 32px));
+            padding: 14px 18px;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 11px;
+            background: var(--store-primary);
+            color: #fff;
+            font-size: 13px;
+            line-height: 1.5;
+            box-shadow: 0 10px 30px rgba(20, 32, 26, .18);
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         @@media (max-width: 800px) {
             .topbar {
-                padding-top: 16px;
-                padding-bottom: 16px;
+                padding: 12px 5%;
             }
 
-            .topbar .main-nav {
-                gap: 12px;
+            .main-nav {
+                gap: 5px;
             }
 
-            .topbar .main-nav a {
-                font-size: 13px;
-            }
-
-            .menu-button {
-                padding: 10px 12px;
+            .main-nav > a {
+                padding: 9px;
             }
         }
 
-        @@media (max-width: 480px) {
-            .sidebar {
-                width: 100%;
+        @@media (max-width: 600px) {
+            .topbar {
+                min-height: 66px;
+                gap: 10px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            .main-nav {
+                gap: 3px;
+            }
+
+            .main-nav > a {
+                font-size: 12px;
+            }
+
+            .menu-button {
+                min-height: 39px;
+                padding: 9px 11px;
             }
 
             .menu-button .menu-label {
                 display: none;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .footer-inner {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .footer {
+                padding: 32px 6% 18px;
             }
         }
     </style>
@@ -304,21 +518,15 @@
 
 <body>
 
-    <!-- Верхняя навигация -->
-
     <header class="topbar">
-
         <a class="logo"
            asp-controller="Products"
            asp-action="Index">
             simple<span>store</span>
         </a>
 
-        <nav class="main-nav"
-             aria-label="Основная навигация">
-
-            <a asp-controller="Products"
-               asp-action="Index">
+        <nav class="main-nav" aria-label="Основная навигация">
+            <a asp-controller="Products" asp-action="Index">
                 Каталог
             </a>
 
@@ -335,22 +543,13 @@
                     aria-label="Открыть меню"
                     aria-controls="sidebar"
                     aria-expanded="false">
-
                 <span class="menu-icon">☰</span>
                 <span class="menu-label">Меню</span>
-
             </button>
-
         </nav>
-
     </header>
 
-    <!-- Затемнение -->
-
-    <div class="sidebar-overlay"
-         id="sidebar-overlay"></div>
-
-    <!-- Боковое меню -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar"
            id="sidebar"
@@ -361,10 +560,7 @@
            inert>
 
         <div class="sidebar-header">
-
-            <span class="sidebar-title">
-                Меню
-            </span>
+            <span class="sidebar-title">Меню</span>
 
             <button type="button"
                     class="sidebar-close"
@@ -372,7 +568,6 @@
                     aria-label="Закрыть меню">
                 ×
             </button>
-
         </div>
 
         <div class="sidebar-content">
@@ -380,40 +575,25 @@
             @if (isLoggedIn)
             {
                 <div class="sidebar-account">
-                    <div class="sidebar-account-label">
-                        Вы вошли как
-                    </div>
-
-                    <div class="sidebar-account-name">
-                        @User.Identity?.Name
-                    </div>
+                    <div class="sidebar-account-label">Вы вошли как</div>
+                    <div class="sidebar-account-name">@User.Identity?.Name</div>
                 </div>
 
-                <div class="sidebar-section-title">
-                    Личный кабинет
-                </div>
+                <div class="sidebar-section-title">Личный кабинет</div>
 
-                <a class="sidebar-link"
-                   asp-controller="Bookmarks"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="Bookmarks" asp-action="Index">
                     <span class="link-icon">♡</span>
                     Закладки
                 </a>
 
-                <a class="sidebar-link"
-                   asp-controller="Waitlist"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="Waitlist" asp-action="Index">
                     <span class="link-icon">◷</span>
                     Лист ожидания
                 </a>
 
-                <a class="sidebar-link"
-                   asp-controller="Notifications"
-                   asp-action="Index">
-
+                <a class="sidebar-link" asp-controller="Notifications" asp-action="Index">
                     <span class="link-icon">♧</span>
                     Уведомления
-
                     <span id="notification-badge"
                           class="sidebar-badge"
                           style="@(unreadCount == 0 ? "display:none" : "")">
@@ -421,23 +601,17 @@
                     </span>
                 </a>
 
-                <a class="sidebar-link"
-                   asp-controller="MyOrders"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="MyOrders" asp-action="Index">
                     <span class="link-icon">▣</span>
                     Мои заказы
                 </a>
 
-                <a class="sidebar-link"
-                   asp-controller="ReturnRequests"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="ReturnRequests" asp-action="Index">
                     <span class="link-icon">↩</span>
                     Мои заявки на возврат
                 </a>
 
-                <a class="sidebar-link"
-                    asp-controller="Chat"
-                    asp-action="MyRequests">
+                <a class="sidebar-link" asp-controller="Chat" asp-action="MyRequests">
                     <span class="link-icon">☏</span>
                     Мои обращения
                 </a>
@@ -447,45 +621,31 @@
             {
                 <hr class="sidebar-divider" />
 
-                <div class="sidebar-section-title">
-                    Управление магазином
-                </div>
+                <div class="sidebar-section-title">Управление магазином</div>
 
-                <a class="sidebar-link"
-                   asp-controller="Orders"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="Orders" asp-action="Index">
                     <span class="link-icon">▤</span>
                     Заказы покупателей
                 </a>
 
-                <a class="sidebar-link"
-                   asp-controller="Stock"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="Stock" asp-action="Index">
                     <span class="link-icon">▦</span>
                     Склад
                 </a>
 
-                <a class="sidebar-link"
-                    asp-controller="Chat"
-                    asp-action="StaffRequests">
+                <a class="sidebar-link" asp-controller="Chat" asp-action="StaffRequests">
+                    <span class="link-icon">☏</span>
+                    Обращения покупателей
+                    <span id="chat-pending-badge"
+                          class="sidebar-badge"
+                          style="@(pendingChatCount == 0 ? "display:none" : "")">
+                        @pendingChatCount
+                    </span>
+                </a>
 
-                        <span class="link-icon">☏</span>
-                        Обращения покупателей
-
-                        <span id="chat-pending-badge"
-                            class="sidebar-badge"
-                            style="@(pendingChatCount == 0 ? "display:none" : "")">
-                            @pendingChatCount
-                        </span>
-                    </a>
-
-                <a class="sidebar-link"
-                   asp-controller="ReturnRequests"
-                   asp-action="Manage">
-
+                <a class="sidebar-link" asp-controller="ReturnRequests" asp-action="Manage">
                     <span class="link-icon">↩</span>
                     Заявки на возврат
-
                     <span id="return-pending-badge"
                           class="sidebar-badge"
                           style="@(pendingReturnCount == 0 ? "display:none" : "")">
@@ -496,16 +656,12 @@
 
             @if (isAdmin)
             {
-                <a class="sidebar-link"
-                   asp-controller="AdminProducts"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="AdminProducts" asp-action="Index">
                     <span class="link-icon">＋</span>
                     Управление товарами
                 </a>
 
-                <a class="sidebar-link"
-                   asp-controller="Admin"
-                   asp-action="Index">
+                <a class="sidebar-link" asp-controller="Admin" asp-action="Index">
                     <span class="link-icon">♙</span>
                     Пользователи
                 </a>
@@ -519,54 +675,68 @@
                       asp-controller="Account"
                       asp-action="Logout"
                       method="post">
-
                     @Html.AntiForgeryToken()
 
                     <button type="submit">
                         <span class="link-icon">↪</span>
                         Выйти из аккаунта
                     </button>
-
                 </form>
             }
             else
             {
-                <a class="sidebar-link"
-                   asp-controller="Account"
-                   asp-action="Login">
+                <a class="sidebar-link" asp-controller="Account" asp-action="Login">
                     <span class="link-icon">→</span>
                     Войти
                 </a>
 
-                <a class="sidebar-link"
-                   asp-controller="Account"
-                   asp-action="Register">
+                <a class="sidebar-link" asp-controller="Account" asp-action="Register">
                     <span class="link-icon">＋</span>
                     Регистрация
                 </a>
             }
 
         </div>
-
     </aside>
-
-    <!-- Содержимое страницы -->
 
     <main class="container">
         @RenderBody()
     </main>
 
     <footer class="footer">
-        SimpleStore · Учебный мини-магазин
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a asp-controller="Products"
+                   asp-action="Index"
+                   class="footer-logo">
+                    SIMPLESTORE
+                </a>
+                <p>Ваш магазин полезных покупок.<br />Покупки, заказы и поддержка в одном месте.</p>
+            </div>
+
+            <div class="footer-links">
+                <span class="footer-title">Покупателям</span>
+                <a asp-controller="Products" asp-action="Index">Каталог товаров</a>
+                <a asp-controller="Cart" asp-action="Index">Корзина</a>
+                @if (isLoggedIn)
+                {
+                    <a asp-controller="MyOrders" asp-action="Index">Мои заказы</a>
+                }
+            </div>
+
+            <div class="footer-socials">
+                <span class="footer-title">Мы на связи</span>
+                <a href="#" target="_blank" rel="noopener noreferrer">ВКонтакте</a>
+                <a href="#" target="_blank" rel="noopener noreferrer">Telegram</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © @DateTime.Now.Year SIMPLESTORE · Учебный мини-магазин
+        </div>
     </footer>
 
-    <!-- Уведомление после добавления в корзину -->
-
-    <div id="toast"
-         class="toast"
-         role="status"></div>
-
-    <!-- Токен для AJAX-запросов -->
+    <div id="toast" class="toast" role="status"></div>
 
     <form id="csrf-form" style="display:none">
         @Html.AntiForgeryToken()
@@ -597,10 +767,11 @@
             sidebarOverlay.classList.remove('open');
             document.body.classList.remove('sidebar-open');
 
-            openSidebarButton.focus();
             sidebar.setAttribute('inert', '');
             sidebar.setAttribute('aria-hidden', 'true');
             openSidebarButton.setAttribute('aria-expanded', 'false');
+
+            openSidebarButton.focus();
         }
 
         openSidebarButton.addEventListener('click', openSidebar);
@@ -608,17 +779,13 @@
         sidebarOverlay.addEventListener('click', closeSidebar);
 
         document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape' &&
-                sidebar.classList.contains('open')) {
+            if (event.key === 'Escape' && sidebar.classList.contains('open')) {
                 closeSidebar();
             }
 
-            if (event.key === 'Tab' &&
-                sidebar.classList.contains('open')) {
+            if (event.key === 'Tab' && sidebar.classList.contains('open')) {
                 const focusable = Array.from(
-                    sidebar.querySelectorAll(
-                        'a[href], button:not([disabled])'
-                    )
+                    sidebar.querySelectorAll('a[href], button:not([disabled])')
                 );
 
                 if (focusable.length === 0) return;
@@ -626,39 +793,33 @@
                 const first = focusable[0];
                 const last = focusable[focusable.length - 1];
 
-                if (event.shiftKey &&
-                    document.activeElement === first) {
+                if (event.shiftKey && document.activeElement === first) {
                     event.preventDefault();
                     last.focus();
                 }
-                else if (!event.shiftKey &&
-                         document.activeElement === last) {
+                else if (!event.shiftKey && document.activeElement === last) {
                     event.preventDefault();
                     first.focus();
                 }
             }
         });
 
-        // Корзина
+        // Счётчик корзины
 
         async function updateCartCount() {
             try {
                 const response = await fetch('/Cart/Count');
-
                 if (!response.ok) return;
 
                 const data = await response.json();
-
-                document.getElementById('cart-count').textContent =
-                    data.count;
+                document.getElementById('cart-count').textContent = data.count;
             }
             catch (error) {
-                console.error(
-                    'Не удалось обновить корзину',
-                    error
-                );
+                console.error('Не удалось обновить корзину', error);
             }
         }
+
+        // Добавление товара в корзину
 
         async function addToCart(productId) {
             try {
@@ -680,22 +841,15 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    showToast(
-                        data.message ||
-                        'Не удалось добавить товар.'
-                    );
+                    showToast(data.message || 'Не удалось добавить товар.');
                     return;
                 }
 
-                document.getElementById('cart-count').textContent =
-                    data.count;
-
+                document.getElementById('cart-count').textContent = data.count;
                 showToast(data.message);
             }
             catch (error) {
-                showToast(
-                    'Ошибка соединения. Попробуйте ещё раз.'
-                );
+                showToast('Ошибка соединения. Попробуйте ещё раз.');
             }
         }
 
@@ -726,65 +880,41 @@
 
         // Счётчик обращений
 
-                // Счётчик обращений
-
         async function updatePendingChatCount() {
-            const badge = document.getElementById(
-                'chat-pending-badge'
-            );
-
+            const badge = document.getElementById('chat-pending-badge');
             if (!badge) return;
 
             try {
                 const response = await fetch('/Chat/PendingCount');
-
                 if (!response.ok) return;
 
                 const data = await response.json();
 
-                badge.textContent =
-                    data.count > 99 ? '99+' : data.count;
-
-                badge.style.display =
-                    data.count > 0 ? 'inline-flex' : 'none';
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                badge.style.display = data.count > 0 ? 'inline-flex' : 'none';
             }
             catch (error) {
-                console.error(
-                    'Ошибка обновления счётчика чата',
-                    error
-                );
+                console.error('Ошибка обновления счётчика чата', error);
             }
         }
 
         // Счётчик заявок на возврат
 
         async function updatePendingReturnCount() {
-            const badge = document.getElementById(
-                'return-pending-badge'
-            );
-
+            const badge = document.getElementById('return-pending-badge');
             if (!badge) return;
 
             try {
-                const response = await fetch(
-                    '/ReturnRequests/PendingCount'
-                );
-
+                const response = await fetch('/ReturnRequests/PendingCount');
                 if (!response.ok) return;
 
                 const data = await response.json();
 
-                badge.textContent =
-                    data.count > 99 ? '99+' : data.count;
-
-                badge.style.display =
-                    data.count > 0 ? 'inline-flex' : 'none';
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                badge.style.display = data.count > 0 ? 'inline-flex' : 'none';
             }
             catch (error) {
-                console.error(
-                    'Ошибка обновления счётчика заявок',
-                    error
-                );
+                console.error('Ошибка обновления счётчика заявок', error);
             }
         }
 
@@ -798,10 +928,66 @@
             setInterval(updatePendingReturnCount, 5000);
         }
 
-        if (document.getElementById('chat-pending-badge')) {
-            setInterval(updatePendingChatCount, 5000);
+        // Счётчик уведомлений
+
+        async function updateNotificationCount() {
+            const badge = document.getElementById('notification-badge');
+            if (!badge) return;
+
+            try {
+                const response = await fetch('/Notifications/UnreadCount');
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                badge.style.display = data.count > 0 ? 'inline-flex' : 'none';
+            }
+            catch (error) {
+                console.error('Ошибка обновления уведомлений:', error);
+            }
         }
 
+        if (document.getElementById('notification-badge')) {
+            updateNotificationCount();
+            setInterval(updateNotificationCount, 3000);
+        }
+
+        // Обновление списка уведомлений при появлении новых
+
+        let notificationIds = null;
+
+        async function checkNewNotifications() {
+            if (!window.location.pathname.toLowerCase().startsWith('/notifications')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/Notifications/Latest');
+                if (!response.ok) return;
+
+                const notifications = await response.json();
+                const currentIds = notifications.map(n => n.id).join(',');
+
+                if (notificationIds === null) {
+                    notificationIds = currentIds;
+                    return;
+                }
+
+                if (currentIds !== notificationIds) {
+                    notificationIds = currentIds;
+                    window.location.reload();
+                }
+            }
+            catch (error) {
+                console.error('Ошибка проверки новых уведомлений:', error);
+            }
+        }
+
+        if (window.location.pathname.toLowerCase().startsWith('/notifications')) {
+            checkNewNotifications();
+            setInterval(checkNewNotifications, 3000);
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

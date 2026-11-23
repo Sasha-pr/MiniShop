@@ -1,0 +1,145 @@
+
+@using MiniShop.Models
+@model List<ProductSupportRequest>
+
+@{
+    ViewData["Title"] = "Мои обращения";
+}
+
+<style>
+    .support-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 0 75px;
+    }
+
+    .support-page h1 {
+        font-size: 36px;
+        letter-spacing: -1px;
+        margin: 12px 0;
+    }
+
+    .support-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 28px;
+    }
+
+    .support-request-card {
+        display: block;
+        padding: 22px 24px;
+        background: #fff;
+        border: 1px solid #e5eae5;
+        border-radius: 16px;
+        text-decoration: none;
+        color: #26332d;
+        transition: .2s;
+    }
+
+    .support-request-card:hover {
+        border-color: #aab99a;
+        transform: translateY(-2px);
+    }
+
+    .support-request-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .support-request-card h3 {
+        margin: 0 0 9px;
+        font-size: 17px;
+    }
+
+    .support-muted {
+        color: #78827b;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .support-status {
+        display: inline-block;
+        padding: 7px 11px;
+        border-radius: 20px;
+        background: #edf3eb;
+        color: #526b4c;
+        font-size: 12px;
+        font-weight: 650;
+        height: fit-content;
+    }
+
+    .support-empty {
+        margin-top: 28px;
+        padding: 35px;
+        text-align: center;
+        background: #fff;
+        border: 1px solid #e5eae5;
+        border-radius: 16px;
+        color: #78827b;
+    }
+</style>
+
+<div class="support-page">
+    <a class="back-link"
+       asp-controller="MyOrders"
+       asp-action="Index">
+        ← Мои заказы
+    </a>
+
+    <p class="eyebrow">SIMPLESTORE / ПОДДЕРЖКА</p>
+    <h1>Мои обращения</h1>
+    <p class="support-muted">
+        Здесь находятся вопросы, которые вы отправляли по полученным товарам.
+    </p>
+
+    @if (TempData["ProductSupportSuccess"] != null)
+    {
+        <div class="return-message success">
+            @TempData["ProductSupportSuccess"]
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="support-list">
+            @foreach (var request in Model)
+            {
+                <a asp-action="RequestDetails"
+                   asp-route-id="@request.Id"
+                   class="support-request-card">
+
+                    <div class="support-request-top">
+                        <div>
+                            <h3>@request.Subject</h3>
+                            <div class="support-muted">
+                                №@request.RequestNumber
+                            </div>
+                        </div>
+
+                        <span class="support-status">
+                            @request.Status
+                        </span>
+                    </div>
+
+                    <p class="support-muted">
+                        @request.Question
+                    </p>
+
+                    <div class="support-muted">
+                        Создано: @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="support-empty">
+            <h3>У вас пока нет обращений</h3>
+            <p>Вы сможете обратиться по товару после завершения заказа.</p>
+        </div>
+    }
+</div>

@@ -4,61 +4,421 @@
     ViewData["Title"] = "Мои обращения";
 }
 
-<div class="hero">
-    <p class="eyebrow">ПОДДЕРЖКА</p>
-    <h1>Мои обращения</h1>
-    <p class="muted">Здесь можно посмотреть свои вопросы и ответы сотрудников.</p>
+<div class="support-requests-page">
 
-    <div class="form-actions">
-        <a asp-controller="Chat"
-           asp-action="CreateRequest"
-           class="button button-dark">
-            Создать обращение
-        </a>
+    <section class="requests-hero">
+        <div>
+            <span class="requests-eyebrow">ПОДДЕРЖКА SIMPLESTORE</span>
+            <h1>Мои обращения</h1>
+            <p>Здесь собраны ваши вопросы и ответы сотрудников поддержки.</p>
+        </div>
 
-        <a asp-controller="Products"
-           asp-action="Index"
-           class="button button-light">
-            Вернуться в магазин
-        </a>
-    </div>
+        <div class="requests-actions">
+            <a asp-controller="Chat"
+               asp-action="CreateRequest"
+               class="requests-button requests-button-primary">
+                <span>＋</span> Создать обращение
+            </a>
+
+            <a asp-controller="Products"
+               asp-action="Index"
+               class="requests-button requests-button-light">
+                Вернуться в магазин
+            </a>
+        </div>
+    </section>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <section class="requests-empty">
+            <div class="requests-empty-icon">✉</div>
+            <h2>Пока нет обращений</h2>
+            <p>
+                Если у вас возник вопрос, создайте новое обращение.
+                Сотрудники поддержки смогут ответить вам в переписке.
+            </p>
+
+            <a asp-controller="Chat"
+               asp-action="CreateRequest"
+               class="requests-button requests-button-primary">
+                Создать первое обращение
+            </a>
+        </section>
+    }
+    else
+    {
+        <div class="requests-list">
+            <div class="requests-list-heading">
+                <div>
+                    <h2>История обращений</h2>
+                    <p>Всего обращений: @Model.Count</p>
+                </div>
+            </div>
+
+            @foreach (var request in Model)
+            {
+                var statusClass = request.Status switch
+                {
+                    "Новое" => "status-new",
+                    "В обработке" => "status-progress",
+                    "Ожидает ответа" => "status-waiting",
+                    "Закрыта" => "status-closed",
+                    _ => "status-default"
+                };
+
+                <article class="request-card">
+                    <div class="request-card-top">
+                        <div>
+                            <span class="request-number">
+                                ОБРАЩЕНИЕ №@request.Id
+                            </span>
+
+                            <h3>Ваш вопрос в поддержку</h3>
+                        </div>
+
+                        <span class="request-status @statusClass">
+                            @request.Status
+                        </span>
+                    </div>
+
+                    <div class="request-date">
+                        <span>Создано</span>
+                        <strong>
+                            @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        </strong>
+                    </div>
+
+                    <div class="request-question">
+                        <span>Ваш вопрос</span>
+                        <p>@request.Question</p>
+                    </div>
+
+                    <div class="request-card-bottom">
+                        <span class="request-hint">
+                            Откройте обращение, чтобы посмотреть переписку
+                        </span>
+
+                        <a asp-controller="Chat"
+                           asp-action="RequestDetails"
+                           asp-route-id="@request.Id"
+                           class="requests-button requests-button-primary">
+                            Открыть переписку
+                            <span>→</span>
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
 </div>
 
-@if (Model == null || Model.Count == 0)
-{
-    <div class="review">
-        <h3>У вас пока нет обращений</h3>
-        <p class="muted">
-            Если у вас возник вопрос, создайте новое обращение.
-        </p>
-    </div>
-}
-else
-{
-    <div class="reviews-list">
-        @foreach (var request in Model)
-        {
-            <div class="review">
-                <div class="form-actions">
-                    <h3>Обращение №@request.Id</h3>
-                    <span class="muted">@request.Status</span>
-                </div>
+<style>
+    .support-requests-page {
+        --requests-primary: #263C35;
+        --requests-accent: #DCE8DF;
+        --requests-bg: #F5F6F2;
+        --requests-text: #26332D;
+        --requests-muted: #78827B;
+        --requests-border: #E5EAE5;
 
-                <p class="muted">
-                    Создано:
-                    @request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                </p>
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+        color: var(--requests-text);
+        font-family: 'Inter', sans-serif;
+    }
 
-                <p>@request.Question</p>
+    .requests-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        padding: 34px;
+        margin-bottom: 30px;
+        background: var(--requests-bg);
+        border: 1px solid var(--requests-border);
+        border-radius: 22px;
+    }
 
-                <a asp-controller="Chat"
-                   asp-action="RequestDetails"
-                   asp-route-id="@request.Id"
-                   class="button button-dark">
-                    Открыть переписку
-                </a>
-            </div>
+    .requests-eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: var(--requests-muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+    }
+
+    .requests-hero h1 {
+        margin: 0 0 10px;
+        font-size: clamp(28px, 4vw, 38px);
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .requests-hero p {
+        margin: 0;
+        color: var(--requests-muted);
+        line-height: 1.6;
+    }
+
+    .requests-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .requests-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        min-height: 44px;
+        padding: 11px 17px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: .2s ease;
+        cursor: pointer;
+    }
+
+    .requests-button-primary {
+        color: #fff;
+        background: var(--requests-primary);
+    }
+
+    .requests-button-primary:hover {
+        color: #fff;
+        background: #38564A;
+        transform: translateY(-1px);
+    }
+
+    .requests-button-light {
+        color: var(--requests-primary);
+        background: #fff;
+        border-color: var(--requests-border);
+    }
+
+    .requests-button-light:hover {
+        background: var(--requests-accent);
+        color: var(--requests-primary);
+    }
+
+    .requests-empty {
+        padding: 55px 25px;
+        text-align: center;
+        background: #fff;
+        border: 1px solid var(--requests-border);
+        border-radius: 20px;
+    }
+
+    .requests-empty-icon {
+        display: grid;
+        place-items: center;
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 18px;
+        color: var(--requests-primary);
+        background: var(--requests-accent);
+        border-radius: 20px;
+        font-size: 28px;
+    }
+
+    .requests-empty h2 {
+        margin: 0 0 10px;
+        font-size: 22px;
+    }
+
+    .requests-empty p {
+        max-width: 440px;
+        margin: 0 auto 22px;
+        color: var(--requests-muted);
+        line-height: 1.6;
+    }
+
+    .requests-list-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 17px;
+    }
+
+    .requests-list-heading h2 {
+        margin: 0 0 5px;
+        font-size: 21px;
+        font-weight: 800;
+    }
+
+    .requests-list-heading p {
+        margin: 0;
+        color: var(--requests-muted);
+        font-size: 13px;
+    }
+
+    .requests-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .request-card {
+        padding: 24px;
+        background: #fff;
+        border: 1px solid var(--requests-border);
+        border-radius: 18px;
+        transition: .2s ease;
+    }
+
+    .request-card:hover {
+        border-color: #C8D6CC;
+        box-shadow: 0 8px 24px rgba(38, 60, 53, .05);
+    }
+
+    .request-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 18px;
+    }
+
+    .request-number {
+        color: var(--requests-muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .request-card h3 {
+        margin: 7px 0 0;
+        font-size: 18px;
+        font-weight: 750;
+    }
+
+    .request-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 11px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .status-new {
+        color: #805D20;
+        background: #F8EFD9;
+    }
+
+    .status-progress {
+        color: #315C76;
+        background: #E5F0F6;
+    }
+
+    .status-waiting {
+        color: #70558A;
+        background: #F0E9F7;
+    }
+
+    .status-closed {
+        color: #356348;
+        background: #E3F0E6;
+    }
+
+    .status-default {
+        color: var(--requests-muted);
+        background: var(--requests-bg);
+    }
+
+    .request-date {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 17px;
+        color: var(--requests-muted);
+        font-size: 12px;
+    }
+
+    .request-date strong {
+        color: var(--requests-text);
+        font-weight: 650;
+    }
+
+    .request-question {
+        padding: 15px 17px;
+        background: var(--requests-bg);
+        border-radius: 12px;
+    }
+
+    .request-question span {
+        color: var(--requests-muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .8px;
+        text-transform: uppercase;
+    }
+
+    .request-question p {
+        margin: 7px 0 0;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .request-card-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-top: 18px;
+    }
+
+    .request-hint {
+        color: var(--requests-muted);
+        font-size: 12px;
+    }
+
+    @@media (max-width: 700px) {
+        .requests-hero {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 25px 20px;
         }
-    </div>
-}
 
+        .requests-actions {
+            width: 100%;
+        }
+
+        .requests-actions .requests-button {
+            flex: 1;
+        }
+
+        .request-card {
+            padding: 19px;
+        }
+
+        .request-card-bottom {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .request-card-bottom .requests-button {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 420px) {
+        .requests-actions {
+            flex-direction: column;
+        }
+
+        .requests-actions .requests-button {
+            width: 100%;
+        }
+
+        .request-card-top {
+            flex-direction: column;
+        }
+    }
+</style>
